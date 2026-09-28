@@ -1,0 +1,30 @@
+---
+import {
+  getEntry,
+  type CollectionEntry,
+  type CollectionKey,
+} from "astro:content";
+
+/**
+ * Fetch a single-entry collection document, e.g. the homepage's `-index`.
+ * Throws rather than returning null so a missing or schema-invalid content
+ * file fails loudly at build time instead of rendering an empty page.
+ */
+export const getListPage = async <C extends CollectionKey>(
+  collectionName: C,
+  documentId: "-index" | string,
+): Promise<CollectionEntry<C>> => {
+  const data = (await getEntry(
+    collectionName,
+    documentId,
+  )) as CollectionEntry<C> | null;
+
+  if (!data) {
+    throw new Error(
+      `No page found for the collection: ${collectionName} with filename: ${documentId}`,
+    );
+  }
+
+  return data;
+};
+---

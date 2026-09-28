@@ -1,0 +1,71 @@
+---
+/**
+ * Shared chrome for the four POS mocks, so they read as one application rather
+ * than four separate illustrations. The frame is markup only; each mock owns
+ * its own contents and its own play sequence.
+ */
+export interface Props {
+  label: string;
+  /** Applied to the root so the parent script can start this mock. */
+  mockKey: string;
+}
+
+const { label, mockKey } = Astro.props as Props;
+---
+
+<div class="frame" data-mock={mockKey}>
+  <div class="frame__bar" aria-hidden="true">
+    <span class="frame__dot"></span>
+    <span class="frame__dot"></span>
+    <span class="frame__dot"></span>
+    <span class="frame__label">{label}</span>
+  </div>
+  <div class="frame__body">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .frame {
+    position: relative;
+    border: 1px solid var(--color-border);
+    border-radius: 1.1rem;
+    background: color-mix(in srgb, var(--color-light) 92%, transparent);
+    overflow: hidden;
+    box-shadow: 0 30px 70px -40px rgb(0 0 0 / 0.95);
+  }
+
+  .frame__bar {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.65rem 0.9rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .frame__dot {
+    width: 0.4rem;
+    height: 0.4rem;
+    border-radius: 50%;
+    background: var(--color-border);
+  }
+
+  .frame__label {
+    margin-left: auto;
+    font-family: var(--font-primary);
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-text-dark);
+  }
+
+  .frame__body {
+    padding: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .frame__body {
+      padding: 1.25rem;
+    }
+  }
+</style>

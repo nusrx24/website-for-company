@@ -1,0 +1,40 @@
+{
+  "site": {
+    "_comment": "base_url is the ONE place the production domain is configured. It feeds astro.config.mjs (site), the sitemap, canonical links and all Open Graph/Twitter URLs. Replace the .example placeholder with the real domain when it is registered - nothing else needs editing.",
+    "title": "LapCircuit",
+    "base_url": "https://lapcircuit.example",
+    "base_path": "/",
+    "trailing_slash": false,
+    "favicon": "/images/favicon.svg",
+    "logo": "/images/logo.svg",
+    "logo_width": "170",
+    "logo_height": "44",
+    "logo_text": "LapCircuit"
+  },
+  "settings": {
+    "sticky_header": true
+  },
+  "params": {
+    "contact_form_action": "/api/contact",
+    "copyright": "&copy; 2026 <strong>LapCircuit</strong>. All rights reserved.",
+    "footer_tagline": "Practical POS and business management software, built around the way your business actually works.",
+    "footer_email": "lapcircuitoff24@gmail.com",
+    "footer_phone": "+94 71 124 9740",
+    "whatsapp_number": "94711249740",
+    "whatsapp_message": "Hello LapCircuit, I would like to request a demo for my business."
+  },
+  "navigation_button": {
+    "enable": true,
+    "label": "Request a Demo",
+    "link": "https://wa.me/94711249740?text=Hello%20LapCircuit%2C%20I%20would%20like%20to%20request%20a%20demo%20for%20my%20business."
+  },
+  "google_tag_manager": {
+    "enable": false,
+    "gtm_id": ""
+  },
+  "metadata": {
+    "meta_author": "LapCircuit",
+    "meta_image": "/images/og-image.png",
+    "meta_description": "LapCircuit builds affordable, customizable POS and business management software for retail, grocery, restaurant, mobile shop, wholesale and multi-branch businesses. Offline desktop, desktop application, and cloud + mobile solutions."
+  }
+}

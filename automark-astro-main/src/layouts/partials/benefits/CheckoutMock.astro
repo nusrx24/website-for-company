@@ -1,0 +1,296 @@
+---
+import MockFrame from "./MockFrame.astro";
+
+/**
+ * Act one: three products are tapped, each drops into the bill, the total
+ * climbs, and the sale is paid. The whole point is that nobody typed a number.
+ *
+ * Example basket, chosen to match the products already shown in the hero film.
+ */
+const products = [
+  { name: "Rice 5kg", price: 1450 },
+  { name: "Sugar 1kg", price: 320 },
+  { name: "Red Dhal 1kg", price: 445 },
+  { name: "Coconut Oil 1L", price: 890 },
+];
+
+// The three that get rung up, in order.
+const basket = [products[0], products[1], products[2]];
+const total = basket.reduce((sum, p) => sum + p.price, 0);
+
+const lkr = (n: number) => n.toLocaleString("en-LK");
+---
+
+<MockFrame label="Sales" mockKey="checkout">
+  <div class="checkout">
+    <div class="checkout__grid">
+      {
+        products.map((p, i) => (
+          <button
+            class="checkout__tile"
+            style={`--i:${i}`}
+            data-tile={i < 3 ? String(i) : undefined}
+            type="button"
+            tabindex="-1"
+            aria-hidden="true"
+          >
+            <span class="checkout__tileName">{p.name}</span>
+            <span class="checkout__tilePrice">{lkr(p.price)}</span>
+          </button>
+        ))
+      }
+    </div>
+
+    <div class="checkout__bill">
+      <p class="checkout__billHead">Current bill</p>
+
+      <ul class="checkout__lines">
+        {
+          basket.map((p, i) => (
+            <li class="checkout__line" style={`--i:${i}`} data-line={i}>
+              <span>{p.name}</span>
+              <span class="checkout__linePrice">{lkr(p.price)}</span>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="checkout__total">
+        <span>Total</span>
+        {/* Counted up by the parent script; the static value is what shows
+            with JavaScript off or reduced motion on. */}
+        <span class="checkout__totalValue" data-count-to={total} data-count-prefix="LKR ">
+          LKR {lkr(total)}
+        </span>
+      </div>
+
+      <div class="checkout__pay">
+        <span class="checkout__payBtn">Pay</span>
+        <span class="checkout__paid">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.5l3.2 3.2L13 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Paid
+        </span>
+      </div>
+    </div>
+  </div>
+</MockFrame>
+
+<style>
+  .checkout {
+    display: grid;
+    gap: 0.9rem;
+  }
+  @media (min-width: 520px) {
+    .checkout {
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+  }
+
+  /* ── Product tiles ─────────────────────────────────────────────────── */
+  .checkout__grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    align-content: start;
+  }
+
+  .checkout__tile {
+    display: grid;
+    gap: 0.3rem;
+    padding: 0.6rem 0.65rem;
+    text-align: left;
+    border: 1px solid var(--color-border);
+    border-radius: 0.6rem;
+    background: color-mix(in srgb, var(--color-body) 55%, transparent);
+    transition:
+      border-color 200ms ease,
+      background-color 200ms ease,
+      transform 200ms ease;
+  }
+
+  .checkout__tileName {
+    font-family: var(--font-primary);
+    font-size: 10.5px;
+    color: var(--color-text-light);
+  }
+  .checkout__tilePrice {
+    font-family: var(--font-primary);
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--color-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Tap flash as each product is rung up. */
+  :global([data-play="true"]) .checkout__tile[data-tile] {
+    animation: tileTap 620ms ease both;
+    animation-delay: calc(var(--i) * 620ms + 260ms);
+  }
+  @keyframes tileTap {
+    30%,
+    60% {
+      border-color: color-mix(in srgb, var(--color-primary) 70%, transparent);
+      background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+      transform: scale(0.97);
+    }
+  }
+
+  /* ── Bill ──────────────────────────────────────────────────────────── */
+  .checkout__bill {
+    display: flex;
+    flex-direction: column;
+    padding: 0.8rem 0.85rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.7rem;
+    background: color-mix(in srgb, var(--color-body) 45%, transparent);
+  }
+
+  .checkout__billHead {
+    font-family: var(--font-primary);
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-text-dark);
+  }
+
+  .checkout__lines {
+    margin-top: 0.6rem;
+    display: grid;
+    gap: 0.4rem;
+    min-height: 4.2rem;
+    align-content: start;
+  }
+
+  .checkout__line {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    font-family: var(--font-primary);
+    font-size: 11px;
+    color: var(--color-text);
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  :global([data-play="true"]) .checkout__line {
+    animation: lineIn 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--i) * 620ms + 460ms);
+  }
+  @keyframes lineIn {
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .checkout__linePrice {
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text-light);
+  }
+
+  .checkout__total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-top: 0.7rem;
+    padding-top: 0.7rem;
+    border-top: 1px solid var(--color-border);
+    font-family: var(--font-primary);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-text-dark);
+  }
+  .checkout__totalValue {
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--color-primary);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Pay ───────────────────────────────────────────────────────────── */
+  .checkout__pay {
+    position: relative;
+    margin-top: 0.75rem;
+    height: 2rem;
+  }
+
+  .checkout__payBtn,
+  .checkout__paid {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    border-radius: 0.5rem;
+    font-family: var(--font-primary);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    transition:
+      opacity 240ms ease,
+      transform 240ms ease;
+  }
+
+  .checkout__payBtn {
+    color: #fff;
+    background: var(--color-primary);
+  }
+  .checkout__paid {
+    opacity: 0;
+    transform: scale(0.96);
+    color: var(--color-primary);
+    border: 1px solid color-mix(in srgb, var(--color-primary) 50%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  }
+  .checkout__paid svg {
+    width: 0.8rem;
+    height: 0.8rem;
+  }
+
+  /* 3 taps x 620ms + lead-in, then settle. */
+  :global([data-play="true"]) .checkout__payBtn {
+    animation: payOut 300ms ease 2500ms both;
+  }
+  :global([data-play="true"]) .checkout__paid {
+    animation: paidIn 300ms cubic-bezier(0.22, 1, 0.36, 1) 2560ms both;
+  }
+  @keyframes payOut {
+    to {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+  }
+  @keyframes paidIn {
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  /* Reduced motion: show the finished sale, no sequence. */
+  @media (prefers-reduced-motion: reduce) {
+    .checkout__line {
+      opacity: 1;
+      transform: none;
+    }
+    .checkout__payBtn {
+      opacity: 0;
+    }
+    .checkout__paid {
+      opacity: 1;
+      transform: none;
+    }
+    :global([data-play="true"]) .checkout__tile[data-tile],
+    :global([data-play="true"]) .checkout__line,
+    :global([data-play="true"]) .checkout__payBtn,
+    :global([data-play="true"]) .checkout__paid {
+      animation: none;
+    }
+  }
+</style>

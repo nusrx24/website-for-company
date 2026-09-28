@@ -1,0 +1,9 @@
+/*
+  animations.css — retained for reference; all template-specific animation
+  classes that were not used in this project have been removed:
+    hero-badge-anim, badge-stars, price-tag, price-togger/toggler.
+
+  Section-specific animations (Solutions, Benefits entrances) live in their
+  own <style> blocks inside each component so they can be tree-shaken.
+  Add any new shared keyframes or animation utilities here.
+*/

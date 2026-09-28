@@ -1,0 +1,168 @@
+---
+import MockFrame from "./MockFrame.astro";
+
+/**
+ * Act four: the bill the customer walks out with. The paper feeds out of the
+ * printer carrying the shop's own name, not a generic receipt header.
+ *
+ * "Your Shop Name" is left as a placeholder on purpose - naming a real shop
+ * here would imply it is that shop's actual receipt.
+ */
+const lines = [
+  { name: "Rice 5kg", qty: 1, amount: "1,450" },
+  { name: "Sugar 1kg", qty: 1, amount: "320" },
+  { name: "Red Dhal 1kg", qty: 1, amount: "445" },
+];
+---
+
+<MockFrame label="Bill printing" mockKey="receipt">
+  <div class="receipt">
+    <div class="receipt__printer" aria-hidden="true">
+      <span class="receipt__slot"></span>
+    </div>
+
+    <div class="receipt__paper">
+      <p class="receipt__shop">Your Shop Name</p>
+      <p class="receipt__meta">Main Street &middot; 011 000 0000</p>
+
+      <div class="receipt__rule"></div>
+
+      <ul class="receipt__lines">
+        {
+          lines.map((line) => (
+            <li class="receipt__line">
+              <span>
+                {line.qty} &times; {line.name}
+              </span>
+              <span class="receipt__amount">{line.amount}</span>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="receipt__rule"></div>
+
+      <p class="receipt__total">
+        <span>Total</span>
+        <span class="receipt__totalValue">2,215</span>
+      </p>
+      <p class="receipt__thanks">Thank you</p>
+    </div>
+  </div>
+</MockFrame>
+
+<style>
+  .receipt {
+    position: relative;
+    display: grid;
+    justify-items: center;
+    /* Reserves the paper's full travel so nothing below it shifts. */
+    min-height: 15.5rem;
+  }
+
+  .receipt__printer {
+    width: 82%;
+    max-width: 15rem;
+    height: 1.6rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.45rem 0.45rem 0.2rem 0.2rem;
+    background: color-mix(in srgb, var(--color-body) 70%, transparent);
+    display: grid;
+    place-items: center;
+    z-index: 2;
+  }
+
+  .receipt__slot {
+    width: 74%;
+    height: 0.22rem;
+    border-radius: 0.2rem;
+    background: var(--color-border);
+  }
+
+  .receipt__paper {
+    width: 72%;
+    max-width: 13.2rem;
+    margin-top: -0.2rem;
+    padding: 0.85rem 0.8rem 0.9rem;
+    border-radius: 0 0 0.2rem 0.2rem;
+    background: #eef2f8;
+    color: #1d2530;
+    font-family: var(--font-primary);
+    /* Starts tucked inside the printer and feeds down. */
+    clip-path: inset(0 0 100% 0);
+    transform: translateY(-6px);
+  }
+  :global([data-play="true"]) .receipt__paper {
+    animation: feed 900ms cubic-bezier(0.33, 1, 0.68, 1) 260ms both;
+  }
+  @keyframes feed {
+    to {
+      clip-path: inset(0 0 0 0);
+      transform: translateY(0);
+    }
+  }
+
+  .receipt__shop {
+    text-align: center;
+    font-family: var(--font-secondary);
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .receipt__meta {
+    margin-top: 0.15rem;
+    text-align: center;
+    font-size: 8px;
+    color: #5b6675;
+  }
+
+  .receipt__rule {
+    margin: 0.55rem 0;
+    border-top: 1px dashed #b9c2cf;
+  }
+
+  .receipt__lines {
+    display: grid;
+    gap: 0.28rem;
+  }
+
+  .receipt__line {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.6rem;
+    font-size: 9px;
+  }
+  .receipt__amount {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .receipt__total {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.6rem;
+    font-size: 10px;
+    font-weight: 700;
+  }
+  .receipt__totalValue {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .receipt__thanks {
+    margin-top: 0.5rem;
+    text-align: center;
+    font-size: 8px;
+    color: #5b6675;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .receipt__paper {
+      clip-path: none;
+      transform: none;
+    }
+    :global([data-play="true"]) .receipt__paper {
+      animation: none;
+    }
+  }
+</style>

@@ -1,0 +1,79 @@
+---
+import ImageMod from "@/components/ImageMod.astro";
+import { markdownify } from "@/lib/utils/textConverter";
+import type { Homepage } from "@/types";
+
+export interface Props {
+  hardware: Homepage["hardware"];
+}
+
+const { hardware } = Astro.props as Props;
+---
+
+{/* Image-led rather than card-led: the counter photograph does the explaining,
+    and the four items sit beside it as a plain list. */}
+<section id="hardware" class="section scroll-mt-24">
+  <div class="container">
+    <div class="grid items-center gap-10 lg:grid-cols-12 lg:gap-14">
+      <div class="lg:col-span-6">
+        {
+          hardware.image && (
+            <figure class="overflow-hidden rounded-2xl border border-border bg-light">
+              <ImageMod
+                src={hardware.image}
+                alt={hardware.image_alt ?? ""}
+                width={900}
+                class="aspect-[16/10] w-full object-cover"
+                format="webp"
+              />
+            </figure>
+          )
+        }
+      </div>
+
+      <div class="lg:col-span-6">
+        {
+          hardware.eyebrow && (
+            <p class="mb-4 font-primary text-xs font-semibold tracking-[0.18em] text-primary uppercase">
+              {hardware.eyebrow}
+            </p>
+          )
+        }
+        <h2
+          class="text-h3 lg:text-h2 mb-5 leading-[1.1] uppercase hasHighlight"
+          set:html={markdownify(hardware.title)}
+        />
+        {
+          hardware.content && (
+            <p class="mb-8 max-w-xl text-base leading-[1.75] text-text">
+              {hardware.content}
+            </p>
+          )
+        }
+
+        <dl class="divide-y divide-border border-y border-border">
+          {
+            hardware.items.map((item) => (
+              <div class="grid gap-1 py-4 sm:grid-cols-5 sm:gap-4">
+                <dt class="text-h6 leading-tight uppercase sm:col-span-2">
+                  {item.title}
+                </dt>
+                <dd class="text-sm leading-[1.75] text-text sm:col-span-3">
+                  {item.content}
+                </dd>
+              </div>
+            ))
+          }
+        </dl>
+
+        {
+          hardware.note && (
+            <p class="mt-6 border-l-2 border-primary/50 pl-4 font-primary text-[13px] leading-[1.75] text-text-dark">
+              {hardware.note}
+            </p>
+          )
+        }
+      </div>
+    </div>
+  </div>
+</section>

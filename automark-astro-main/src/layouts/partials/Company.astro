@@ -1,0 +1,98 @@
+---
+import { markdownify } from "@/lib/utils/textConverter";
+import type { Homepage } from "@/types";
+
+export interface Props {
+  company: Homepage["company"];
+  locations: Homepage["locations"];
+}
+
+const { company, locations } = Astro.props as Props;
+---
+
+{/* Company and locations share one section: they answer the same question -
+    who you would actually be dealing with, and where they are. */}
+<section id="company" class="section scroll-mt-24">
+  <div class="container">
+    <div class="grid gap-12 lg:grid-cols-12 lg:gap-14">
+      <div class="lg:col-span-7">
+        {
+          company.eyebrow && (
+            <p class="mb-4 font-primary text-xs font-semibold tracking-[0.18em] text-primary uppercase">
+              {company.eyebrow}
+            </p>
+          )
+        }
+        <h2
+          class="text-h3 lg:text-h2 mb-5 leading-[1.1] uppercase hasHighlight"
+          set:html={markdownify(company.title)}
+        />
+        <p class="max-w-2xl text-base leading-[1.75] text-text">
+          {company.content}
+        </p>
+      </div>
+
+      <div class="lg:col-span-5">
+        {
+          company.team_label && (
+            <p class="mb-5 font-primary text-[11px] tracking-[0.16em] text-text-dark uppercase">
+              {company.team_label}
+            </p>
+          )
+        }
+        <ul class="divide-y divide-border border-y border-border">
+          {
+            company.team.map((member) => (
+              <li class="flex items-baseline justify-between gap-4 py-3.5">
+                <span class="text-h6 leading-tight uppercase">
+                  {member.name}
+                </span>
+                <span class="shrink-0 font-primary text-[12px] text-text-dark">
+                  {member.role}
+                </span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+
+    {
+      locations.enable && (
+        <div class="mt-14 border-t border-border pt-10 lg:mt-20">
+          <div class="grid gap-8 lg:grid-cols-12 lg:gap-14">
+            <div class="lg:col-span-7">
+              <h3
+                class="text-h5 mb-3 leading-[1.15] uppercase hasHighlight"
+                set:html={markdownify(locations.title)}
+              />
+              {locations.content && (
+                <p class="max-w-xl text-base leading-[1.75] text-text">
+                  {locations.content}
+                </p>
+              )}
+            </div>
+
+            <div class="lg:col-span-5">
+              {/* Places read as a set of equals, so they are listed inline
+                  rather than boxed into four identical tiles. */}
+              <ul class="flex flex-wrap gap-2">
+                {locations.places.map((place) => (
+                  <li class="rounded-lg border border-border bg-light px-3.5 py-2 font-primary text-[13px] text-text-light">
+                    {place}
+                  </li>
+                ))}
+              </ul>
+
+              {locations.languages.length > 0 && (
+                <p class="mt-5 font-primary text-[12px] text-text-dark">
+                  We work in {locations.languages.join(", ")}.
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )
+    }
+  </div>
+</section>

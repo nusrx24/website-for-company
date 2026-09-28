@@ -1,0 +1,767 @@
+---
+import { markdownify } from "@/lib/utils/textConverter";
+import type { Homepage } from "@/types";
+
+export interface Props {
+  solutions: Homepage["solutions"];
+}
+
+const { solutions } = Astro.props as Props;
+
+/**
+ * The section is a hub: one POS terminal in the middle, the six business types
+ * around it. Selecting a business type changes what the terminal shows.
+ *
+ * The terminal deliberately renders each solution's real module list (the
+ * `points` already in the content file) rather than sample sales figures.
+ * Invented numbers on a product screen would be exactly the fabricated data
+ * this site avoids everywhere else.
+ *
+ * Cards are tabs and the terminal is their tabpanel, which gives arrow-key
+ * navigation for free and works on touch (tap), not hover alone.
+ */
+const slug = (value: string) =>
+  value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+const items = solutions.items.map((item, i) => ({
+  ...item,
+  id: slug(item.title),
+  index: i,
+}));
+
+const first = items[0];
+
+/**
+ * Photography lives in public/images/solutions/, pre-processed rather than run
+ * through ImageMod: all six are already tiny webp (~10KB) and share one
+ * treatment - matched to the same luminance, then given a partial blue tint so
+ * six unrelated photographs read as a single set on a near-black page.
+ * Re-encoding them at build time would only undo that.
+ *
+ * Source photos are Pexels (free for commercial use, no attribution required).
+ * See SOLUTION-IMAGES.md at the project root for the exact list.
+ */
+const thumb = (id: string) => `/images/solutions/${id}-thumb.webp`;
+const wide = (id: string) => `/images/solutions/${id}-wide.webp`;
+---
+
+<section
+  id="solutions"
+  class="solutions section scroll-mt-24"
+  data-active={first?.id}
+>
+  <!-- Cursor glow. Pure decoration, so it is hidden from assistive tech and
+       switched off entirely under reduced-motion. -->
+  <div class="solutions__glow" aria-hidden="true"></div>
+
+  <div class="container relative">
+    <div class="solutions__intro mb-12 max-w-3xl lg:mb-16">
+      {
+        solutions.eyebrow && (
+          <p class="mb-4 font-primary text-xs font-semibold tracking-[0.18em] text-primary uppercase">
+            {solutions.eyebrow}
+          </p>
+        )
+      }
+      <h2
+        class="text-h3 lg:text-h2 mb-5 leading-[1.1] uppercase hasHighlight"
+        set:html={markdownify(solutions.title)}
+      />
+      {
+        solutions.content && (
+          <p class="max-w-2xl text-base leading-[1.75] text-text">
+            {solutions.content}
+          </p>
+        )
+      }
+    </div>
+
+    <div class="solutions__hub">
+      <!-- Column 1: first three business types -->
+      <div class="solutions__col solutions__col--left" role="tablist" aria-label="Business types, part 1">
+        {
+          items.slice(0, 3).map((item) => (
+            <button
+              type="button"
+              role="tab"
+              id={`tab-${item.id}`}
+              class="solutions__card"
+              style={`--i:${item.index}`}
+              data-solution={item.id}
+              aria-selected={item.index === 0 ? "true" : "false"}
+              aria-controls="solutions-screen"
+              tabindex={item.index === 0 ? 0 : -1}
+            >
+              <img
+                class="solutions__thumb"
+                src={thumb(item.id)}
+                width="160"
+                height="160"
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+              <span class="solutions__cardBody">
+                <span class="solutions__cardTitle">{item.title}</span>
+                {item.points.length > 0 && (
+                  <span class="solutions__cardMeta">
+                    {item.points.slice(0, 3).join(" · ")}
+                  </span>
+                )}
+              </span>
+              <span class="solutions__arrow" aria-hidden="true">&rarr;</span>
+            </button>
+          ))
+        }
+      </div>
+
+      <!-- Column 2: the terminal -->
+      <div class="solutions__center">
+        <div class="solutions__terminal">
+          <div class="solutions__ring" aria-hidden="true"></div>
+
+          <div class="solutions__bezel">
+            <div class="solutions__chrome" aria-hidden="true">
+              <span class="solutions__dot"></span>
+              <span class="solutions__dot"></span>
+              <span class="solutions__dot"></span>
+              <span class="solutions__chromeLabel">LapCircuit POS</span>
+            </div>
+
+            <div
+              class="solutions__screen"
+              id="solutions-screen"
+              role="tabpanel"
+              aria-live="polite"
+            >
+              {
+                items.map((item) => (
+                  <div
+                    class="solutions__view"
+                    data-view={item.id}
+                    aria-labelledby={`tab-${item.id}`}
+                    hidden={item.index !== 0}
+                  >
+                    <img
+                      class="solutions__banner"
+                      src={wide(item.id)}
+                      width="640"
+                      height="200"
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                    />
+                    <p class="solutions__viewKicker">Configured for</p>
+                    <p class="solutions__viewTitle">{item.title}</p>
+                    <p class="solutions__viewCopy">{item.content}</p>
+
+                    {item.points.length > 0 ? (
+                      <ul class="solutions__modules">
+                        {item.points.map((point) => (
+                          <li class="solutions__module">
+                            <span class="solutions__moduleDot" aria-hidden="true" />
+                            {point}
+                          </li>
+                        ))}
+                      </ul>
+                    ) : (
+                      /* Custom work has no fixed module list. Say so rather
+                         than leaving the screen half empty - and rather than
+                         inventing modules to fill it. */
+                      <p class="solutions__modules solutions__modulesEmpty">
+                        Modules are decided with you during discovery, then
+                        built to match.
+                      </p>
+                    )}
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+
+          <div class="solutions__stand" aria-hidden="true"></div>
+        </div>
+
+        <p class="solutions__hint">
+          One system. Select a business type to see how it is set up.
+        </p>
+      </div>
+
+      <!-- Column 3: remaining business types -->
+      <div class="solutions__col solutions__col--right" role="tablist" aria-label="Business types, part 2">
+        {
+          items.slice(3).map((item) => (
+            <button
+              type="button"
+              role="tab"
+              id={`tab-${item.id}`}
+              class="solutions__card"
+              style={`--i:${item.index}`}
+              data-solution={item.id}
+              aria-selected="false"
+              aria-controls="solutions-screen"
+              tabindex={-1}
+            >
+              <img
+                class="solutions__thumb"
+                src={thumb(item.id)}
+                width="160"
+                height="160"
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+              <span class="solutions__cardBody">
+                <span class="solutions__cardTitle">{item.title}</span>
+                {item.points.length > 0 && (
+                  <span class="solutions__cardMeta">
+                    {item.points.slice(0, 3).join(" · ")}
+                  </span>
+                )}
+              </span>
+              <span class="solutions__arrow" aria-hidden="true">&rarr;</span>
+            </button>
+          ))
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .solutions {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+
+  /* ── Cursor glow ─────────────────────────────────────────────────────── */
+  .solutions__glow {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 400ms ease;
+    background: radial-gradient(
+      420px circle at var(--mx, 50%) var(--my, 40%),
+      color-mix(in srgb, var(--color-primary) 13%, transparent) 0%,
+      transparent 68%
+    );
+  }
+  .solutions[data-pointer="true"] .solutions__glow {
+    opacity: 1;
+  }
+
+  /* ── Hub layout ──────────────────────────────────────────────────────── */
+  .solutions__hub {
+    display: grid;
+    gap: 1rem;
+  }
+
+  /* The three-column hub needs real width; below 1280px the terminal and
+     cards both get cramped, so tablets keep the stacked 2-up layout. */
+  @media (min-width: 1280px) {
+    .solutions__hub {
+      grid-template-columns: 1fr minmax(360px, 1.15fr) 1fr;
+      gap: 2.5rem;
+      align-items: center;
+    }
+  }
+
+  .solutions__col {
+    display: grid;
+    gap: 0.75rem;
+    align-content: center;
+    /* Equal rows: one solution has no module list, and without this it would
+       render noticeably shorter than the two beside it. */
+    grid-auto-rows: 1fr;
+  }
+
+  @media (min-width: 640px) and (max-width: 1279px) {
+    .solutions__col {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  /* ── Business cards ──────────────────────────────────────────────────── */
+  .solutions__card {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.9rem;
+    width: 100%;
+    padding: 1rem 1.1rem;
+    text-align: left;
+    cursor: pointer;
+    border: 1px solid var(--color-border);
+    border-radius: 1rem;
+    background: color-mix(in srgb, var(--color-light) 72%, transparent);
+    backdrop-filter: blur(8px);
+    transition:
+      transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+      border-color 260ms ease,
+      background-color 260ms ease,
+      opacity 260ms ease;
+  }
+
+  .solutions__card:hover,
+  .solutions__card[aria-selected="true"] {
+    transform: translateY(-4px);
+    border-color: color-mix(in srgb, var(--color-primary) 55%, transparent);
+    background: color-mix(in srgb, var(--color-primary) 9%, var(--color-light));
+  }
+
+  /* Dim the rest only while a pointer is actually over the group, so the
+     default state stays legible and keyboard users never see it fade. */
+  .solutions__hub:hover .solutions__card:not(:hover):not([aria-selected="true"]) {
+    opacity: 0.55;
+  }
+
+  .solutions__card:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 3px;
+    opacity: 1;
+  }
+
+  .solutions__thumb {
+    width: 3.25rem;
+    height: 3.25rem;
+    flex-shrink: 0;
+    object-fit: cover;
+    border: 1px solid var(--color-border);
+    border-radius: 0.7rem;
+    /* Held back until the card is active, so the row of six reads as calm
+       rather than six competing photographs. */
+    filter: saturate(0.5) brightness(0.8);
+    transition:
+      filter 300ms ease,
+      border-color 300ms ease,
+      transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .solutions__card:hover .solutions__thumb,
+  .solutions__card[aria-selected="true"] .solutions__thumb {
+    filter: saturate(1) brightness(1.06);
+    border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
+    transform: scale(1.04);
+  }
+
+  .solutions__cardBody {
+    display: grid;
+    gap: 0.28rem;
+    min-width: 0;
+  }
+
+  .solutions__cardTitle {
+    font-family: var(--font-secondary);
+    font-weight: 700;
+    font-size: 0.95rem;
+    line-height: 1.2;
+    text-transform: uppercase;
+    color: var(--color-text-light);
+  }
+
+  .solutions__cardMeta {
+    font-family: var(--font-primary);
+    font-size: 11px;
+    line-height: 1.5;
+    color: var(--color-text-dark);
+    /* Long module lists wrap rather than stretching the card. */
+    overflow-wrap: anywhere;
+  }
+
+  .solutions__arrow {
+    font-family: var(--font-primary);
+    color: var(--color-text-dark);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition:
+      opacity 260ms ease,
+      transform 260ms ease,
+      color 260ms ease;
+  }
+  .solutions__card:hover .solutions__arrow,
+  .solutions__card[aria-selected="true"] .solutions__arrow,
+  .solutions__card:focus-visible .solutions__arrow {
+    opacity: 1;
+    transform: translateX(0);
+    color: var(--color-primary);
+  }
+
+  /* ── Connectors: only drawn where there is a gutter to draw them in ──── */
+  @media (min-width: 1280px) {
+    .solutions__card::after {
+      content: "";
+      position: absolute;
+      top: 50%;
+      width: 2.5rem;
+      height: 1px;
+      background: linear-gradient(
+        to var(--dir, right),
+        color-mix(in srgb, var(--color-primary) 60%, transparent),
+        transparent
+      );
+      opacity: 0.25;
+      transition: opacity 260ms ease;
+    }
+    .solutions__col--left .solutions__card::after {
+      left: 100%;
+      --dir: right;
+    }
+    .solutions__col--right .solutions__card::after {
+      right: 100%;
+      --dir: left;
+    }
+    .solutions__card:hover::after,
+    .solutions__card[aria-selected="true"]::after {
+      opacity: 1;
+    }
+  }
+
+  /* ── Terminal ────────────────────────────────────────────────────────── */
+  .solutions__center {
+    display: grid;
+    justify-items: center;
+    gap: 1rem;
+    order: -1;
+  }
+  @media (min-width: 1280px) {
+    .solutions__center {
+      order: 0;
+    }
+  }
+
+  .solutions__terminal {
+    position: relative;
+    width: 100%;
+    max-width: 30rem;
+    transform: translate3d(
+      calc(var(--px, 0) * 5px),
+      calc(var(--py, 0) * 5px),
+      0
+    );
+    transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  .solutions__ring {
+    position: absolute;
+    inset: -14% -8%;
+    z-index: -1;
+    border-radius: 50%;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--color-primary) 16%, transparent),
+      transparent 72%
+    );
+  }
+
+  .solutions__bezel {
+    border: 1px solid var(--color-border);
+    border-radius: 1.25rem;
+    background: color-mix(in srgb, var(--color-light) 88%, transparent);
+    backdrop-filter: blur(10px);
+    overflow: hidden;
+    box-shadow: 0 24px 60px -30px rgb(0 0 0 / 0.9);
+  }
+
+  .solutions__chrome {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.7rem 0.95rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .solutions__dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: var(--color-border);
+  }
+  .solutions__chromeLabel {
+    margin-left: auto;
+    font-family: var(--font-primary);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-text-dark);
+  }
+
+  .solutions__screen {
+    position: relative;
+    padding: 1.4rem 1.3rem 1.6rem;
+    min-height: 19rem;
+  }
+
+  .solutions__view[hidden] {
+    display: none;
+  }
+  .solutions__view {
+    animation: solutionsViewIn 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes solutionsViewIn {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+  }
+
+  .solutions__banner {
+    display: block;
+    width: calc(100% + 2.6rem);
+    height: 5.5rem;
+    margin: -1.4rem -1.3rem 1.1rem;
+    object-fit: cover;
+    /* Fades into the screen so it reads as part of the interface rather than
+       a photograph pasted on top of it. */
+    -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+    mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+  }
+
+  .solutions__viewKicker {
+    font-family: var(--font-primary);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-text-dark);
+  }
+
+  .solutions__viewTitle {
+    margin-top: 0.35rem;
+    font-family: var(--font-secondary);
+    font-weight: 700;
+    font-size: 1.35rem;
+    line-height: 1.15;
+    text-transform: uppercase;
+    color: var(--color-text-light);
+  }
+
+  .solutions__viewCopy {
+    margin-top: 0.65rem;
+    font-size: 0.82rem;
+    line-height: 1.75;
+    color: var(--color-text);
+  }
+
+  .solutions__modules {
+    margin-top: 1.1rem;
+    padding-top: 1.1rem;
+    border-top: 1px solid var(--color-border);
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .solutions__module {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-family: var(--font-primary);
+    font-size: 12px;
+    color: var(--color-text);
+  }
+
+  .solutions__modulesEmpty {
+    font-family: var(--font-primary);
+    font-size: 12px;
+    line-height: 1.75;
+    color: var(--color-text-dark);
+  }
+
+  .solutions__moduleDot {
+    width: 0.3rem;
+    height: 0.3rem;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--color-primary);
+  }
+
+  .solutions__stand {
+    width: 28%;
+    height: 0.55rem;
+    margin: 0 auto;
+    border: 1px solid var(--color-border);
+    border-top: 0;
+    border-radius: 0 0 0.5rem 0.5rem;
+    background: color-mix(in srgb, var(--color-light) 88%, transparent);
+  }
+
+  .solutions__hint {
+    font-family: var(--font-primary);
+    font-size: 11px;
+    text-align: center;
+    color: var(--color-text-dark);
+  }
+
+  /* ── Entrance ────────────────────────────────────────────────────────── */
+  .solutions__intro,
+  .solutions__center,
+  .solutions__card {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  .solutions.is-revealed .solutions__intro {
+    animation: solutionsIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .solutions.is-revealed .solutions__center {
+    animation: solutionsIn 620ms cubic-bezier(0.22, 1, 0.36, 1) 120ms both;
+  }
+  .solutions.is-revealed .solutions__card {
+    animation: solutionsIn 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(260ms + var(--i) * 60ms);
+  }
+
+  @keyframes solutionsIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* ── Reduced motion ──────────────────────────────────────────────────── */
+  @media (prefers-reduced-motion: reduce) {
+    .solutions__glow {
+      display: none;
+    }
+    .solutions__terminal {
+      transform: none;
+      transition: none;
+    }
+    .solutions__intro,
+    .solutions__center,
+    .solutions__card {
+      opacity: 1;
+      transform: none;
+      animation: none !important;
+    }
+    .solutions__view {
+      animation: none;
+    }
+    .solutions__card:hover,
+    .solutions__card[aria-selected="true"] {
+      transform: none;
+    }
+  }
+</style>
+
+<script>
+  (() => {
+    const section = document.getElementById("solutions");
+    if (!section) return;
+
+    const tabs = Array.from(
+      section.querySelectorAll<HTMLButtonElement>("[data-solution]"),
+    );
+    const views = Array.from(
+      section.querySelectorAll<HTMLElement>("[data-view]"),
+    );
+    if (!tabs.length) return;
+
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+    /** Show one business type on the terminal. */
+    const select = (id: string, moveFocus = false) => {
+      section.dataset.active = id;
+
+      tabs.forEach((tab) => {
+        const on = tab.dataset.solution === id;
+        tab.setAttribute("aria-selected", String(on));
+        // Roving tabindex: one stop for the whole group.
+        tab.tabIndex = on ? 0 : -1;
+        if (on && moveFocus) tab.focus();
+      });
+
+      views.forEach((view) => {
+        view.hidden = view.dataset.view !== id;
+      });
+    };
+
+    tabs.forEach((tab, i) => {
+      const id = tab.dataset.solution!;
+
+      // Tap and click both work; hover is an enhancement, not the only route.
+      tab.addEventListener("click", () => select(id));
+      tab.addEventListener("pointerenter", (event) => {
+        if (event.pointerType === "mouse") select(id);
+      });
+      tab.addEventListener("focus", () => select(id));
+
+      tab.addEventListener("keydown", (event) => {
+        const keys = ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp", "Home", "End"];
+        if (!keys.includes(event.key)) return;
+        event.preventDefault();
+
+        let next = i;
+        if (event.key === "ArrowRight" || event.key === "ArrowDown") {
+          next = (i + 1) % tabs.length;
+        } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
+          next = (i - 1 + tabs.length) % tabs.length;
+        } else if (event.key === "Home") {
+          next = 0;
+        } else {
+          next = tabs.length - 1;
+        }
+
+        select(tabs[next].dataset.solution!, true);
+      });
+    });
+
+    // Cursor glow + terminal parallax. Coalesced into one rAF so moving the
+    // mouse never queues more work than a frame can absorb.
+    if (!reduced.matches && window.matchMedia("(pointer: fine)").matches) {
+      let frame = 0;
+      let px = 0;
+      let py = 0;
+      let mx = 50;
+      let my = 40;
+
+      const paint = () => {
+        frame = 0;
+        section.style.setProperty("--mx", `${mx}%`);
+        section.style.setProperty("--my", `${my}%`);
+        section.style.setProperty("--px", String(px));
+        section.style.setProperty("--py", String(py));
+      };
+
+      section.addEventListener("pointermove", (event) => {
+        const box = section.getBoundingClientRect();
+        mx = ((event.clientX - box.left) / box.width) * 100;
+        my = ((event.clientY - box.top) / box.height) * 100;
+        // -1..1, inverted so the terminal drifts against the cursor.
+        px = -((event.clientX - box.left) / box.width - 0.5) * 2;
+        py = -((event.clientY - box.top) / box.height - 0.5) * 2;
+        if (!frame) frame = requestAnimationFrame(paint);
+      });
+
+      section.addEventListener("pointerenter", () => {
+        section.dataset.pointer = "true";
+      });
+      section.addEventListener("pointerleave", () => {
+        section.dataset.pointer = "false";
+        px = 0;
+        py = 0;
+        if (!frame) frame = requestAnimationFrame(paint);
+      });
+    }
+
+    // Entrance: one shot, then stop observing.
+    if (reduced.matches) {
+      section.classList.add("is-revealed");
+    } else {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (!entry.isIntersecting) return;
+            section.classList.add("is-revealed");
+            observer.disconnect();
+          });
+        },
+        { threshold: 0.15 },
+      );
+      observer.observe(section);
+    }
+  })();
+</script>

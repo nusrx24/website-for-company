@@ -1,0 +1,164 @@
+---
+import MockFrame from "./MockFrame.astro";
+
+/**
+ * Act two: the same three products leave stock. Quantities tick down from
+ * their opening figure, and the one that crosses its reorder level picks up a
+ * low stock flag. Nobody opened a stock screen to make this happen.
+ */
+const rows = [
+  { name: "Rice 5kg", from: 42, to: 40, low: false },
+  { name: "Sugar 1kg", from: 18, to: 16, low: false },
+  { name: "Red Dhal 1kg", from: 6, to: 4, low: true },
+  { name: "Coconut Oil 1L", from: 23, to: 23, low: false },
+];
+---
+
+<MockFrame label="Inventory" mockKey="stock">
+  <div class="stock">
+    <div class="stock__head" aria-hidden="true">
+      <span>Product</span>
+      <span class="stock__headQty">In stock</span>
+    </div>
+
+    <ul class="stock__rows">
+      {
+        rows.map((row, i) => (
+          <li class="stock__row" style={`--i:${i}`} data-changed={row.from !== row.to ? "true" : undefined}>
+            <span class="stock__name">{row.name}</span>
+
+            <span class="stock__right">
+              {row.low && <span class="stock__low">Low stock</span>}
+              <span
+                class="stock__qty"
+                data-count-from={row.from}
+                data-count-to={row.to}
+              >
+                {row.to}
+              </span>
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+</MockFrame>
+
+<style>
+  .stock {
+    display: grid;
+    gap: 0.55rem;
+  }
+
+  .stock__head,
+  .stock__row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .stock__head {
+    padding-bottom: 0.55rem;
+    border-bottom: 1px solid var(--color-border);
+    font-family: var(--font-primary);
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-text-dark);
+  }
+
+  .stock__rows {
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  .stock__row {
+    padding: 0.5rem 0.55rem;
+    border-radius: 0.5rem;
+    font-family: var(--font-primary);
+    font-size: 11.5px;
+    color: var(--color-text);
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  :global([data-play="true"]) .stock__row {
+    animation: stockRowIn 300ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--i) * 70ms + 120ms);
+  }
+  @keyframes stockRowIn {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* The two rows the sale touched get one brief wash of accent as their
+     number changes - the only motion that carries meaning here. */
+  :global([data-play="true"]) .stock__row[data-changed] {
+    animation:
+      stockRowIn 300ms cubic-bezier(0.22, 1, 0.36, 1) both,
+      stockTouch 900ms ease 700ms both;
+  }
+  @keyframes stockTouch {
+    25%,
+    55% {
+      background: color-mix(in srgb, var(--color-primary) 11%, transparent);
+    }
+  }
+
+  .stock__name {
+    color: var(--color-text-light);
+  }
+
+  .stock__right {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  .stock__qty {
+    min-width: 1.75rem;
+    text-align: right;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text-light);
+  }
+  :global([data-play="true"]) .stock__row[data-changed] .stock__qty {
+    color: var(--color-primary);
+  }
+
+  .stock__low {
+    padding: 0.12rem 0.4rem;
+    border: 1px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
+    border-radius: 0.3rem;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-primary);
+    opacity: 0;
+    transform: translateX(4px);
+  }
+  :global([data-play="true"]) .stock__low {
+    animation: lowIn 320ms cubic-bezier(0.22, 1, 0.36, 1) 1250ms both;
+  }
+  @keyframes lowIn {
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .stock__row,
+    .stock__low {
+      opacity: 1;
+      transform: none;
+    }
+    :global([data-play="true"]) .stock__row,
+    :global([data-play="true"]) .stock__row[data-changed],
+    :global([data-play="true"]) .stock__low {
+      animation: none;
+    }
+  }
+</style>
