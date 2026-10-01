@@ -27,3 +27,9 @@ package-lock.json
 .claude
 # ide
 .idea/
+
+# private client photos — never publish
+project-photos-source/
+
+# VS Code
+.vscode/
