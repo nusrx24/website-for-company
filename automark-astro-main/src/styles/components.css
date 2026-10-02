@@ -1,0 +1,42 @@
+/* section style */
+.section {
+  @apply py-16 xl:py-19 relative;
+}
+
+/* container */
+.container {
+  @apply mx-auto xl:max-w-330.5! px-8;
+}
+.container-sm {
+  @apply container xl:max-w-5xl!;
+}
+
+/* social icons */
+.social-icons {
+  @apply space-x-4;
+}
+.social-icons li {
+  @apply inline-block;
+}
+.social-icons li a {
+  @apply flex size-11 items-center justify-center rounded-full bg-white/5 hover:bg-white/20 text-center leading-9 text-white text-lg transition-all duration-200;
+}
+.social-icons li a svg {
+  @apply size-5;
+}
+
+/* Highlight — strong tags inside headings are coloured with the primary accent */
+.hasHighlight strong {
+  @apply text-primary;
+}
+
+/* Footer */
+.footer-label {
+  @apply text-white text-h6 font-semibold mb-11;
+}
+
+/* inline-block + py-1 lifts the hit area past the 24px minimum in WCAG 2.2
+   SC 2.5.8 without changing how the list looks. */
+.footer-link {
+  @apply inline-block py-1 text-text hover:text-white transition-colors duration-200;
+}

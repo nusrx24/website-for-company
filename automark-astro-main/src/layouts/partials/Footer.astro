@@ -1,0 +1,51 @@
+---
+import config from "@/config/config.json";
+import menu from "@/config/menu.json";
+import social from "@/config/social.json";
+import { getListPage } from "@/lib/contentParser.astro";
+import { contact, mailtoUrl, telUrl, whatsappUrl } from "@/lib/utils/contact";
+import type { Menu, SocialType } from "@/types";
+import { CinematicFooter } from "@/components/ui/motion-footer";
+
+// No legal links: the template's privacy and terms pages were Lorem Ipsum and
+// have been removed. Add real ones before publishing anything that collects
+// personal data.
+const { footer_primary, footer_resource } = menu as Menu;
+const wanted = ["Solutions", "Pricing", "Real projects", "Hardware", "Warranty", "About us"];
+const links = [...(footer_primary ?? []), ...(footer_resource ?? [])]
+  .filter((item) => wanted.includes(item.name))
+  .map((item) => ({ label: item.name, href: item.url }));
+
+// An entry shows only once it has a real profile link in social.json.
+const socials = (social as SocialType).main
+  .filter((item) => item.link)
+  .map((item) => ({ name: item.name, href: item.link }));
+
+const { data } = await getListPage("homepage", "-index");
+const places = data.locations?.places ?? [];
+const languages = data.locations?.languages ?? [];
+
+// Only things the business really offers (see content/homepage/-index.md).
+const bandItems = [
+  "Custom software",
+  "Offline + cloud",
+  "Paid once, yours for life",
+  "Direct support",
+  languages.length ? `${languages.slice(0, -1).join(", ")} and ${languages.at(-1)}` : "",
+  "Retail, restaurants, mobile shops and wholesale",
+].filter(Boolean);
+---
+
+<CinematicFooter
+  client:visible
+  whatsappHref={whatsappUrl()}
+  phoneHref={telUrl}
+  phoneLabel={contact.phoneDisplay}
+  email={contact.email}
+  emailHref={mailtoUrl("Software enquiry")}
+  links={links}
+  places={places}
+  bandItems={bandItems}
+  socials={socials}
+  copyrightHtml={config.params.copyright}
+/>

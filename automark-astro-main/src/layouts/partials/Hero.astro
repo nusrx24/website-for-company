@@ -1,0 +1,368 @@
+---
+import { whatsappUrl } from "@/lib/utils/contact";
+import { markdownify } from "@/lib/utils/textConverter";
+import type { Homepage } from "@/types";
+import { DyeWhorl } from "@/components/ui/dye-whorl";
+import HeroVideoScroll from "@/components/HeroVideoScroll";
+import { LiquidMetalButton } from "@/components/ui/liquid-metal-button";
+import { HeroGlitchHeadline } from "@/components/ui/hero-glitch-headline";
+import TextBlurReveal from "@/components/ui/text-blur-reveal";
+import LapCircuitSplineRobot from "@/layouts/components/ui/lapcircuit-spline-robot";
+import PaidOnceCommitBanner from "@/components/ui/paid-once-commit-banner";
+import TextWavy from "@/components/ui/text-wavy";
+import SocialIcon from "@/components/ui/social-icon";
+
+export interface Props {
+  banner: Homepage["banner"];
+}
+
+const { banner } = Astro.props as Props;
+
+// Content files say `link: "whatsapp"` so the number stays in config.json only.
+const resolve = (link: string) => (link === "whatsapp" ? whatsappUrl() : link);
+---
+
+<section class="hero-section relative overflow-x-clip pt-36 pb-12 lg:pt-36 lg:pb-14">
+  {/* Ink in still water: a live fluid simulation behind the hero. */}
+  <div class="absolute inset-0 -z-10" aria-hidden="true">
+    <DyeWhorl client:load density={0.75} className="h-full w-full" />
+  </div>
+
+  {/* Darker behind the headline so the ink reads as ground rather than
+      competing with the type. */}
+  <div class="hero-veil pointer-events-none absolute inset-0 -z-[5]" aria-hidden="true"></div>
+  <div class="hero-horizon pointer-events-none absolute inset-x-0 bottom-0 h-px" aria-hidden="true"></div>
+
+  <div class="container relative">
+    {/* grid-cols-1 is minmax(0, 1fr): without it a wide child (the headline)
+        stretches the single phone column and pushes the text off screen. */}
+    <div class="grid grid-cols-1 gap-x-10 lg:grid-cols-12">
+      {
+        banner.eyebrow && (
+          <div class="hero-rise hero-d0 mb-8 flex items-center gap-3 sm:gap-4 lg:col-span-12 lg:mb-10">
+            <span class="size-2 shrink-0 rounded-full bg-primary shadow-[0_0_12px_rgba(46,144,255,0.9)] animate-pulse" aria-hidden="true" />
+            <TextWavy
+              client:load
+              text={banner.eyebrow}
+              className="hero-eyebrow font-primary font-semibold uppercase text-primary tracking-[0.18em]"
+              colors={["#5AABFF", "#00E5FF", "#2E90FF", "#5AABFF"]}
+              fontSizes={["11px", "13px", "11px"]}
+              fontWeights={[600, 700, 600]}
+              delayTime={0.4}
+            />
+            <span class="h-px min-w-6 flex-1 bg-gradient-to-r from-primary/50 via-border to-transparent" aria-hidden="true" />
+          </div>
+        )
+      }
+      {/* Mobile view interactive Commit Grid explaining lifetime one-time payment */}
+      <div class="lg:hidden flex justify-center w-full mb-8">
+        <PaidOnceCommitBanner client:visible />
+      </div>
+
+      <!-- Hero Headline (Text Glitch Effect Animation Set for Mobile & Desktop) -->
+      <div class="hero-rise hero-d1 flex lg:col-span-6 flex-col items-start justify-center w-full mb-6 lg:mb-0 lg:min-h-[520px]">
+        <HeroGlitchHeadline client:load />
+      </div>
+
+      <!-- Right Column: Interactive 3D Robot Scene (Desktop Only, borderless, seamless background) -->
+      <div class="hero-rise hero-d2 hidden lg:flex lg:col-span-6 items-center justify-center w-full min-h-[520px] bg-transparent">
+        <LapCircuitSplineRobot client:only="react" />
+      </div>
+
+      <!-- Details row: Modernized typography with TextBlurReveal -->
+      <div class="hero-rise hero-d4 mt-10 grid grid-cols-1 gap-8 border-t border-border/70 pt-8 lg:col-span-12 lg:mt-12 lg:grid-cols-12 lg:gap-10">
+        <div class="flex flex-col gap-3 lg:col-span-7 xl:col-span-7">
+          <div class="max-w-2xl">
+            <TextBlurReveal
+              client:load
+              text={banner.lead || "Your business doesn't work like everyone else's. Your software shouldn't either."}
+              animateBy="words"
+              initialDelay={0.75}
+              delay={110}
+              stepDuration={0.35}
+              replayOnHover={true}
+              className="font-primary text-lg sm:text-xl font-bold tracking-tight text-white leading-snug cursor-pointer select-none"
+            />
+          </div>
+          <p class="max-w-2xl font-primary text-sm sm:text-base leading-relaxed text-text/85" set:html={markdownify(banner.content)} />
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3.5 lg:col-span-5 xl:col-span-5 lg:justify-end self-center">
+          {
+            banner.button_primary.enable && (
+              <LiquidMetalButton
+                client:visible
+                label={banner.button_primary.label || "Request a Demo"}
+                href={resolve(banner.button_primary.link)}
+              />
+            )
+          }
+          {
+            banner.button_secondary.enable && (
+              <a class="btn btn-outline font-primary font-medium" href={banner.button_secondary.link}>
+                {banner.button_secondary.label}
+                <span aria-hidden="true">&rarr;</span>
+              </a>
+            )
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Trust signals & capabilities: Premium Glass Badges -->
+    <div class="hero-rise hero-d5 mt-10 flex flex-col gap-4 border-t border-border/40 pt-6 lg:mt-12 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        <span class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 backdrop-blur-md text-[11px] font-primary font-semibold tracking-wider uppercase text-white shadow-sm transition-colors hover:border-primary/40 hover:bg-primary/5">
+          <span class="size-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(46,144,255,0.8)] animate-pulse" aria-hidden="true" />
+          CUSTOM-BUILT
+        </span>
+        <span class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 backdrop-blur-md text-[11px] font-primary font-semibold tracking-wider uppercase text-white shadow-sm transition-colors hover:border-emerald-400/40 hover:bg-emerald-400/5">
+          <span class="size-1.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)]" aria-hidden="true" />
+          OFFLINE READY
+        </span>
+        <span class="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-3.5 py-1.5 backdrop-blur-md text-[11px] font-primary font-semibold tracking-wider uppercase text-white shadow-sm transition-colors hover:border-cyan-400/40 hover:bg-cyan-400/5">
+          <span class="size-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" aria-hidden="true" />
+          CLOUD + MOBILE
+        </span>
+      </div>
+
+      {
+        banner.locations.length > 0 && (
+          <div class="flex flex-wrap items-center gap-x-4 gap-y-1.5 font-primary text-xs text-text-dark">
+            <span class="text-sky-400 font-semibold uppercase tracking-wider text-[11px] flex items-center gap-1.5">
+              <span class="size-1.5 rounded-full bg-sky-400 shadow-[0_0_8px_rgba(56,189,248,0.9)] animate-pulse" />
+              Local support
+            </span>
+            {banner.locations.map((place) => (
+              <a href="#company" class="text-text/75 hover:text-sky-300 transition-colors">
+                {place}
+              </a>
+            ))}
+          </div>
+        )
+      }
+    </div>
+
+    <!-- Mobile Social Connect Bar (placed precisely in the green highlighted hero space) -->
+    <div class="hero-rise hero-d5 mt-7 flex flex-col items-center justify-center gap-2.5 border-t border-border/30 pt-6 lg:hidden">
+      <div class="flex items-center gap-2">
+        <span class="size-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(46,144,255,0.8)] animate-pulse" aria-hidden="true" />
+        <span class="text-[11px] font-primary font-semibold uppercase tracking-[0.16em] text-text-dark/90">
+          Connect with LapCircuit
+        </span>
+      </div>
+      <SocialIcon client:visible />
+    </div>
+  </div>
+</section>
+
+{/* Phones and tablets: the film pins and opens as you scroll. It sits outside
+    the hero because the hero's overflow clipping would stop it pinning. */}
+{
+  banner.media?.video && (
+    <div class="lg:hidden">
+      <HeroVideoScroll client:visible src={banner.media.video} caption={banner.media.caption} />
+    </div>
+  )
+}
+
+{/* Desktop: the same scroll-open film, 16:9, headed by the offer strip. */}
+{
+  banner.media?.video && (
+    <div class="hidden lg:block">
+      <HeroVideoScroll client:visible wide src={banner.media.video} caption={banner.media.caption}>
+        <p class="hero-offer shine-border">
+          <span class="hero-offer__lead">
+            <span class="hero-offer__dot" aria-hidden="true"></span>
+            Paid once
+          </span>
+          <span class="hero-offer__rest">
+            <span>Yours for life</span>
+            <span class="hero-offer__sep" aria-hidden="true">/</span>
+            <span>Zero monthly subscriptions</span>
+          </span>
+        </p>
+      </HeroVideoScroll>
+    </div>
+  )
+}
+
+<style>
+  .hero-veil {
+    background:
+      radial-gradient(ellipse 70% 80% at 18% 55%, rgba(5, 7, 10, 0.88) 0%, rgba(5, 7, 10, 0.55) 55%, transparent 100%),
+      linear-gradient(to bottom, rgba(5, 7, 10, 0.55) 0%, rgba(5, 7, 10, 0.15) 45%, rgba(5, 7, 10, 0.9) 100%);
+  }
+
+  /* Scales with the screen so the label always stays on one line, down to
+     320px phones, and settles at 12px from tablets up. */
+  .hero-eyebrow {
+    font-family: var(--font-primary), sans-serif;
+    font-size: clamp(9.5px, 2.75vw, 12px);
+    letter-spacing: 0.18em;
+    line-height: 1;
+  }
+  @media (min-width: 640px) {
+    .hero-eyebrow {
+      letter-spacing: 0.2em;
+    }
+  }
+
+  .hero-horizon {
+    background: linear-gradient(90deg, transparent, rgba(46, 144, 255, 0.55) 50%, transparent);
+  }
+
+  /* The one oversized element on the page. Sized in vw so "BUSINESS." always
+     fits its track: the full width on phones, seven columns from lg. */
+  .hero-title {
+    margin: 0;
+    font-size: clamp(3rem, 14vw, 5.75rem);
+    line-height: 0.92;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    text-wrap: balance;
+  }
+  .hero-title :global(strong) {
+    display: block;
+    font-weight: inherit;
+  }
+  @media (min-width: 1024px) {
+    .hero-title {
+      font-size: clamp(4.5rem, 8vw, 7.75rem);
+    }
+  }
+
+  /* The ownership offer: sleek unified horizontal pill matching desktop design across all breakpoints */
+  .hero-offer {
+    position: relative;
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    max-width: 100%;
+    overflow: hidden;
+    border: 1px solid rgba(46, 144, 255, 0.6);
+    border-radius: 9999px;
+    background: rgba(3, 7, 18, 0.85);
+    box-shadow:
+      0 0 0 1px rgba(46, 144, 255, 0.2),
+      0 0 24px rgba(46, 144, 255, 0.25),
+      inset 0 0 12px rgba(46, 144, 255, 0.08);
+    backdrop-filter: blur(12px);
+    font-family: var(--font-mono);
+    font-size: clamp(8.5px, 2.35vw, 13px);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1;
+    white-space: nowrap;
+  }
+  .hero-offer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.16) 50%, transparent 70%);
+    transform: translateX(-100%);
+    animation: heroSheen 7s ease-in-out 1.6s infinite;
+    pointer-events: none;
+  }
+  .hero-offer__lead {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 0.85rem;
+    background: var(--color-primary);
+    color: var(--color-body);
+    font-weight: 700;
+    white-space: nowrap;
+    border-radius: 9999px 0 0 9999px;
+  }
+  .hero-offer__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--color-body);
+  }
+  .hero-offer__rest {
+    display: inline-flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.5rem 0.95rem;
+    color: rgba(255, 255, 255, 0.95);
+    white-space: nowrap;
+  }
+  .hero-offer__sep {
+    color: var(--color-primary);
+    font-weight: 700;
+  }
+  @media (min-width: 640px) {
+    .hero-offer {
+      font-size: 0.8125rem;
+      letter-spacing: 0.1em;
+    }
+    .hero-offer__lead {
+      padding: 0.65rem 1.1rem;
+      gap: 0.55rem;
+    }
+    .hero-offer__rest {
+      padding: 0.65rem 1.15rem;
+      gap: 0.65rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .hero-offer {
+      font-size: 0.875rem;
+    }
+  }
+
+  @keyframes heroSheen {
+    0%, 70% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+
+  /* Printed-receipt line: label, dot leader, value. */
+  .hero-receipt {
+    padding-block: 14px 16px;
+    border-top: 1px dashed var(--color-border);
+    border-bottom: 1px dashed var(--color-border);
+  }
+  .hero-leader {
+    flex: 1;
+    min-width: 1.5rem;
+    border-bottom: 1px dotted var(--color-text-dark);
+    opacity: 0.5;
+    transform: translateY(-3px);
+  }
+
+  /* One entrance sequence: headline first, then its second line, then the
+     film, then the details. */
+  .hero-rise,
+  .hero-title,
+  .hero-title :global(strong) {
+    animation: heroRise 800ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .hero-d0 { animation-delay: 0ms; }
+  .hero-d1 { animation-delay: 60ms; }
+  .hero-title { animation-delay: 160ms; }
+  .hero-title :global(strong) { animation-delay: 300ms; }
+  .hero-d3 { animation-delay: 380ms; }
+  .hero-d4 { animation-delay: 500ms; }
+  .hero-d5 { animation-delay: 600ms; }
+
+  @keyframes heroRise {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-rise,
+    .hero-title,
+    .hero-title :global(strong),
+    .hero-offer::after {
+      animation: none;
+    }
+  }
+</style>

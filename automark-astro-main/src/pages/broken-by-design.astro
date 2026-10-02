@@ -1,0 +1,37 @@
+---
+import Base from "@/layouts/Base.astro";
+import BrokenByDesign from "@/layouts/components/ui/broken-by-design";
+---
+
+<Base title="Broken by Design - Hero Showcase">
+  <div class="relative w-full min-h-screen bg-[#030407] text-white">
+    <div class="pt-24 pb-8 text-center px-4">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2E90FF]/15 border border-[#2E90FF]/40 text-[#93C5FD] text-xs font-mono uppercase mb-4">
+        <span class="size-2 rounded-full bg-[#2E90FF] animate-ping" />
+        Interactive Shattered Glass Hero
+      </div>
+      <h1 class="text-3xl sm:text-5xl font-bold tracking-tight text-white mb-2">
+        Broken By Design Showcase
+      </h1>
+      <p class="text-sm text-slate-400 font-mono max-w-lg mx-auto">
+        Hover or touch any glass shard to inspect real-time 3D spring tilt, specular glints, sound effects, and fractured typography.
+      </p>
+    </div>
+
+    <div class="relative w-full border-y border-[#2E90FF]/25 overflow-hidden" style="min-height: 80vh;">
+      <BrokenByDesign
+        client:load
+        title="LAPCIRCUIT"
+        height="80vh"
+        sound={true}
+        interactive={true}
+      />
+    </div>
+
+    <div class="py-12 text-center">
+      <a href="/" class="btn btn-outline">
+        &larr; Back to LapCircuit Home
+      </a>
+    </div>
+  </div>
+</Base>

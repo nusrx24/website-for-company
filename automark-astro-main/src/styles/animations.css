@@ -1,0 +1,105 @@
+/*
+  animations.css — Shared keyframes & animation utilities
+*/
+
+@keyframes shine {
+  0% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+  to {
+    background-position: 0% 0%;
+  }
+}
+
+.animate-shine {
+  animation: shine var(--duration, 14s) infinite linear;
+}
+
+@keyframes highlight {
+  0% {
+    background-color: transparent;
+  }
+  100% {
+    background-color: var(--highlight);
+  }
+}
+
+@keyframes flash {
+  0% {
+    background-color: var(--color-light, #141A23);
+  }
+  50% {
+    background-color: var(--highlight);
+  }
+  100% {
+    background-color: var(--color-light, #141A23);
+  }
+}
+
+.animate-highlight {
+  animation: highlight 0.6s ease forwards;
+}
+
+.animate-flash {
+  animation: flash 0.6s ease forwards;
+}
+
+/*
+  Universal Shine Border utility for rectangular cards, panels & containers.
+  Replaces generic static borders with a high-end, animated travelling light beam.
+*/
+.shine-border {
+  position: relative;
+  --border-width: 1.5px;
+  --duration: 14s;
+  --shine-gradient: radial-gradient(
+    transparent,
+    transparent,
+    rgba(46, 144, 255, 0.8),
+    rgba(0, 229, 255, 0.9),
+    rgba(112, 0, 255, 0.7),
+    transparent,
+    transparent
+  );
+}
+
+.shine-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: var(--border-width, 1.5px);
+  background-image: var(--shine-gradient);
+  background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: shine var(--duration, 14s) infinite linear;
+  will-change: background-position;
+  z-index: 10;
+}
+
+/* Hover state enhancement: accelerates and brightens subtly */
+.shine-border:hover::before {
+  --duration: 7s;
+  filter: brightness(1.2);
+}
+
+/* Optional subtle variant for dense grid cards */
+.shine-border--subtle {
+  --border-width: 1px;
+  --duration: 18s;
+  --shine-gradient: radial-gradient(
+    transparent,
+    transparent,
+    rgba(46, 144, 255, 0.5),
+    rgba(0, 229, 255, 0.6),
+    transparent,
+    transparent
+  );
+}

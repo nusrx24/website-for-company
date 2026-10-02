@@ -1,0 +1,161 @@
+---
+import { Check, X, ShieldAlert, Sparkles, ArrowRight } from "lucide-react";
+---
+
+<section id="comparison" class="relative w-full py-20 lg:py-28 overflow-hidden bg-[#030508] text-white">
+  {/* Ambient background glows */}
+  <div class="absolute top-1/3 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-[#2E90FF]/10 blur-[140px] rounded-full pointer-events-none" />
+  <div class="absolute -top-10 -right-20 w-80 h-80 bg-[#1d4ed8]/15 blur-[120px] rounded-full pointer-events-none" />
+
+  <div class="container relative z-10 mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+    {/* Section Header */}
+    <div class="text-center max-w-3xl mx-auto mb-14 lg:mb-18">
+      <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-[#2E90FF]/35 bg-[#2E90FF]/10 text-xs font-mono font-semibold tracking-[0.2em] text-[#2E90FF] uppercase shadow-[0_0_20px_rgba(46,144,255,0.2)]">
+        <span class="size-1.5 rounded-full bg-[#2E90FF] animate-pulse"></span>
+        <span>Market Comparison</span>
+      </div>
+
+      <h2 class="mt-5 text-3xl sm:text-4xl md:text-5xl font-black uppercase tracking-tight text-white leading-[1.1]">
+        Why LapCircuit vs <span class="text-transparent bg-clip-text bg-gradient-to-r from-[#2E90FF] via-[#60A5FA] to-[#93C5FD]">Other Companies</span>
+      </h2>
+
+      <p class="mt-4 text-base sm:text-lg text-slate-300 max-w-2xl mx-auto leading-relaxed">
+        Most POS providers lock your business into never-ending monthly rent. We build customized software that you own for life.
+      </p>
+    </div>
+
+    {/* Comparison Matrix Table */}
+    <div class="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-b from-[#071324]/80 to-[#040A14]/90 shadow-[0_20px_50px_rgba(0,0,0,0.6)] backdrop-blur-xl shine-border">
+      {/* Table Header */}
+      <div class="grid grid-cols-12 border-b border-white/10 bg-white/[0.03] p-4 sm:p-6 text-xs sm:text-sm font-mono uppercase tracking-wider text-slate-400 items-center">
+        <div class="col-span-4 sm:col-span-4 font-semibold text-slate-300">
+          Key Requirement
+        </div>
+        <div class="col-span-4 sm:col-span-4 text-center font-semibold text-rose-400 flex items-center justify-center gap-1.5">
+          <X className="size-4 shrink-0" />
+          <span class="hidden sm:inline">Typical</span> Others
+        </div>
+        <div class="col-span-4 sm:col-span-4 text-center font-bold text-[#60A5FA] flex items-center justify-center gap-1.5 bg-[#2E90FF]/15 py-2 rounded-xl border border-[#2E90FF]/30 shadow-[0_0_15px_rgba(46,144,255,0.25)]">
+          <Sparkles className="size-4 shrink-0 text-[#2E90FF]" />
+          <span>LapCircuit POS</span>
+        </div>
+      </div>
+
+      {/* Row 1: Payment Model */}
+      <div class="grid grid-cols-12 items-center p-4 sm:p-6 border-b border-white/[0.06] hover:bg-white/[0.02] transition-colors gap-2">
+        <div class="col-span-4 sm:col-span-4">
+          <span class="font-bold text-sm sm:text-base text-white block">Payment Model</span>
+          <span class="text-xs text-slate-400 hidden sm:block">How you pay for your software</span>
+        </div>
+        <div class="col-span-4 sm:col-span-4 text-center text-xs sm:text-sm text-slate-300">
+          <span class="text-rose-400 font-semibold block sm:inline">Recurring Monthly Rent</span>
+          <span class="text-[11px] text-slate-500 block">Stop paying &rarr; lose access</span>
+        </div>
+        <div class="col-span-4 sm:col-span-4 text-center text-xs sm:text-sm bg-[#2E90FF]/[0.08] p-3 rounded-xl border border-[#2E90FF]/20">
+          <span class="text-emerald-400 font-bold block sm:inline">One-Time Payment</span>
+          <span class="text-[11px] text-[#93C5FD] block font-mono">Paid once. Yours for life.</span>
+        </div>
+      </div>
+
+      {/* Row 2: 3-Year Total Software Cost */}
+      <div class="grid grid-cols-12 items-center p-4 sm:p-6 border-b border-white/[0.06] hover:bg-white/[0.02] transition-colors gap-2">
+        <div class="col-span-4 sm:col-span-4">
+          <span class="font-bold text-sm sm:text-base text-white block">3-Year Cost</span>
+          <span class="text-xs text-slate-400 hidden sm:block">Cumulative software expense</span>
+        </div>
+        <div class="col-span-4 sm:col-span-4 text-center text-xs sm:text-sm text-slate-300">
+          <span class="text-rose-400 font-bold block sm:inline">LKR 180,000 &ndash; 360,000+</span>
+          <span class="text-[11px] text-slate-500 block">(LKR 5k&ndash;10k every month)</span>
+        </div>
+        <div class="col-span-4 sm:col-span-4 text-center text-xs sm:text-sm bg-[#2E90FF]/[0.08] p-3 rounded-xl border border-[#2E90FF]/20">
+          <span class="text-emerald-400 font-bold block sm:inline">From LKR 30,000 Once</span>
+          <span class="text-[11px] text-[#93C5FD] block font-mono">Save 85%+ with Rs. 0/mo</span>
+        </div>
+      </div>
+
+      {/* Row 3: Customization */}
+      <div class="grid grid-cols-12 items-center p-4 sm:p-6 border-b border-white/[0.06] hover:bg-white/[0.02] transition-colors gap-2">
+        <div class="col-span-4 sm:col-span-4">
+          <span class="font-bold text-sm sm:text-base text-white block">Workflow Match</span>
+          <span class="text-xs text-slate-400 hidden sm:block">How the software fits you</span>
+        </div>
+        <div class="col-span-4 sm:col-span-4 text-center text-xs sm:text-sm text-slate-300">
+          <span class="text-slate-400 block sm:inline">Rigid Generic Templates</span>
+          <span class="text-[11px] text-slate-500 block">You change to fit them</span>
+        </div>
+        <div class="col-span-4 sm:col-span-4 text-center text-xs sm:text-sm bg-[#2E90FF]/[0.08] p-3 rounded-xl border border-[#2E90FF]/20">
+          <span class="text-white font-bold block sm:inline">100% Custom Tailored</span>
+          <span class="text-[11px] text-[#93C5FD] block font-mono">Built around your habits</span>
+        </div>
+      </div>
+
+      {/* Row 4: Offline Reliability */}
+      <div class="grid grid-cols-12 items-center p-4 sm:p-4 sm:p-6 border-b border-white/[0.06] hover:bg-white/[0.02] transition-colors gap-2">
+        <div class="col-span-4 sm:col-span-4">
+          <span class="font-bold text-sm sm:text-base text-white block">Offline Capability</span>
+          <span class="text-xs text-slate-400 hidden sm:block">When internet drops</span>
+        </div>
+        <div class="col-span-4 sm:col-span-4 text-center text-xs sm:text-sm text-slate-300">
+          <span class="text-rose-400 block sm:inline">Cloud-Only / Fragile</span>
+          <span class="text-[11px] text-slate-500 block">Stops billing during outages</span>
+        </div>
+        <div class="col-span-4 sm:col-span-4 text-center text-xs sm:text-sm bg-[#2E90FF]/[0.08] p-3 rounded-xl border border-[#2E90FF]/20">
+          <span class="text-emerald-400 font-bold block sm:inline">Runs 100% Offline</span>
+          <span class="text-[11px] text-[#93C5FD] block font-mono">Zero counter downtime</span>
+        </div>
+      </div>
+
+      {/* Row 5: Multi-Language */}
+      <div class="grid grid-cols-12 items-center p-4 sm:p-6 border-b border-white/[0.06] hover:bg-white/[0.02] transition-colors gap-2">
+        <div class="col-span-4 sm:col-span-4">
+          <span class="font-bold text-sm sm:text-base text-white block">Staff Languages</span>
+          <span class="text-xs text-slate-400 hidden sm:block">Cashier screen language</span>
+        </div>
+        <div class="col-span-4 sm:col-span-4 text-center text-xs sm:text-sm text-slate-300">
+          <span class="text-slate-400 block sm:inline">English Only</span>
+          <span class="text-[11px] text-slate-500 block">Difficult for local staff</span>
+        </div>
+        <div class="col-span-4 sm:col-span-4 text-center text-xs sm:text-sm bg-[#2E90FF]/[0.08] p-3 rounded-xl border border-[#2E90FF]/20">
+          <span class="text-white font-bold block sm:inline">Tamil, English &amp; Sinhala</span>
+          <span class="text-[11px] text-[#93C5FD] block font-mono">Bilingual receipts &amp; UI</span>
+        </div>
+      </div>
+
+      {/* Row 6: Customer Support */}
+      <div class="grid grid-cols-12 items-center p-4 sm:p-6 hover:bg-white/[0.02] transition-colors gap-2">
+        <div class="col-span-4 sm:col-span-4">
+          <span class="font-bold text-sm sm:text-base text-white block">Direct Support</span>
+          <span class="text-xs text-slate-400 hidden sm:block">When you need help</span>
+        </div>
+        <div class="col-span-4 sm:col-span-4 text-center text-xs sm:text-sm text-slate-300">
+          <span class="text-rose-400 block sm:inline">Ticket Queues &amp; Bots</span>
+          <span class="text-[11px] text-slate-500 block">Wait hours or days for replies</span>
+        </div>
+        <div class="col-span-4 sm:col-span-4 text-center text-xs sm:text-sm bg-[#2E90FF]/[0.08] p-3 rounded-xl border border-[#2E90FF]/20">
+          <span class="text-emerald-400 font-bold block sm:inline">Direct Developer Access</span>
+          <span class="text-[11px] text-[#93C5FD] block font-mono">WhatsApp the engineer directly</span>
+        </div>
+      </div>
+    </div>
+
+    {/* Bottom summary highlight banner */}
+    <div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 p-5 sm:p-6 rounded-2xl border border-[#2E90FF]/30 bg-[#07152B]/60 backdrop-blur-md shine-border">
+      <div class="flex items-center gap-3 text-center sm:text-left">
+        <div class="flex size-10 shrink-0 items-center justify-center rounded-xl bg-[#2E90FF]/20 text-[#2E90FF] border border-[#2E90FF]/30">
+          <Sparkles className="size-5" />
+        </div>
+        <div>
+          <span class="text-white font-bold text-sm sm:text-base block">Why pay perpetual monthly rent for software you can own?</span>
+          <span class="text-xs text-slate-400">Join business owners across Sri Lanka who chose lifetime stability with LapCircuit.</span>
+        </div>
+      </div>
+      <a
+        href="#pricing"
+        class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#2E90FF] hover:bg-[#1B7FE8] text-white font-mono text-xs font-semibold uppercase tracking-wider shadow-[0_0_20px_rgba(46,144,255,0.4)] transition-all shrink-0"
+      >
+        <span>See Starting Rates</span>
+        <ArrowRight className="size-3.5" />
+      </a>
+    </div>
+  </div>
+</section>

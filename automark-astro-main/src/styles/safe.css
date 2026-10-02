@@ -1,0 +1,158 @@
+/* ── Menu button: three bars that fold into a cross ─────────────────── */
+.nav-burger__bars {
+  position: relative;
+  display: block;
+  width: 20px;
+  height: 14px;
+}
+.nav-burger__bars > span {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  color: var(--color-text-light);
+  transition:
+    transform 0.35s cubic-bezier(0.65, 0, 0.35, 1),
+    opacity 0.2s ease,
+    width 0.35s ease;
+}
+.nav-burger__bars > span:nth-child(1) { top: 0; }
+.nav-burger__bars > span:nth-child(2) { top: 6px; width: 70%; }
+.nav-burger__bars > span:nth-child(3) { top: 12px; }
+
+#nav-toggle:checked + .nav-burger { border-color: var(--color-primary); }
+#nav-toggle:checked + .nav-burger .nav-burger__bars > span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+#nav-toggle:checked + .nav-burger .nav-burger__bars > span:nth-child(2) { opacity: 0; width: 0; }
+#nav-toggle:checked + .nav-burger .nav-burger__bars > span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+#nav-toggle:focus-visible + .nav-burger {
+  outline: 2px solid var(--color-primary-light);
+  outline-offset: 3px;
+}
+
+/* ── Phone menu: a sheet that feeds down out of the header ──────────── */
+@media (max-width: 1023.98px) {
+  /* The header is fixed at the top edge, so these coordinates are the
+     viewport's even though the header (via transform) is the containing block. */
+  .nav-sheet {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 0;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100dvh;
+    overflow-y: auto;
+    text-align: left;
+    padding: 6.5rem 1.5rem calc(2rem + env(safe-area-inset-bottom, 0px));
+    background:
+      radial-gradient(120% 60% at 100% 0%, rgb(46 144 255 / 0.1), transparent 60%),
+      #080c12;
+    visibility: hidden;
+    clip-path: inset(0 0 100% 0);
+    transition:
+      clip-path 0.5s cubic-bezier(0.76, 0, 0.24, 1),
+      visibility 0s linear 0.5s;
+  }
+
+  /* The printer's tear line: a dashed edge that rides the bottom of the
+     sheet while it feeds out. */
+  .nav-sheet::after {
+    content: "";
+    position: sticky;
+    display: block;
+    bottom: 0;
+    margin-top: 1.75rem;
+    height: 0;
+    border-bottom: 1px dashed rgb(46 144 255 / 0.35);
+  }
+
+  #nav-toggle:checked ~ .nav-sheet {
+    visibility: visible;
+    clip-path: inset(0 0 0 0);
+    transition:
+      clip-path 0.5s cubic-bezier(0.76, 0, 0.24, 1),
+      visibility 0s;
+  }
+
+  html:has(#nav-toggle:checked) {
+    overflow: hidden;
+  }
+
+  /* Line items */
+  .nav-sheet > li {
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+  }
+  #nav-toggle:checked ~ .nav-sheet > li {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.45s ease,
+      transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  #nav-toggle:checked ~ .nav-sheet > li:nth-child(1) { transition-delay: 0.18s; }
+  #nav-toggle:checked ~ .nav-sheet > li:nth-child(2) { transition-delay: 0.23s; }
+  #nav-toggle:checked ~ .nav-sheet > li:nth-child(3) { transition-delay: 0.28s; }
+  #nav-toggle:checked ~ .nav-sheet > li:nth-child(4) { transition-delay: 0.33s; }
+  #nav-toggle:checked ~ .nav-sheet > li:nth-child(5) { transition-delay: 0.38s; }
+  #nav-toggle:checked ~ .nav-sheet > li:nth-child(6) { transition-delay: 0.43s; }
+  #nav-toggle:checked ~ .nav-sheet > li:nth-child(7) { transition-delay: 0.48s; }
+
+  .nav-sheet .nav-link {
+    display: block;
+    padding: 1.05rem 0 0.95rem;
+    border-bottom: 1px dotted var(--color-border);
+    font-family: var(--font-secondary);
+    font-size: clamp(1.75rem, 8.5vw, 2.25rem);
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--color-text-light);
+    /* Blue rule that sweeps in under the pressed item. */
+    background: linear-gradient(var(--color-primary), var(--color-primary)) no-repeat 0 100% / 0% 2px;
+    transition:
+      background-size 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+      color 0.2s ease;
+  }
+  .nav-sheet .nav-link:hover,
+  .nav-sheet .nav-link:active,
+  .nav-sheet .nav-link:focus-visible {
+    color: var(--color-primary);
+    background-size: 100% 2px;
+    outline: none;
+  }
+
+  /* Pinned low, within thumb reach. */
+  .nav-sheet__action {
+    margin-top: auto;
+    padding-top: 2.25rem;
+  }
+  .nav-sheet__call {
+    margin-top: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.875rem;
+    color: var(--color-text-dark);
+  }
+  .nav-sheet__call a {
+    color: var(--color-text-light);
+    text-decoration: underline;
+    text-decoration-color: var(--color-border);
+    text-underline-offset: 4px;
+  }
+}
+
+@media (max-width: 1023.98px) and (prefers-reduced-motion: reduce) {
+  .nav-sheet,
+  #nav-toggle:checked ~ .nav-sheet,
+  .nav-sheet > li,
+  #nav-toggle:checked ~ .nav-sheet > li,
+  .nav-burger__bars > span {
+    transition: none;
+  }
+}
