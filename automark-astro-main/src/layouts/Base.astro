@@ -10,6 +10,7 @@ import {
   GoogleTagmanager,
   GoogleTagmanagerNoscript,
 } from "@digi4care/astro-google-tagmanager";
+import SocialLinks from "@/components/ui/social-links";
 
 const fontEntries = Object.entries(theme.fonts.font_family).filter(
   ([key]) => !key.includes("_type"),
@@ -114,10 +115,10 @@ const socialImage = new URL(
     <meta name="twitter:card" content="summary_large_image" />
 
     <!--
-      GSAP, ScrollTrigger and Lenis were removed with the template sections
-      that used them: roughly 100KB over three third-party requests that no
-      longer animated anything. Anchor scrolling is now native CSS, and the
-      hero video controls itself. Only the header and mobile nav need script.
+      The global GSAP, ScrollTrigger and Lenis CDN scripts were removed: three
+      third-party requests that no longer animated anything. GSAP is still
+      bundled, but only inside the Process timeline island (client:visible).
+      Anchor scrolling is native CSS, and the hero video controls itself.
     -->
     <script is:inline defer src="/scripts/main.js"></script>
   </head>
@@ -131,9 +132,13 @@ const socialImage = new URL(
 
     {/* <TwSizeIndicator /> */}
     <Header />
-    <main id="main-content" class="overflow-x-hidden md:overflow-x-auto">
+    {/* clip, not hidden or auto: both turn <main> into a scroll container,
+        which silently stops every sticky element inside it from pinning. */}
+    <main id="main-content" class="overflow-x-hidden supports-[overflow:clip]:overflow-x-clip">
+
       <slot />
     </main>
+    <SocialLinks client:load />
     <Footer />
   </body>
 </html>

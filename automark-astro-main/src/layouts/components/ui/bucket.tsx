@@ -356,11 +356,11 @@ export const Bucket: React.FC<BucketProps> = ({
                   </div>
                   <div className="flex flex-col gap-0.5 overflow-hidden">
                     <div className="flex items-center gap-1.5">
-                      <span className="font-['Clash_Display',sans-serif] text-sm font-semibold tracking-tight text-white leading-tight truncate">
+                      <span className="font-secondary text-sm font-semibold tracking-tight text-white leading-tight truncate">
                         {currentItem.title}
                       </span>
                     </div>
-                    <span className="font-['Plus_Jakarta_Sans',sans-serif] text-xs text-slate-300 line-clamp-1 leading-snug">
+                    <span className="font-primary text-xs text-slate-300 line-clamp-1 leading-snug">
                       {currentItem.description}
                     </span>
                   </div>
@@ -432,11 +432,11 @@ export const Bucket: React.FC<BucketProps> = ({
 
         {/* Brand Stamp on the Front of the Dark Blue Box */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 pointer-events-none text-center">
-          <div className="flex items-center justify-center gap-1.5 font-['Clash_Display',sans-serif] font-bold tracking-tight text-white text-base sm:text-lg">
+          <div className="flex items-center justify-center gap-1.5 font-secondary font-bold tracking-tight text-white text-base sm:text-lg">
             <span>lapcircuit</span>
             <span className="text-[#2E90FF] text-xl leading-none">.</span>
           </div>
-          <p className="font-['IBM_Plex_Mono',monospace] text-[10px] sm:text-xs font-semibold tracking-widest text-[#2E90FF] uppercase mt-0.5">
+          <p className="font-mono text-[10px] sm:text-xs font-semibold tracking-widest text-[#2E90FF] uppercase mt-0.5">
             Built For Your Business &bull; Yours For Life
           </p>
         </div>

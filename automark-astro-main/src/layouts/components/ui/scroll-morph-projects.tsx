@@ -18,6 +18,7 @@ import {
   ExternalLink,
   Filter
 } from "lucide-react";
+import { whatsappUrl } from "@/lib/utils/contact";
 
 // --- Types ---
 export type AnimationPhase = "scatter" | "line" | "circle" | "bottom-strip";
@@ -168,7 +169,7 @@ export const LAPCIRCUIT_ACHIEVEMENTS: ProjectAchievement[] = [
     sector: "Wholesale & Grocery",
     tag: "HANDOVER VERIFIED",
     title: "System Handover & Deployment",
-    highlight: "LapCircuit founder handing over completed offline software running on the shop laptop.",
+    highlight: "The LapCircuit team handing over completed offline software running on the shop laptop.",
     handles: ["Offline Database", "Owner Training", "Lifetime Warranty"],
   },
 
@@ -831,7 +832,7 @@ export default function ScrollMorphProjects({
           </span>
         </div>
 
-        <h3 className="mt-2.5 font-['Clash_Display',sans-serif] text-2xl md:text-4xl font-bold text-white tracking-tight uppercase">
+        <h3 className="mt-2.5 font-secondary text-2xl md:text-4xl font-bold text-white tracking-tight uppercase">
           Photos From <span className="text-[#2E90FF]">Real Counters</span> & Stores
         </h3>
         <p className="mt-1 text-xs md:text-sm text-slate-300 max-w-xl">
@@ -1014,7 +1015,7 @@ export default function ScrollMorphProjects({
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#061226]/90 hover:bg-[#2E90FF]/20 border border-[#2E90FF]/35 text-[#93C5FD] font-mono text-xs transition-colors backdrop-blur-md"
               title="Switch to Mobile Touch Deck"
             >
-              <span>📱 Touch Deck</span>
+              <span>Touch Deck</span>
             </button>
           )}
           <button
@@ -1089,7 +1090,7 @@ export default function ScrollMorphProjects({
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5">
-                        <h4 className="font-['Clash_Display',sans-serif] text-base font-bold text-white uppercase tracking-tight truncate">
+                        <h4 className="font-secondary text-base font-bold text-white uppercase tracking-tight truncate">
                           {selectedPhoto.client}
                         </h4>
                         <CheckCircle2 className="size-4 text-emerald-400 shrink-0" />
@@ -1143,7 +1144,9 @@ export default function ScrollMorphProjects({
                     <span>Real shop proof</span>
                   </div>
                   <a
-                    href={`https://wa.me/94711249740?text=Hello%20LapCircuit%2C%20I%20saw%20your%20verified%20deployment%20at%20${encodeURIComponent(selectedPhoto.client)}%20and%20want%20to%20request%20a%20demo.`}
+                    href={whatsappUrl(
+                      `Hello LapCircuit, I saw your verified deployment at ${selectedPhoto.client} and want to request a demo.`,
+                    )}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#2E90FF] hover:bg-[#1B7FE8] text-white font-mono text-xs font-semibold transition-all shadow-[0_0_20px_rgba(46,144,255,0.4)] shrink-0"

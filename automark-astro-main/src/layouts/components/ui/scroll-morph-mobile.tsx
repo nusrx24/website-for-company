@@ -15,6 +15,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { LAPCIRCUIT_ACHIEVEMENTS, type ProjectAchievement } from "./scroll-morph-projects";
+import { whatsappUrl } from "@/lib/utils/contact";
 
 interface ScrollMorphMobileProps {
   onSwitchTo3D?: () => void;
@@ -26,6 +27,12 @@ export default function ScrollMorphMobile({ onSwitchTo3D }: ScrollMorphMobilePro
   const [selectedPhoto, setSelectedPhoto] = useState<ProjectAchievement | null>(null);
   const [activeFilter, setActiveFilter] = useState<string>("all");
   const filmstripRef = useRef<HTMLDivElement>(null);
+  const isDraggingRef = useRef(false);
+
+  const handleOpenPhoto = (item: ProjectAchievement) => {
+    if (isDraggingRef.current) return;
+    setSelectedPhoto(item);
+  };
 
   // Sector filter categorizer
   const filteredItems = useMemo(() => {
@@ -96,9 +103,9 @@ export default function ScrollMorphMobile({ onSwitchTo3D }: ScrollMorphMobilePro
   };
 
   // WhatsApp link tailored to currently displayed client
-  const waUrl = `https://wa.me/94711249740?text=${encodeURIComponent(
-    `Hello LapCircuit, I saw the deployment photo for ${activeItem.client} (${activeItem.title}) on your website and would like a live demo for my business.`
-  )}`;
+  const waUrl = whatsappUrl(
+    `Hello LapCircuit, I saw the deployment photo for ${activeItem.client} (${activeItem.title}) on your website and would like a live demo for my business.`,
+  );
 
   return (
     <div className="relative w-full bg-[#03060E] rounded-3xl border border-[#2E90FF]/30 overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.9),inset_0_0_80px_rgba(46,144,255,0.06)] p-4 sm:p-6">
@@ -126,7 +133,7 @@ export default function ScrollMorphMobile({ onSwitchTo3D }: ScrollMorphMobilePro
                 Real Shop Showcase
               </p>
             </div>
-            <p className="text-xs font-bold text-white font-['Clash_Display',sans-serif] tracking-tight">
+            <p className="text-xs font-bold text-white font-secondary tracking-tight">
               20+ Verified Deployments
             </p>
           </div>
@@ -191,7 +198,7 @@ export default function ScrollMorphMobile({ onSwitchTo3D }: ScrollMorphMobilePro
 
         {/* 3D Flip Card Container with Touch Drag Gesture */}
         <div
-          className="relative w-full max-w-sm aspect-[4/5] sm:aspect-[1/1] max-h-[460px]"
+          className="relative w-full max-w-sm aspect-[4/5] sm:aspect-[1/1] max-h-[460px] touch-pan-y"
           style={{ perspective: "1200px" }}
         >
           <motion.div
@@ -199,7 +206,13 @@ export default function ScrollMorphMobile({ onSwitchTo3D }: ScrollMorphMobilePro
             drag="x"
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.25}
+            onDragStart={() => {
+              isDraggingRef.current = true;
+            }}
             onDragEnd={(_, info) => {
+              setTimeout(() => {
+                isDraggingRef.current = false;
+              }, 100);
               const swipeThreshold = 50;
               if (info.offset.x < -swipeThreshold) {
                 handleNext();
@@ -211,7 +224,7 @@ export default function ScrollMorphMobile({ onSwitchTo3D }: ScrollMorphMobilePro
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             transition={{ duration: 0.3 }}
-            className="w-full h-full cursor-grab active:cursor-grabbing"
+            className="w-full h-full cursor-grab active:cursor-grabbing touch-pan-y"
             style={{ transformStyle: "preserve-3d" }}
           >
             <motion.div
@@ -223,7 +236,10 @@ export default function ScrollMorphMobile({ onSwitchTo3D }: ScrollMorphMobilePro
               {/* --- FRONT SIDE: Real High-Res Photo --- */}
               <div
                 className="absolute inset-0 w-full h-full rounded-2xl overflow-hidden border border-[#2E90FF]/40 bg-[#071326] shadow-[0_16px_40px_rgba(0,0,0,0.85),0_0_30px_rgba(46,144,255,0.2)] flex flex-col justify-between"
-                style={{ backfaceVisibility: "hidden" }}
+                style={{
+                  backfaceVisibility: "hidden",
+                  WebkitBackfaceVisibility: "hidden",
+                }}
               >
                 {/* Photo Element */}
                 <img
@@ -232,7 +248,7 @@ export default function ScrollMorphMobile({ onSwitchTo3D }: ScrollMorphMobilePro
                   className="absolute inset-0 w-full h-full object-cover select-none"
                   loading="eager"
                   decoding="async"
-                  onClick={() => setSelectedPhoto(activeItem)}
+                  onClick={() => handleOpenPhoto(activeItem)}
                 />
 
                 {/* Cyber Gradient Overlays for contrast */}
@@ -266,7 +282,7 @@ export default function ScrollMorphMobile({ onSwitchTo3D }: ScrollMorphMobilePro
                 {/* Center Tap-to-Zoom Touch Hint */}
                 <div
                   className="relative z-10 my-auto flex items-center justify-center cursor-pointer"
-                  onClick={() => setSelectedPhoto(activeItem)}
+                  onClick={() => handleOpenPhoto(activeItem)}
                 >
                   <div className="size-12 rounded-full bg-black/50 border border-white/30 backdrop-blur-md flex items-center justify-center text-white/90 shadow-lg active:scale-90 transition-transform">
                     <Maximize2 className="size-5 text-[#2E90FF]" />
@@ -276,7 +292,7 @@ export default function ScrollMorphMobile({ onSwitchTo3D }: ScrollMorphMobilePro
                 {/* Bottom Card Info Overlay */}
                 <div
                   className="relative z-10 p-3.5 bg-gradient-to-t from-[#02050B] via-[#02050B]/90 to-transparent cursor-pointer"
-                  onClick={() => setSelectedPhoto(activeItem)}
+                  onClick={() => handleOpenPhoto(activeItem)}
                 >
                   <div className="flex items-center justify-between text-[10px] font-mono text-[#60A5FA]">
                     <span className="flex items-center gap-1">
@@ -292,7 +308,7 @@ export default function ScrollMorphMobile({ onSwitchTo3D }: ScrollMorphMobilePro
                         <img src={activeItem.logoSrc} alt={activeItem.client} className="size-full object-contain" />
                       </div>
                     )}
-                    <h4 className="text-base font-bold text-white font-['Clash_Display',sans-serif] uppercase tracking-tight line-clamp-1">
+                    <h4 className="text-base font-bold text-white font-secondary uppercase tracking-tight line-clamp-1">
                       {activeItem.client}
                     </h4>
                   </div>
@@ -318,6 +334,7 @@ export default function ScrollMorphMobile({ onSwitchTo3D }: ScrollMorphMobilePro
                 className="absolute inset-0 w-full h-full rounded-2xl overflow-hidden border border-[#2E90FF]/60 bg-gradient-to-b from-[#0B1E3C] via-[#061226] to-[#030914] p-4 flex flex-col justify-between shadow-[0_16px_40px_rgba(0,0,0,0.9),0_0_35px_rgba(46,144,255,0.35)]"
                 style={{
                   backfaceVisibility: "hidden",
+                  WebkitBackfaceVisibility: "hidden",
                   transform: "rotateY(180deg)",
                 }}
               >
@@ -347,7 +364,7 @@ export default function ScrollMorphMobile({ onSwitchTo3D }: ScrollMorphMobilePro
                       </div>
                     )}
                     <div>
-                      <h3 className="text-base font-bold text-white font-['Clash_Display',sans-serif] uppercase tracking-tight">
+                      <h3 className="text-base font-bold text-white font-secondary uppercase tracking-tight">
                         {activeItem.client}
                       </h3>
                       <p className="text-[11px] font-semibold text-[#93C5FD]">
@@ -556,7 +573,7 @@ export default function ScrollMorphMobile({ onSwitchTo3D }: ScrollMorphMobilePro
                     </div>
                   )}
                   <div>
-                    <h3 className="font-['Clash_Display',sans-serif] text-xl font-bold text-white uppercase tracking-tight">
+                    <h3 className="font-secondary text-xl font-bold text-white uppercase tracking-tight">
                       {selectedPhoto.client}
                     </h3>
                     <p className="font-mono text-xs text-[#60A5FA] flex items-center gap-1">
@@ -593,9 +610,9 @@ export default function ScrollMorphMobile({ onSwitchTo3D }: ScrollMorphMobilePro
                 {/* WhatsApp Action CTA */}
                 <div className="mt-5 pt-3 border-t border-white/10">
                   <a
-                    href={`https://wa.me/94711249740?text=${encodeURIComponent(
-                      `Hello LapCircuit, I saw the deployment photo for ${selectedPhoto.client} on your website and want to request a demo.`
-                    )}`}
+                    href={whatsappUrl(
+                      `Hello LapCircuit, I saw the deployment photo for ${selectedPhoto.client} on your website and want to request a demo.`,
+                    )}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full py-2.5 rounded-xl bg-[#2E90FF] hover:bg-[#1B7FE8] text-white font-mono text-xs font-semibold transition-all shadow-[0_0_20px_rgba(46,144,255,0.4)] flex items-center justify-center gap-2"

@@ -76,7 +76,9 @@ export function KineticFabric({
         const { width, height } = dimensionsRef.current;
         if (width === 0 || height === 0) return;
 
-        const spacing = 38;
+        // Adaptive mesh density for mobile vs desktop to maintain 60 FPS
+        const isMobile = width < 640;
+        const spacing = isMobile ? 44 : 38;
         const cols = Math.ceil((width * 1.2) / spacing) + 1;
         const rows = Math.ceil((height * 1.2) / spacing) + 1;
 
@@ -130,6 +132,7 @@ export function KineticFabric({
         linksRef.current = links;
     }, []);
 
+    // Setup viewport & resize observer
     useEffect(() => {
         const container = containerRef.current;
         const canvas = canvasRef.current;
@@ -138,20 +141,33 @@ export function KineticFabric({
         const ctx = canvas.getContext("2d", { alpha: false });
         if (!ctx) return;
 
+        const updateCanvasSize = (w: number, h: number) => {
+            if (w <= 0 || h <= 0) return;
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+            dimensionsRef.current = { width: w, height: h };
+            canvas.width = w * dpr;
+            canvas.height = h * dpr;
+            canvas.style.width = `${w}px`;
+            canvas.style.height = `${h}px`;
+
+            ctx.setTransform(1, 0, 0, 1, 0, 0);
+            ctx.scale(dpr, dpr);
+            buildMesh();
+        };
+
+        // Initial sync on mount
+        const initialRect = container.getBoundingClientRect();
+        if (initialRect.width > 0 && initialRect.height > 0) {
+            updateCanvasSize(initialRect.width, initialRect.height);
+        }
+
         const resizeObserver = new ResizeObserver((entries) => {
             for (const entry of entries) {
                 const rect = entry.contentRect;
-                const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-                dimensionsRef.current = { width: rect.width, height: rect.height };
-                canvas.width = rect.width * dpr;
-                canvas.height = rect.height * dpr;
-                canvas.style.width = `${rect.width}px`;
-                canvas.style.height = `${rect.height}px`;
-
-                ctx.setTransform(1, 0, 0, 1, 0, 0);
-                ctx.scale(dpr, dpr);
-                buildMesh();
+                if (rect.width > 0 && rect.height > 0) {
+                    updateCanvasSize(rect.width, rect.height);
+                }
             }
         });
 
@@ -159,6 +175,7 @@ export function KineticFabric({
         return () => resizeObserver.disconnect();
     }, [buildMesh]);
 
+    // Main animation loop
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
@@ -177,19 +194,36 @@ export function KineticFabric({
 
             time += 0.016;
             const { width, height } = dimensionsRef.current;
+            if (width === 0 || height === 0) {
+                animId = requestAnimationFrame(loop);
+                return;
+            }
+
             const nodes = nodesRef.current;
             const links = linksRef.current;
             const pointer = pointerRef.current;
 
-            pointer.vx = (pointer.x - pointer.prevX) * 0.4;
-            pointer.vy = (pointer.y - pointer.prevY) * 0.4;
-            pointer.prevX = pointer.x;
-            pointer.prevY = pointer.y;
+            const hasActivePointer = pointer.x > -1000 && pointer.y > -1000;
+
+            if (hasActivePointer) {
+                pointer.vx = (pointer.x - pointer.prevX) * 0.4;
+                pointer.vy = (pointer.y - pointer.prevY) * 0.4;
+                pointer.prevX = pointer.x;
+                pointer.prevY = pointer.y;
+
+                pointer.angleX += (pointer.targetAngleX - pointer.angleX) * 0.05;
+                pointer.angleY += (pointer.targetAngleY - pointer.angleY) * 0.05;
+            } else {
+                // Autonomous mobile idle animation: gentle Lissajous sway when no finger/cursor
+                const idleAngleY = Math.sin(time * 0.5) * 0.12;
+                const idleAngleX = Math.cos(time * 0.4) * 0.06 + 0.15;
+                pointer.angleX += (idleAngleX - pointer.angleX) * 0.04;
+                pointer.angleY += (idleAngleY - pointer.angleY) * 0.04;
+                pointer.vx = 0;
+                pointer.vy = 0;
+            }
 
             const pointerSpeed = Math.min(Math.sqrt(pointer.vx * pointer.vx + pointer.vy * pointer.vy), 40);
-
-            pointer.angleX += (pointer.targetAngleX - pointer.angleX) * 0.05;
-            pointer.angleY += (pointer.targetAngleY - pointer.angleY) * 0.05;
 
             const cosX = Math.cos(pointer.angleX);
             const sinX = Math.sin(pointer.angleX);
@@ -203,6 +237,7 @@ export function KineticFabric({
             ctx.fillStyle = bg;
             ctx.fillRect(0, 0, width, height);
 
+            // Update shockwaves
             for (let s = pointer.shockwaves.length - 1; s >= 0; s--) {
                 const sw = pointer.shockwaves[s];
                 sw.radius += 12;
@@ -212,6 +247,12 @@ export function KineticFabric({
                 }
             }
 
+            // Autonomous roving energy wave when idle on mobile
+            const autoWaveX = Math.sin(time * 0.7) * (width * 0.35);
+            const autoWaveY = Math.cos(time * 0.5) * (height * 0.25);
+            const autoRadius = 140;
+
+            // Physics integration
             for (let i = 0; i < nodes.length; i++) {
                 const n = nodes[i];
                 if (n.pinned) continue;
@@ -237,12 +278,24 @@ export function KineticFabric({
                 n.curr.z += (n.base.z + fluidZ - n.curr.z) * 0.038;
 
                 n.excitation *= 0.92;
+
+                // Gentle idle wave glow on mobile
+                if (!hasActivePointer) {
+                    const adx = n.base.x - autoWaveX;
+                    const ady = n.base.y - autoWaveY;
+                    const aDist = Math.sqrt(adx * adx + ady * ady);
+                    if (aDist < autoRadius) {
+                        const ar = 1 - aDist / autoRadius;
+                        n.excitation = Math.max(n.excitation, ar * 0.45);
+                    }
+                }
             }
 
             const fov = 620;
             const cx = width / 2;
             const cy = height / 2;
 
+            // 3D Projection & Pointer / Shockwave collision
             for (let i = 0; i < nodes.length; i++) {
                 const n = nodes[i];
 
@@ -261,21 +314,25 @@ export function KineticFabric({
                 n.proj.alpha = Math.min(1, Math.max(0.08, (scale - 0.45) * 1.4));
 
                 if (!n.pinned) {
-                    const dx = n.proj.x - pointer.x;
-                    const dy = n.proj.y - pointer.y;
-                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    // Interaction with finger/mouse pointer
+                    if (hasActivePointer) {
+                        const dx = n.proj.x - pointer.x;
+                        const dy = n.proj.y - pointer.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
 
-                    if (dist < pointer.radius && dist > 0) {
-                        const ratio = 1 - dist / pointer.radius;
-                        const force = ratio * (pointer.isDown ? 42 : 22) + pointerSpeed * 0.4;
-                        const angle = Math.atan2(dy, dx);
+                        if (dist < pointer.radius && dist > 0) {
+                            const ratio = 1 - dist / pointer.radius;
+                            const force = ratio * (pointer.isDown ? 42 : 22) + pointerSpeed * 0.4;
+                            const angle = Math.atan2(dy, dx);
 
-                        n.curr.x += (Math.cos(angle) * force * 0.8) / n.proj.scale;
-                        n.curr.y += (Math.sin(angle) * force * 0.8) / n.proj.scale;
-                        n.curr.z -= (force * 2.8) / n.proj.scale;
-                        n.excitation = Math.max(n.excitation, ratio);
+                            n.curr.x += (Math.cos(angle) * force * 0.8) / n.proj.scale;
+                            n.curr.y += (Math.sin(angle) * force * 0.8) / n.proj.scale;
+                            n.curr.z -= (force * 2.8) / n.proj.scale;
+                            n.excitation = Math.max(n.excitation, ratio);
+                        }
                     }
 
+                    // Shockwave interactions
                     for (let s = 0; s < pointer.shockwaves.length; s++) {
                         const sw = pointer.shockwaves[s];
                         const swDx = n.proj.x - sw.x;
@@ -292,6 +349,7 @@ export function KineticFabric({
                 }
             }
 
+            // Structural constraint relaxation
             const relaxationPasses = 3;
             for (let p = 0; p < relaxationPasses; p++) {
                 for (let i = 0; i < links.length; i++) {
@@ -318,42 +376,51 @@ export function KineticFabric({
                 }
             }
 
+            // High Performance Canvas Rendering:
+            // 1) Batch render unexcited links in a single draw call (Huge mobile FPS gain)
+            ctx.beginPath();
+            ctx.strokeStyle = `rgba(${stroke}, 0.12)`;
+            ctx.lineWidth = 0.75;
             for (let i = 0; i < links.length; i++) {
                 const link = links[i];
                 const na = nodes[link.p1];
                 const nb = nodes[link.p2];
-
-                const avgScale = (na.proj.scale + nb.proj.scale) / 2;
-                const avgAlpha = (na.proj.alpha + nb.proj.alpha) / 2;
-                const isExcited = na.excitation > 0.1 || nb.excitation > 0.1;
-
-                if (isExcited) {
-                    const glow = Math.max(na.excitation, nb.excitation);
-                    // Excited links glow in the site's blue primary colour
-                    ctx.strokeStyle = `rgba(46, 144, 255, ${Math.min(1, 0.3 + glow * 0.7)})`;
-                    ctx.lineWidth = (0.8 + glow * 1.2) * avgScale;
-                } else {
-                    ctx.strokeStyle = `rgba(${stroke}, ${0.12 * avgAlpha})`;
-                    ctx.lineWidth = 0.75 * avgScale;
+                if (na.excitation <= 0.1 && nb.excitation <= 0.1) {
+                    ctx.moveTo(na.proj.x, na.proj.y);
+                    ctx.lineTo(nb.proj.x, nb.proj.y);
                 }
+            }
+            ctx.stroke();
 
-                ctx.beginPath();
-                ctx.moveTo(na.proj.x, na.proj.y);
-                ctx.lineTo(nb.proj.x, nb.proj.y);
-                ctx.stroke();
+            // 2) Render excited links with dynamic blue glow
+            for (let i = 0; i < links.length; i++) {
+                const link = links[i];
+                const na = nodes[link.p1];
+                const nb = nodes[link.p2];
+                if (na.excitation > 0.1 || nb.excitation > 0.1) {
+                    const glow = Math.max(na.excitation, nb.excitation);
+                    const avgScale = (na.proj.scale + nb.proj.scale) / 2;
+                    ctx.beginPath();
+                    ctx.strokeStyle = `rgba(46, 144, 255, ${Math.min(1, 0.35 + glow * 0.65)})`;
+                    ctx.lineWidth = (0.8 + glow * 1.4) * avgScale;
+                    ctx.moveTo(na.proj.x, na.proj.y);
+                    ctx.lineTo(nb.proj.x, nb.proj.y);
+                    ctx.stroke();
+                }
             }
 
+            // 3) Batch render excited node dots
+            ctx.fillStyle = accentColor;
+            ctx.beginPath();
             for (let i = 0; i < nodes.length; i++) {
                 const n = nodes[i];
                 if (n.excitation > 0.25) {
-                    const r = Math.min(2.6, 1.2 + n.excitation * 2) * n.proj.scale;
-                    // Excited node dots glow blue
-                    ctx.fillStyle = accentColor;
-                    ctx.beginPath();
+                    const r = Math.min(2.8, 1.2 + n.excitation * 2) * n.proj.scale;
+                    ctx.moveTo(n.proj.x + r, n.proj.y);
                     ctx.arc(n.proj.x, n.proj.y, r, 0, Math.PI * 2);
-                    ctx.fill();
                 }
             }
+            ctx.fill();
 
             animId = requestAnimationFrame(loop);
         };
@@ -362,6 +429,7 @@ export function KineticFabric({
         return () => cancelAnimationFrame(animId);
     }, [isRunning, bgColor, strokeRGB, accentColor]);
 
+    // Pointer & Mouse interactions
     const handlePointerMove = (e: React.MouseEvent<HTMLDivElement>) => {
         const container = containerRef.current;
         if (!container) return;
@@ -392,7 +460,7 @@ export function KineticFabric({
             x,
             y,
             radius: 10,
-            maxRadius: 360,
+            maxRadius: Math.min(rect.width, rect.height) * 0.85,
             strength: 1.0,
         });
     };
@@ -409,6 +477,64 @@ export function KineticFabric({
         pointerRef.current.targetAngleY = 0;
     };
 
+    // Full Mobile Touch Interactions
+    const handleTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+        if (e.touches.length === 0) return;
+        const touch = e.touches[0];
+        const container = containerRef.current;
+        if (!container) return;
+
+        const rect = container.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+
+        pointerRef.current.isDown = true;
+        pointerRef.current.x = x;
+        pointerRef.current.y = y;
+        pointerRef.current.prevX = x;
+        pointerRef.current.prevY = y;
+
+        const normX = (x / rect.width - 0.5) * 2;
+        const normY = (y / rect.height - 0.5) * 2;
+        pointerRef.current.targetAngleY = normX * 0.38;
+        pointerRef.current.targetAngleX = -normY * 0.28 + 0.15;
+
+        // Trigger dynamic ripple shockwave on mobile touch
+        pointerRef.current.shockwaves.push({
+            x,
+            y,
+            radius: 10,
+            maxRadius: Math.min(rect.width, rect.height) * 0.85,
+            strength: 1.2,
+        });
+    };
+
+    const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+        if (e.touches.length === 0) return;
+        const touch = e.touches[0];
+        const container = containerRef.current;
+        if (!container) return;
+
+        const rect = container.getBoundingClientRect();
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+
+        pointerRef.current.x = x;
+        pointerRef.current.y = y;
+
+        const normX = (x / rect.width - 0.5) * 2;
+        const normY = (y / rect.height - 0.5) * 2;
+        pointerRef.current.targetAngleY = normX * 0.38;
+        pointerRef.current.targetAngleX = -normY * 0.28 + 0.15;
+    };
+
+    const handleTouchEnd = () => {
+        pointerRef.current.isDown = false;
+        pointerRef.current.x = -2000;
+        pointerRef.current.y = -2000;
+    };
+
+    // Global pointer listeners for smooth drags & window cancels
     useEffect(() => {
         const container = containerRef.current;
         if (!container) return;
@@ -441,7 +567,7 @@ export function KineticFabric({
                     x,
                     y,
                     radius: 10,
-                    maxRadius: 360,
+                    maxRadius: Math.min(rect.width, rect.height) * 0.85,
                     strength: 1.0,
                 });
             }
@@ -451,14 +577,22 @@ export function KineticFabric({
             pointerRef.current.isDown = false;
         };
 
+        const onWindowPointerCancel = () => {
+            pointerRef.current.isDown = false;
+            pointerRef.current.x = -2000;
+            pointerRef.current.y = -2000;
+        };
+
         window.addEventListener("pointermove", onWindowPointerMove, { passive: true });
         window.addEventListener("pointerdown", onWindowPointerDown, { passive: true });
         window.addEventListener("pointerup", onWindowPointerUp, { passive: true });
+        window.addEventListener("pointercancel", onWindowPointerCancel, { passive: true });
 
         return () => {
             window.removeEventListener("pointermove", onWindowPointerMove);
             window.removeEventListener("pointerdown", onWindowPointerDown);
             window.removeEventListener("pointerup", onWindowPointerUp);
+            window.removeEventListener("pointercancel", onWindowPointerCancel);
         };
     }, []);
 
@@ -482,25 +616,29 @@ export function KineticFabric({
             onMouseDown={handlePointerDown}
             onMouseUp={handlePointerUp}
             onMouseLeave={handlePointerLeave}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+            onTouchCancel={handleTouchEnd}
             className={cn(
-                "group relative flex h-full w-full select-none flex-col justify-between overflow-hidden",
+                "group relative flex h-full w-full select-none flex-col justify-between overflow-hidden touch-none",
                 className
             )}
         >
             {/* 3D Canvas Viewport */}
             <canvas
                 ref={canvasRef}
-                className="absolute inset-0 block h-full w-full cursor-crosshair"
+                className="absolute inset-0 block h-full w-full cursor-crosshair touch-none"
             />
 
             {/* Inner Content */}
             {hasForeground && (
-                <div className="relative z-20 flex h-full w-full flex-col justify-between p-5 md:p-8">
+                <div className="relative z-20 flex h-full w-full flex-col justify-between p-4 sm:p-6 md:p-8 pointer-events-none">
                     {/* Top bar with controls */}
                     {showControls && (
-                        <header className="flex w-full items-center justify-between font-mono text-[11px]">
-                            <div className="flex items-center gap-3">
-                                <span className="relative flex size-2">
+                        <header className="flex w-full items-center justify-between font-mono text-[11px] gap-2 pointer-events-auto">
+                            <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                                <span className="relative flex size-2 shrink-0">
                                     <span
                                         className="absolute inline-flex h-full w-full animate-ping rounded-full opacity-60"
                                         style={{ backgroundColor: accentColor }}
@@ -512,7 +650,7 @@ export function KineticFabric({
                                 </span>
                                 {tagline && (
                                     <span
-                                        className="font-semibold tracking-wider uppercase"
+                                        className="font-semibold tracking-wider uppercase truncate text-[10px] sm:text-[11px]"
                                         style={{ color: "rgba(255,255,255,0.7)" }}
                                     >
                                         {tagline}
@@ -520,10 +658,11 @@ export function KineticFabric({
                                 )}
                             </div>
 
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
                                 <button
                                     onClick={triggerImpulse}
-                                    className="flex items-center gap-1 rounded-lg border px-2.5 py-1.5 backdrop-blur-md transition-all"
+                                    type="button"
+                                    className="flex items-center gap-1 rounded-lg border px-2.5 py-1.5 backdrop-blur-md transition-all active:scale-95 touch-manipulation cursor-pointer"
                                     style={{
                                         borderColor: "rgba(255,255,255,0.12)",
                                         backgroundColor: "rgba(255,255,255,0.06)",
@@ -532,12 +671,13 @@ export function KineticFabric({
                                     title="Trigger Shockwave"
                                 >
                                     <Sparkles className="size-3" style={{ color: accentColor }} />
-                                    <span className="hidden font-mono text-[10px] sm:inline">PULSE</span>
+                                    <span className="font-mono text-[10px]">PULSE</span>
                                 </button>
 
                                 <button
                                     onClick={() => setIsRunning((prev) => !prev)}
-                                    className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 backdrop-blur-md transition-all"
+                                    type="button"
+                                    className="flex items-center gap-1.5 rounded-lg border px-2.5 py-1.5 backdrop-blur-md transition-all active:scale-95 touch-manipulation cursor-pointer"
                                     style={{
                                         borderColor: "rgba(255,255,255,0.12)",
                                         backgroundColor: "rgba(255,255,255,0.06)",
@@ -551,11 +691,11 @@ export function KineticFabric({
                         </header>
                     )}
 
-                    {/* Center Headline */}
+                    {/* Center Headline with Responsive Typography */}
                     {headline && (
-                        <main className="pointer-events-none flex flex-col items-center justify-center text-center">
+                        <main className="pointer-events-none flex flex-col items-center justify-center text-center my-auto px-2">
                             <h1
-                                className="font-mono text-5xl font-black tracking-tighter uppercase sm:text-7xl md:text-9xl"
+                                className="font-mono text-3xl sm:text-6xl md:text-8xl lg:text-9xl font-black tracking-tight sm:tracking-tighter uppercase select-none max-w-full break-words leading-none"
                                 style={{ color: "white" }}
                             >
                                 {headline}
@@ -564,7 +704,7 @@ export function KineticFabric({
                     )}
 
                     {/* Bottom spacer */}
-                    <div />
+                    <div className="h-2" />
                 </div>
             )}
         </div>

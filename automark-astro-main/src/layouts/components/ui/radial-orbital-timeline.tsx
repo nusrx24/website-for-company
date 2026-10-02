@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { ArrowRight, Link, Zap, ExternalLink } from "lucide-react";
+import { LiquidMetalButton } from "@/components/ui/liquid-metal-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,7 +48,22 @@ export default function RadialOrbitalTimeline({
     y: 0,
   });
   const [activeNodeId, setActiveNodeId] = useState<number | null>(null);
+  // The orbit is sized from the panel's own width, so the nodes on the left
+  // and right (and their labels) stay inside it on narrow phones. Measured
+  // after mount so the server render and first client render agree.
+  const [radius, setRadius] = useState(210);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+    const fit = () =>
+      setRadius(Math.round(Math.min(210, Math.max(96, el.clientWidth / 2 - 62))));
+    fit();
+    const ro = new ResizeObserver(fit);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
   const orbitRef = useRef<HTMLDivElement>(null);
   const nodeRefs = useRef<Record<number, HTMLDivElement | null>>({});
 
@@ -124,9 +140,6 @@ export default function RadialOrbitalTimeline({
 
   const calculateNodePosition = (index: number, total: number) => {
     const angle = ((index / total) * 360 + rotationAngle) % 360;
-    // Responsive radius based on screen size
-    const isMobile = typeof window !== "undefined" && window.innerWidth < 640;
-    const radius = isMobile ? 140 : 210;
     const radian = (angle * Math.PI) / 180;
 
     const x = radius * Math.cos(radian) + centerOffset.x;
@@ -176,18 +189,23 @@ export default function RadialOrbitalTimeline({
 
       {/* Orbit control button */}
       <div className="absolute top-6 right-6 z-20 flex items-center gap-3">
-        <button
-          type="button"
+        <LiquidMetalButton
+          size="sm"
+          variant="control"
+          label={autoRotate ? "Orbiting" : "Paused"}
+          pressed={autoRotate}
           onClick={() => setAutoRotate(!autoRotate)}
-          className="px-3 py-1.5 rounded-full text-xs font-mono font-medium border border-white/10 bg-white/5 text-slate-300 hover:text-white hover:border-[#2E90FF]/50 hover:bg-[#2E90FF]/10 transition-all flex items-center gap-2"
-        >
-          <span
-            className={`size-2 rounded-full ${
-              autoRotate ? "bg-[#2E90FF] animate-pulse" : "bg-slate-500"
-            }`}
-          />
-          {autoRotate ? "Orbiting" : "Paused"}
-        </button>
+          icon={
+            <span
+              aria-hidden="true"
+              className={`size-2 rounded-full transition-colors ${
+                autoRotate
+                  ? "bg-[#2E90FF] shadow-[0_0_8px_rgba(46,144,255,0.9)] animate-pulse"
+                  : "bg-[#5E6B7D]"
+              }`}
+            />
+          }
+        />
       </div>
 
       <div className="relative w-full max-w-4xl h-full flex items-center justify-center">
@@ -215,8 +233,14 @@ export default function RadialOrbitalTimeline({
           </div>
 
           {/* Orbital path rings */}
-          <div className="absolute w-[280px] h-[280px] sm:w-[420px] sm:h-[420px] rounded-full border border-white/10 pointer-events-none"></div>
-          <div className="absolute w-[340px] h-[340px] sm:w-[500px] sm:h-[500px] rounded-full border border-dashed border-[#2E90FF]/15 pointer-events-none"></div>
+          <div
+            className="absolute rounded-full border border-white/10 pointer-events-none"
+            style={{ width: radius * 2, height: radius * 2 }}
+          ></div>
+          <div
+            className="absolute rounded-full border border-dashed border-[#2E90FF]/15 pointer-events-none"
+            style={{ width: radius * 2 + 60, height: radius * 2 + 60 }}
+          ></div>
 
           {timelineData.map((item, index) => {
             const position = calculateNodePosition(index, timelineData.length);
@@ -287,7 +311,7 @@ export default function RadialOrbitalTimeline({
                 {/* Node label */}
                 <div
                   className={`
-                  absolute top-12 left-1/2 -translate-x-1/2 whitespace-nowrap
+                  absolute top-12 left-1/2 -translate-x-1/2 w-28 sm:w-auto sm:whitespace-nowrap
                   text-xs font-semibold tracking-wider text-center
                   transition-all duration-300
                   ${isExpanded ? "text-[#2E90FF] scale-110" : "text-white/80"}
@@ -303,7 +327,7 @@ export default function RadialOrbitalTimeline({
 
                 {/* Expanded Card Detail */}
                 {isExpanded && (
-                  <Card className="absolute top-24 left-1/2 -translate-x-1/2 w-72 sm:w-80 bg-[#060910]/95 backdrop-blur-xl border-[#2E90FF]/40 shadow-2xl shadow-[#2E90FF]/20 overflow-visible text-white z-50">
+                  <Card className="absolute top-24 left-1/2 -translate-x-1/2 w-72 sm:w-80 bg-[#060910]/95 backdrop-blur-xl border-[#2E90FF]/40 shadow-2xl shadow-[#2E90FF]/20 overflow-visible text-white z-50 shine-border">
                     <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-px h-3 bg-[#2E90FF]/80"></div>
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-center">

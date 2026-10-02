@@ -2,6 +2,7 @@
 import { contact, mailtoUrl, telUrl, whatsappUrl } from "@/lib/utils/contact";
 import { markdownify } from "@/lib/utils/textConverter";
 import type { Homepage } from "@/types";
+import { LiquidMetalButton } from "@/components/ui/liquid-metal-button";
 
 export interface Props {
   cta: Homepage["final_cta"];
@@ -23,7 +24,7 @@ const isExternal = (link: string) => link === "whatsapp";
 <section id="contact" class="section scroll-mt-24 pb-4 lg:pb-8">
   <div class="container">
     <div
-      class="relative overflow-hidden rounded-2xl border border-primary/30 bg-light p-8 text-center lg:p-16"
+      class="relative overflow-hidden rounded-2xl border border-primary/30 bg-light p-8 text-center lg:p-16 shine-border"
     >
       {/* The page's one deliberate flourish, kept behind the content and well
           under the accent's 10% share. */}
@@ -43,14 +44,11 @@ const isExternal = (link: string) => link === "whatsapp";
       </p>
 
       <div class="flex flex-wrap items-center justify-center gap-4">
-        <a
-          class="btn btn-primary"
+        <LiquidMetalButton
+          client:visible
+          label={cta.button_primary.label}
           href={resolve(cta.button_primary.link)}
-          target={isExternal(cta.button_primary.link) ? "_blank" : null}
-          rel="noopener noreferrer"
-        >
-          {cta.button_primary.label}
-        </a>
+        />
         <a
           class="btn btn-outline"
           href={resolve(cta.button_secondary.link)}

@@ -1,8 +1,8 @@
 /**
  * The only script the site needs.
  *
- * Two jobs: shrink the header once the page is scrolled, and size the mobile
- * navigation backdrop to match the open menu. Everything else the template
+ * Two jobs: shrink the header once the page is scrolled, and close the phone
+ * menu (link tap or Escape). Everything else the template
  * shipped here (tabs, modals, accordions, sound toggle, card layout) belonged
  * to sections that no longer exist.
  */
@@ -22,23 +22,28 @@
   function mobileNav() {
     const toggle = document.getElementById("nav-toggle");
     const menu = document.getElementById("nav-menu");
-    const backdrop = document.getElementById("nav-menu-bg");
     if (!toggle || !menu) return;
 
-    const sizeBackdrop = () => {
-      if (!backdrop) return;
-      backdrop.style.height = toggle.checked ? `${menu.scrollHeight + 120}px` : "";
+    const sync = () =>
+      toggle.setAttribute("aria-label", toggle.checked ? "Close menu" : "Open menu");
+    toggle.addEventListener("change", sync);
+
+    const close = () => {
+      if (!toggle.checked) return;
+      toggle.checked = false;
+      sync();
     };
 
-    toggle.addEventListener("change", sizeBackdrop);
-    window.addEventListener("resize", sizeBackdrop, { passive: true });
-
-    // Close the menu after following an in-page link, so the target section is
-    // not left hidden behind the open overlay.
+    // Close after following an in-page link, so the target section is not
+    // left hidden behind the open sheet.
     menu.addEventListener("click", (event) => {
-      if (event.target.closest("a") && toggle.checked) {
-        toggle.checked = false;
-        sizeBackdrop();
+      if (event.target.closest("a")) close();
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && toggle.checked) {
+        close();
+        toggle.focus();
       }
     });
   }

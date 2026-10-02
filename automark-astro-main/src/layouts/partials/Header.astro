@@ -2,6 +2,10 @@
 import Logo from "@/components/Logo.astro";
 import config from "@/config/config.json";
 import menu from "@/config/menu.json";
+import { contact, telUrl, whatsappUrl } from "@/lib/utils/contact";
+import { LiquidMetalButton } from "@/components/ui/liquid-metal-button";
+import { PillBase } from "@/components/ui/3d-adaptive-navigation-bar";
+import { ThreeDButton } from "@/components/ui/3d-button";
 
 export interface ChildNavigationLink {
   name: string;
@@ -25,41 +29,25 @@ const { pathname } = Astro.url;
 >
   <nav class="navbar container relative z-30">
     <!-- logo -->
-    <div class="order-0">
+    <div class="relative z-10 order-0">
       <Logo />
     </div>
-    <!-- navbar toggler -->
-    <input id="nav-toggle" type="checkbox" class="peer hidden" aria-hidden="true" />
+    <!-- navbar toggler: a real (visually hidden) checkbox so it stays keyboard reachable -->
+    <input id="nav-toggle" type="checkbox" class="peer sr-only" aria-controls="nav-menu" aria-label="Open menu" />
     <label
       for="nav-toggle"
-      aria-label="Toggle navigation menu"
-      aria-controls="nav-menu"
-      class="order-3 cursor-pointer flex items-center lg:hidden text-white lg:order-1 bg-dark/10 backdrop-blur-lg size-12 rounded-xl justify-center"
+      aria-hidden="true"
+      class="nav-burger relative z-10 order-3 cursor-pointer flex lg:hidden lg:order-1 bg-light/70 border border-border hover:border-primary/60 backdrop-blur-lg size-11 rounded-xl items-center justify-center transition-colors"
     >
-      <svg
-        aria-hidden="true"
-        class="h-6 fill-current block peer-checked:hidden"
-        viewBox="0 0 20 20"
-        focusable="false"
-      >
-        <path d="M0 3h20v2H0V3z m0 6h20v2H0V9z m0 6h20v2H0V0z"></path>
-      </svg>
-      <svg
-        aria-hidden="true"
-        class="h-6 fill-current hidden peer-checked:block"
-        viewBox="0 0 20 20"
-        focusable="false"
-      >
-        <polygon
-          points="11 9 22 9 22 11 11 11 11 22 9 22 9 11 -2 11 -2 9 9 9 9 -2 11 -2"
-          transform="rotate(45 10 10)"></polygon>
-      </svg>
+      <span class="nav-burger__bars">
+        <span></span><span></span><span></span>
+      </span>
     </label>
     <!-- /navbar toggler -->
     <ul
       id="nav-menu"
       role="list"
-      class="navbar-nav order-3 hidden peer-checked:flex peer-checked:flex-col lg:flex w-full py-6 max-lg:mt-5 lg:order-1 lg:w-auto lg:gap-x-2 lg:py-0 xl:gap-x-8 bg-light/90 lg:bg-dark/30 backdrop-blur-lg rounded-2xl lg:rounded-full lg:corner-squircle px-6"
+      class="navbar-nav nav-sheet order-3 lg:hidden"
     >
       {
         main.map((menu) => (
@@ -123,47 +111,41 @@ const { pathname } = Astro.url;
       }
       {
         navigation_button.enable && (
-          <li class="pt-4 inline-block lg:hidden">
-            <a
-              class="btn-outline btn-sm"
-              href={navigation_button.link}
-              target={
-                navigation_button.link.startsWith("http") ? "_blank" : "_self"
-              }
-              rel={
-                navigation_button.link.startsWith("http")
-                  ? "noopener noreferrer"
-                  : ""
-              }
-            >
-              {navigation_button.label}
-            </a>
+          <li class="nav-sheet__action lg:hidden">
+            <LiquidMetalButton
+              client:media="(max-width: 1023.98px)"
+              label={navigation_button.label}
+              href={whatsappUrl()}
+              fullWidth
+            />
+            <p class="nav-sheet__call">
+              Or call <a href={telUrl}>{contact.phoneDisplay}</a>
+            </p>
           </li>
         )
       }
     </ul>
+    {/* Desktop: the adaptive pill, centred in the bar so its width changes never push the logo or button. */}
+    <div class="absolute left-1/2 top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 lg:block">
+      <PillBase
+        client:media="(min-width: 1024px)"
+        items={main.map((item) => ({ label: item.name, href: item.url }))}
+      />
+    </div>
     <div class="order-1 ml-auto flex items-center md:order-2 lg:ml-0">
       {
         navigation_button.enable && (
-          <a
-            class="btn btn-primary hidden lg:inline-block"
-            href={navigation_button.link}
-            target={
-              navigation_button.link.startsWith("http") ? "_blank" : "_self"
-            }
-            rel={
-              navigation_button.link.startsWith("http")
-                ? "noopener noreferrer"
-                : ""
-            }
-          >
-            {navigation_button.label}
-          </a>
+          <div class="hidden lg:block">
+            <ThreeDButton
+              client:media="(min-width: 1024px)"
+              size="sm"
+              label1="FOR DEMO"
+              label2="FOR DEMO"
+              href={whatsappUrl()}
+            />
+          </div>
         )
       }
     </div>
   </nav>
-
-  <!-- expanded menu background -->
-  <div class="bg-dark/50 backdrop-blur-sm -z-10" id="nav-menu-bg"></div>
 </header>

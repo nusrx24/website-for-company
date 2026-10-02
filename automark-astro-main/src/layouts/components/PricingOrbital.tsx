@@ -12,11 +12,25 @@ import {
   ExternalLink,
   Check,
   ShieldCheck,
-  ArrowRight,
 } from "lucide-react";
 import RadialOrbitalTimeline, {
   type TimelineItem,
 } from "@/components/ui/radial-orbital-timeline";
+import { whatsappUrl } from "@/lib/utils/contact";
+import { motion } from "motion/react";
+import {
+  LiquidMetalButton,
+  LiquidMetalFrame,
+  brushedMetalEdge,
+} from "@/components/ui/liquid-metal-button";
+import TextLoop from "@/components/ui/text-loop";
+import {
+  PricingCard,
+  BGComponent1,
+  BGComponent2,
+  BGComponent3,
+  BGComponent4,
+} from "@/components/ui/squishy-pricing";
 
 export interface PricingTier {
   name: string;
@@ -111,7 +125,7 @@ export function PricingOrbital({
   note = "Starting prices only. Final pricing depends on features, customization, number of users, branches, integrations, hardware and your business requirements.",
   tiers = defaultTiers,
 }: PricingOrbitalProps) {
-  const [activeTab, setActiveTab] = useState<"orbital" | "list">("orbital");
+  const [activeTab, setActiveTab] = useState<"cards" | "orbital" | "list">("cards");
 
   // Map tiers into timeline items for the orbital visualization
   const orbitalData: TimelineItem[] = tiers.map((tier, idx) => {
@@ -145,8 +159,9 @@ export function PricingOrbital({
   });
 
   const getWhatsappUrl = (enquiryText?: string) => {
-    const text = enquiryText || "Hello LapCircuit, I would like to enquire about your pricing.";
-    return `https://wa.me/94770000000?text=${encodeURIComponent(text)}`;
+    return whatsappUrl(
+      enquiryText || "Hello LapCircuit, I would like to enquire about your pricing.",
+    );
   };
 
   return (
@@ -156,13 +171,19 @@ export function PricingOrbital({
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
           <div className="max-w-2xl space-y-3">
             {eyebrow && (
-              <p className="font-mono text-xs font-semibold tracking-[0.2em] text-[#2E90FF] uppercase">
+              <p className="font-primary text-xs font-semibold tracking-[0.2em] text-[#2E90FF] uppercase">
                 {eyebrow}
               </p>
             )}
-            <h2
-              className="text-3xl sm:text-4xl lg:text-5xl font-black uppercase tracking-tight text-white leading-tight hasHighlight"
-              dangerouslySetInnerHTML={{ __html: title }}
+            <TextLoop
+              staticText="Clear starting prices."
+              rotatingTexts={["No guesswork.", "Zero hidden dues.", "Paid once.", "Yours for life."]}
+              className="text-3xl sm:text-4xl lg:text-5xl font-secondary font-bold uppercase tracking-tight text-white leading-tight flex-col items-start sm:flex-row sm:items-center sm:flex-wrap"
+              staticTextClassName="text-white mr-0 sm:mr-3 whitespace-normal sm:whitespace-nowrap"
+              rotatingTextClassName="text-primary pr-1 font-secondary font-bold uppercase drop-shadow-[0_0_14px_rgba(46,144,255,0.45)]"
+              cursorClassName="bg-primary shadow-[0_0_10px_rgba(46,144,255,0.8)]"
+              backgroundClassName="bg-gradient-to-r from-transparent via-primary/15 to-primary/25 rounded"
+              interval={2800}
             />
             {content && (
               <p
@@ -172,77 +193,123 @@ export function PricingOrbital({
             )}
           </div>
 
-          {/* Toggle pill */}
-          <div className="inline-flex items-center p-1 rounded-full border border-white/10 bg-white/5 backdrop-blur-md self-start md:self-end">
-            <button
-              type="button"
-              onClick={() => setActiveTab("orbital")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-mono font-semibold transition-all ${
-                activeTab === "orbital"
-                  ? "bg-[#2E90FF] text-white shadow-[0_0_16px_rgba(46,144,255,0.4)]"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <Orbit size={14} />
-              <span>Orbital 3D View</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab("list")}
-              className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-mono font-semibold transition-all ${
-                activeTab === "list"
-                  ? "bg-[#2E90FF] text-white shadow-[0_0_16px_rgba(46,144,255,0.4)]"
-                  : "text-slate-400 hover:text-white"
-              }`}
-            >
-              <List size={14} />
-              <span>Rate Sheet</span>
-            </button>
-          </div>
+          {/* View switch: one chrome rim, the chosen view is the lit segment. */}
+          <LiquidMetalFrame className="self-start md:self-end">
+            <span role="group" aria-label="Pricing view" className="relative z-10 flex items-center gap-1 p-[5px]">
+              {(
+                [
+                  { id: "cards", label: "Interactive cards", Icon: Sparkles },
+                  { id: "orbital", label: "Orbital 3D view", Icon: Orbit },
+                  { id: "list", label: "Rate sheet", Icon: List },
+                ] as const
+              ).map(({ id, label, Icon }) => {
+                const on = activeTab === id;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => setActiveTab(id)}
+                    className={`relative flex items-center gap-2 rounded-full px-4 py-2 font-mono text-xs font-semibold outline-none transition-colors duration-300 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#5AABFF] ${
+                      on ? "text-[#05070A]" : "text-[#8A94A3] hover:text-[#EEF2F8]"
+                    }`}
+                  >
+                    {on && (
+                      <motion.span
+                        layoutId="pricing-view-lit"
+                        className="absolute inset-0 rounded-full bg-[#2E90FF] shadow-[0_0_18px_rgba(46,144,255,0.55)]"
+                        transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                      />
+                    )}
+                    <Icon size={14} className="relative" />
+                    <span className="relative">{label}</span>
+                  </button>
+                );
+              })}
+            </span>
+          </LiquidMetalFrame>
         </div>
 
-        {/* Zero-Subscription Lifetime Promise Banner */}
-        <div className="mb-10 relative overflow-hidden rounded-2xl border border-[#2E90FF]/40 bg-gradient-to-r from-[#07152B]/95 via-[#0B1E3D] to-[#040D1C]/95 p-5 sm:p-7 backdrop-blur-xl shadow-[0_0_35px_rgba(46,144,255,0.2)]">
+        {/* Zero-subscription guarantee */}
+        <div className="mb-10 relative overflow-hidden rounded-2xl border-2 border-[#2E90FF]/50 bg-[linear-gradient(110deg,#0B1320_0%,#0E1A2C_55%,#080E18_100%)] p-5 sm:p-7 shadow-[0_0_35px_rgba(46,144,255,0.18)] shine-border">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
-            <div className="flex items-start sm:items-center gap-3.5">
-              <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#2E90FF]/25 text-[#2E90FF] border border-[#2E90FF]/40 shadow-[0_0_15px_rgba(46,144,255,0.35)]">
-                <ShieldCheck className="size-6 text-[#60A5FA]" />
+            <div className="flex items-start gap-3.5">
+              <div className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-[#2E90FF]/15 border border-[#2E90FF]/40">
+                <ShieldCheck className="size-6 text-[#5AABFF]" />
               </div>
               <div>
-                <div className="flex flex-wrap items-center gap-2 mb-1">
-                  <span className="font-mono text-xs font-bold tracking-wider text-[#93C5FD] uppercase">
-                    The Zero-Subscription Guarantee
-                  </span>
-                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 text-[10px] font-mono font-bold uppercase">
-                    100% Lifetime Ownership
+                <div className="flex flex-wrap items-center gap-2.5 mb-1.5">
+                  <h3 className="font-secondary text-lg font-semibold text-[#EEF2F8]">
+                    The zero-subscription guarantee
+                  </h3>
+                  <span className="rounded-full border border-[#2E90FF]/45 px-2.5 py-0.5 font-mono text-[11px] font-semibold text-[#5AABFF]">
+                    Lifetime ownership
                   </span>
                 </div>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
-                  Every package below is a <strong className="text-white">one-time payment</strong>. You own your system for life.{" "}
-                  <span className="text-emerald-400 font-semibold">Zero monthly subscriptions. Zero recurring software fees.</span>
+                <p className="text-sm text-[#8A94A3] leading-relaxed">
+                  Every package below is a one-time payment, and the system is yours for life.{" "}
+                  <strong className="font-semibold text-[#EEF2F8]">No monthly subscription and no recurring software fees.</strong>
                 </p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 shrink-0 self-start md:self-auto">
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 font-mono text-[11px] text-slate-300">
-                <span className="size-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                <span>Monthly Rent: <strong className="text-white">Rs. 0</strong></span>
+            <dl className="flex flex-wrap items-center gap-3 shrink-0 self-start md:self-auto font-mono text-[11px]">
+              <div className="flex items-center gap-2 rounded-full px-3.5 py-1.5" style={brushedMetalEdge}>
+                <span className="size-1.5 rounded-full bg-[#2E90FF] shadow-[0_0_8px_rgba(46,144,255,0.9)]" aria-hidden="true" />
+                <dt className="text-[#8A94A3]">Monthly rent</dt>
+                <dd className="font-semibold text-[#EEF2F8]">Rs. 0</dd>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 font-mono text-[11px] text-slate-300">
-                <span className="size-2 rounded-full bg-[#2E90FF]"></span>
-                <span>Ownership: <strong className="text-white">Forever</strong></span>
+              <div className="flex items-center gap-2 rounded-full px-3.5 py-1.5" style={brushedMetalEdge}>
+                <span className="size-1.5 rounded-full bg-[#2E90FF] shadow-[0_0_8px_rgba(46,144,255,0.9)]" aria-hidden="true" />
+                <dt className="text-[#8A94A3]">Ownership</dt>
+                <dd className="font-semibold text-[#EEF2F8]">Forever</dd>
               </div>
-            </div>
+            </dl>
           </div>
         </div>
 
-        {/* View Mode 1: 3D Radial Orbital System */}
+        {/* View Mode 1: Squishy Interactive Cards */}
+        {activeTab === "cards" && (
+          <div className="py-2">
+            <div className="mx-auto flex w-full flex-wrap justify-center gap-6">
+              {tiers.map((tier, idx) => {
+                const bgStyles = [
+                  "bg-gradient-to-br from-[#0B1B36] via-[#0E264D] to-[#061021] border-[#2E90FF]/60 hover:border-[#2E90FF]",
+                  "bg-gradient-to-br from-[#1C1338] via-[#2A1B54] to-[#0E091F] border-purple-500/60 hover:border-purple-400",
+                  "bg-gradient-to-br from-[#07243B] via-[#0D3B61] to-[#041524] border-[#00E5FF]/70 hover:border-[#00E5FF]",
+                  "bg-gradient-to-br from-[#0D261E] via-[#143D30] to-[#061510] border-emerald-500/60 hover:border-emerald-400",
+                ];
+                const bgComponents = [BGComponent1, BGComponent2, BGComponent3, BGComponent4];
+                const BG = bgComponents[idx % bgComponents.length];
+                const cleanPrice = tier.price.replace(/^LKR\s*/i, "");
+
+                return (
+                  <PricingCard
+                    key={tier.name}
+                    label={tier.name}
+                    monthlyPrice={cleanPrice}
+                    pricePrefix="LKR "
+                    period="One-Time"
+                    description={tier.description}
+                    cta={cta_label || "Request Quote"}
+                    background={bgStyles[idx % bgStyles.length]}
+                    BGComponent={BG}
+                    badge={tier.featured ? "Most Popular" : idx === 3 ? "Complete Setup" : undefined}
+                    features={tier.features}
+                    href={getWhatsappUrl(tier.enquiry)}
+                  />
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* View Mode 2: 3D Radial Orbital System */}
         {activeTab === "orbital" && (
-          <div className="rounded-2xl border border-white/10 bg-gradient-to-b from-[#060912] to-[#030508] p-2 sm:p-4 shadow-2xl relative overflow-hidden">
+          <div className="rounded-2xl border-2 border-white/20 bg-gradient-to-b from-[#060912] to-[#030508] p-2 sm:p-4 shadow-2xl relative overflow-hidden shine-border">
             <div className="text-center pt-4 pb-2">
-              <span className="text-xs font-mono tracking-widest text-[#2E90FF] uppercase bg-[#2E90FF]/10 px-3 py-1 rounded-full border border-[#2E90FF]/20">
-                Click any satellite node to inspect tier details &bull; One-Time Payment Forever
+              <span className="font-mono text-xs text-[#8A94A3]">
+                Tap a plan on the orbit to see what it includes.
               </span>
             </div>
             <RadialOrbitalTimeline
@@ -253,16 +320,16 @@ export function PricingOrbital({
           </div>
         )}
 
-        {/* View Mode 2: Sleek Interactive Rate Sheet */}
+        {/* View Mode 3: Sleek Interactive Rate Sheet with individual bordered rectangles */}
         {activeTab === "list" && (
-          <div className="rounded-2xl border border-white/10 overflow-hidden bg-gradient-to-b from-white/[0.04] to-transparent backdrop-blur-md divide-y divide-white/10 shadow-2xl">
+          <div className="space-y-4">
             {tiers.map((tier) => (
               <article
                 key={tier.name}
-                className={`grid gap-6 p-6 lg:grid-cols-12 lg:items-center lg:gap-8 lg:p-8 transition-colors ${
+                className={`rounded-2xl border-2 p-6 lg:p-8 grid gap-6 lg:grid-cols-12 lg:items-center lg:gap-8 transition-all duration-300 shadow-xl shine-border ${
                   tier.featured
-                    ? "bg-[#2E90FF]/[0.08] relative border-l-4 border-l-[#2E90FF]"
-                    : "hover:bg-white/[0.02]"
+                    ? "bg-[#0B1528] border-[#2E90FF]/60 hover:border-[#2E90FF] shadow-[0_0_35px_rgba(46,144,255,0.18)]"
+                    : "bg-[#060A14]/90 border-white/20 hover:border-[#2E90FF]/60 hover:bg-[#080E1C]"
                 }`}
               >
                 <div className="lg:col-span-5 space-y-2">
@@ -337,7 +404,7 @@ export function PricingOrbital({
         )}
 
         {/* Bottom Headline Banner: "Built for your business. Paid once. Yours for life." */}
-        <div className="mt-14 sm:mt-18 relative overflow-hidden rounded-3xl border border-[#2E90FF]/35 bg-gradient-to-r from-[#07152B] via-[#0B1E3D] to-[#040D1C] p-8 sm:p-10 backdrop-blur-xl shadow-[0_20px_60px_rgba(46,144,255,0.18)]">
+        <div className="mt-14 sm:mt-18 relative overflow-hidden rounded-3xl border-2 border-[#2E90FF]/45 bg-gradient-to-r from-[#07152B] via-[#0B1E3D] to-[#040D1C] p-8 sm:p-10 backdrop-blur-xl shadow-[0_20px_60px_rgba(46,144,255,0.18)] shine-border">
           <div className="absolute top-0 right-0 w-80 h-80 bg-[#2E90FF]/15 blur-[100px] pointer-events-none" />
           <div className="absolute -bottom-10 left-10 w-60 h-60 bg-[#1d4ed8]/20 blur-[90px] pointer-events-none" />
 
@@ -347,7 +414,7 @@ export function PricingOrbital({
                 <Check className="size-3.5" />
                 <span>The LapCircuit Commitment</span>
               </div>
-              <h3 className="font-['Clash_Display',sans-serif] text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight uppercase">
+              <h3 className="font-secondary text-2xl sm:text-3xl md:text-4xl font-bold text-white tracking-tight uppercase">
                 Built for your business. Paid once. Yours for life.
               </h3>
               <p className="mt-3 text-sm sm:text-base text-slate-300 leading-relaxed max-w-2xl font-normal">
@@ -357,21 +424,20 @@ export function PricingOrbital({
             </div>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0 w-full sm:w-auto">
-              <a
-                href={getWhatsappUrl("Hello LapCircuit, I want to learn more about your One-Time Payment POS software.")}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 px-7 py-3.5 rounded-xl bg-[#2E90FF] hover:bg-[#1B7FE8] text-white font-['Clash_Display',sans-serif] font-semibold text-sm tracking-wide shadow-[0_0_30px_rgba(46,144,255,0.45)] transition-all duration-300 hover:scale-[1.02]"
-              >
-                <span>Talk Directly to Founders</span>
-                <ArrowRight className="size-4" />
-              </a>
+              <LiquidMetalButton
+                label="Talk to our team"
+                href={getWhatsappUrl("Hello LapCircuit, I want to learn more about your one-time payment POS software.")}
+                fullWidth
+                className="sm:inline-flex sm:w-auto"
+              />
 
               <a
-                href="#contact"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 text-white font-medium text-sm transition-all duration-200"
+                href={getWhatsappUrl("Hello LapCircuit, I would like to book a live POS demo at my counter.")}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 text-white font-medium text-sm transition-all duration-200"
               >
-                <span>Book Live Counter Demo</span>
+                <span>Book a counter demo</span>
               </a>
             </div>
           </div>

@@ -1,8 +1,9 @@
 ---
 banner:
   eyebrow: "POS & BUSINESS MANAGEMENT SOFTWARE"
-  title: "Run your business. <strong>Your way.</strong>"
-  content: "Affordable POS and business management software built around the way your business actually works — from offline desktop systems to dedicated desktop applications and cloud-based desktop + mobile solutions."
+  title: "Your business. Your POS. <strong>Your way.</strong>"
+  lead: "Your business doesn't work like everyone else's. Your software shouldn't either."
+  content: "LapCircuit creates practical POS and business management systems tailored to your workflow — starting from **LKR 30,000+**."
   price_signal:
     label: "Solutions starting from"
     value: "LKR 30,000+"
@@ -15,9 +16,9 @@ banner:
     label: "See our solutions"
     link: "#solutions"
   trust_signals:
-    - "Custom software"
-    - "Offline + cloud"
-    - "Direct support"
+    - "Custom-Built"
+    - "Offline Ready"
+    - "Cloud + Mobile"
   locations:
     - "Eravur"
     - "Oddamavadi"
@@ -25,7 +26,6 @@ banner:
     - "Batticaloa"
   media:
     video: "/videos/pos-counter.mp4"
-    poster: "/images/pos-counter-poster.webp"
     caption: "Complete POS setup — software, scanner, printer and cash drawer"
 
 ## BENEFITS ###################################################################
@@ -311,13 +311,22 @@ company:
   title: "We make business software <strong>simpler.</strong>"
   content: "LapCircuit is a registered software company focused on building practical POS and business management systems for growing businesses. We work directly with business owners to understand their operations before designing and developing the solution."
   team_label: "The team"
+  # `line` is a plain description of the role, not a quote. Photos are 4:5
+  # crops (800x1000) of the originals in ../team, lined up at the same eye
+  # height so the stacked cards match.
   team:
     - name: "Safni Hassan"
       role: "Developer"
+      line: "Builds and customizes LapCircuit's POS and business management software."
+      photo: "/images/team/safni-hassan.webp"
     - name: "Nusair"
       role: "Developer"
+      line: "Builds and customizes LapCircuit's POS and business management software."
+      photo: "/images/team/nusair.webp"
     - name: "Thabiz"
-      role: "Tester"
+      role: "QA"
+      line: "Assures software quality and tests each system before it goes to a customer."
+      photo: "/images/team/thabiz.webp"
 
 ## LOCATIONS ####################################################################
 locations:

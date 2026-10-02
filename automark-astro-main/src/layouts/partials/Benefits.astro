@@ -1,7 +1,7 @@
 ---
-import { markdownify } from "@/lib/utils/textConverter";
 import type { Homepage } from "@/types";
 import { BenefitsCards } from "@/components/BenefitsCards";
+import TextLoop from "@/components/ui/text-loop";
 
 export interface Props {
   benefits: Homepage["benefits"];
@@ -42,10 +42,19 @@ const cardData = benefits.acts.map((act) => {
           </p>
         )
       }
-      <h2
-        class="text-h3 lg:text-h2 mb-5 leading-[1.1] uppercase hasHighlight"
-        set:html={markdownify(benefits.title)}
-      />
+      <div class="mb-5">
+        <TextLoop
+          client:visible
+          staticText="One sale,"
+          rotatingTexts={["start to finish.", "billed instantly.", "tracked in real-time.", "printed in seconds."]}
+          className="text-h3 lg:text-h2 font-secondary font-bold uppercase leading-[1.1] tracking-tight flex-col items-start sm:flex-row sm:items-center sm:flex-wrap"
+          staticTextClassName="text-white mr-0 sm:mr-3 whitespace-normal sm:whitespace-nowrap"
+          rotatingTextClassName="text-primary pr-1 font-secondary font-bold uppercase drop-shadow-[0_0_14px_rgba(46,144,255,0.45)]"
+          cursorClassName="bg-primary shadow-[0_0_10px_rgba(46,144,255,0.8)]"
+          backgroundClassName="bg-gradient-to-r from-transparent via-primary/15 to-primary/25 rounded"
+          interval={3000}
+        />
+      </div>
       {
         benefits.content && (
           <p class="max-w-2xl text-base leading-[1.75] text-text">

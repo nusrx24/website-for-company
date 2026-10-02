@@ -10,8 +10,12 @@ export const ContainerScroll = ({
   children: React.ReactNode;
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  // Animate while the container travels from the bottom edge to the centre.
+  // The default offset only runs while its extra height (vs the viewport)
+  // scrolls past - about 36px on a phone, so the tilt never visibly resolved.
   const { scrollYProgress } = useScroll({
     target: containerRef,
+    offset: ["start end", "center center"],
   });
   const [isMobile, setIsMobile] = React.useState(false);
 
@@ -60,7 +64,7 @@ export const Header = ({ translate, titleComponent }: any) => {
       style={{
         translateY: translate,
       }}
-      className="div max-w-5xl mx-auto text-center"
+      className="div max-w-5xl mx-auto px-2 text-center md:px-0"
     >
       {titleComponent}
     </motion.div>
@@ -85,7 +89,7 @@ export const Card = ({
         boxShadow:
           "0 0 #0000004d, 0 9px 20px #0000004a, 0 37px 37px #00000042, 0 84px 50px #00000026, 0 149px 60px #0000000a, 0 233px 65px #00000003",
       }}
-      className="max-w-5xl -mt-12 mx-auto h-[30rem] md:h-[40rem] w-full border-4 border-[#2A3447] p-2 md:p-5 bg-[#0C121D] rounded-[30px] shadow-2xl"
+      className="max-w-5xl -mt-12 mx-auto h-[30rem] md:h-[40rem] w-full border-4 border-[#2A3447] p-2 md:p-5 bg-[#0C121D] rounded-[30px] shadow-2xl shine-border"
     >
       <div className="h-full w-full overflow-hidden rounded-2xl bg-zinc-950 md:rounded-2xl">
         {children}

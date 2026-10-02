@@ -1,8 +1,8 @@
 ---
 import ImageMod from "@/components/ImageMod.astro";
 import ProjectsMorphGallery from "@/components/ProjectsMorphGallery";
-import { markdownify } from "@/lib/utils/textConverter";
 import type { Homepage } from "@/types";
+import TextLoop from "@/components/ui/text-loop";
 
 export interface Props {
   projects: Homepage["projects"];
@@ -25,10 +25,19 @@ const displayName = (item: Homepage["projects"]["items"][number]) =>
           </p>
         )
       }
-      <h2
-        class="text-h3 lg:text-h2 mb-5 leading-[1.1] uppercase hasHighlight"
-        set:html={markdownify(projects.title)}
-      />
+      <div class="mb-5">
+        <TextLoop
+          client:visible
+          staticText="Systems already"
+          rotatingTexts={["running in real businesses.", "deployed across Sri Lanka.", "trusted on the counter.", "scaling with owners."]}
+          className="text-h3 lg:text-h2 font-secondary font-bold uppercase leading-[1.1] tracking-tight flex-col items-start sm:flex-row sm:items-center sm:flex-wrap"
+          staticTextClassName="text-white mr-0 sm:mr-3 whitespace-normal sm:whitespace-nowrap"
+          rotatingTextClassName="text-primary pr-1 font-secondary font-bold uppercase drop-shadow-[0_0_14px_rgba(46,144,255,0.45)]"
+          cursorClassName="bg-primary shadow-[0_0_10px_rgba(46,144,255,0.8)]"
+          backgroundClassName="bg-gradient-to-r from-transparent via-primary/15 to-primary/25 rounded"
+          interval={3000}
+        />
+      </div>
       {
         projects.content && (
           <p class="max-w-2xl text-base text-text">{projects.content}</p>
@@ -40,7 +49,7 @@ const displayName = (item: Homepage["projects"]["items"][number]) =>
       {
         projects.items.map((item, i) => (
           <article
-            class="project-card flex flex-col overflow-hidden rounded-2xl border border-border bg-light"
+            class="project-card flex flex-col overflow-hidden rounded-2xl border border-border bg-light shine-border"
             style={`--i:${i}`}
           >
             {item.images.length > 0 ? (

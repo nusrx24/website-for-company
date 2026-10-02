@@ -3,6 +3,7 @@
 
 import React, {
   type CSSProperties,
+  useCallback,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -73,31 +74,94 @@ export type TimelineProps = {
   scrollDuration?: number;
 };
 
+// Phone timeline: the rail is a circuit trace, the step markers are solder
+// pads, and --p (0..1, scrubbed by scroll) is how far the current has run.
+const PHONE_TIMELINE_CSS = `
+.tl-m__track { position: relative; --p: 0; }
+.tl-m__trace, .tl-m__current {
+  position: absolute; left: 6px; top: 8px; bottom: 0; width: 2px; border-radius: 2px;
+}
+.tl-m__trace { background: linear-gradient(#1F2A38 85%, transparent); }
+.tl-m__current {
+  background: linear-gradient(180deg, #2E90FF, #5AABFF);
+  box-shadow: 0 0 10px rgba(46, 144, 255, 0.65);
+  transform-origin: top; transform: scaleY(var(--p));
+}
+.tl-m__head {
+  position: absolute; left: 7px; top: calc(8px + var(--p) * (100% - 8px));
+  width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%;
+  background: #EAF4FF;
+  box-shadow: 0 0 0 3px rgba(46, 144, 255, 0.35), 0 0 18px 5px rgba(46, 144, 255, 0.8);
+  opacity: min(1, calc(var(--p) * 40)); pointer-events: none;
+}
+.tl-m__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 3.25rem; }
+.tl-m__step { position: relative; padding-left: 2.1rem; }
+.tl-m__pad {
+  position: absolute; left: 0; top: 0.4rem; width: 14px; height: 14px; border-radius: 4px;
+  border: 2px solid #2A3647; background: #05070A;
+  transition: background-color .35s ease, border-color .35s ease, box-shadow .5s ease;
+}
+.tl-m__pad::after {
+  content: ""; position: absolute; inset: -2px; border-radius: 5px;
+  border: 1px solid #5AABFF; opacity: 0;
+}
+.tl-m__num {
+  font-family: var(--font-mono, monospace); font-size: 0.75rem; font-weight: 700;
+  padding: 0.15rem 0.5rem; border-radius: 4px;
+  color: #5E6B7D; border: 1px solid #1F2A38; background: transparent;
+  transition: color .4s ease, border-color .4s ease, background-color .4s ease;
+}
+.tl-m__body {
+  opacity: 0.3; transform: translateY(16px);
+  transition: opacity .6s ease, transform .75s cubic-bezier(.22, 1, .36, 1);
+}
+.tl-m__media {
+  margin-top: 0.9rem;
+  clip-path: inset(0 0 100% 0 round 12px);
+  transition: clip-path .9s cubic-bezier(.76, 0, .24, 1) .12s;
+}
+.tl-m__media img { transform: scale(1.12); transition: transform 1.4s cubic-bezier(.22, 1, .36, 1) .12s; }
+
+.tl-m__step.is-on .tl-m__pad {
+  background: #2E90FF; border-color: #2E90FF;
+  box-shadow: 0 0 0 4px rgba(46, 144, 255, 0.18), 0 0 16px rgba(46, 144, 255, 0.9);
+}
+.tl-m__step.is-on .tl-m__pad::after { animation: tlmPulse .9s ease-out 1; }
+.tl-m__step.is-on .tl-m__num { color: #2E90FF; border-color: rgba(46, 144, 255, .4); background: rgba(46, 144, 255, .12); }
+.tl-m__step.is-on .tl-m__body { opacity: 1; transform: none; }
+.tl-m__step.is-on .tl-m__media { clip-path: inset(0 0 0 0 round 12px); }
+.tl-m__step.is-on .tl-m__media img { transform: scale(1); }
+
+@keyframes tlmPulse {
+  from { transform: scale(1); opacity: .9; }
+  to { transform: scale(2.8); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tl-m__pad, .tl-m__num, .tl-m__body, .tl-m__media, .tl-m__media img { transition: none; }
+  .tl-m__step.is-on .tl-m__pad::after { animation: none; }
+}
+`;
+
 const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+const PHONE_QUERY = "(max-width: 767px)";
 
-function subscribeToReducedMotion(callback: () => void) {
-  if (typeof window === "undefined") return () => {};
+function useMediaQuery(query: string) {
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      if (typeof window === "undefined") return () => {};
+      const mediaQueryList = window.matchMedia(query);
+      mediaQueryList.addEventListener("change", callback);
+      return () => mediaQueryList.removeEventListener("change", callback);
+    },
+    [query],
+  );
 
-  const mediaQueryList = window.matchMedia(REDUCED_MOTION_QUERY);
-  mediaQueryList.addEventListener("change", callback);
-
-  return () => mediaQueryList.removeEventListener("change", callback);
-}
-
-function getReducedMotionSnapshot() {
-  if (typeof window === "undefined") return false;
-  return window.matchMedia?.(REDUCED_MOTION_QUERY)?.matches ?? false;
-}
-
-function getServerReducedMotionSnapshot() {
-  return false;
-}
-
-function usePrefersReducedMotion() {
   return useSyncExternalStore(
-    subscribeToReducedMotion,
-    getReducedMotionSnapshot,
-    getServerReducedMotionSnapshot,
+    subscribe,
+    () =>
+      typeof window !== "undefined" &&
+      (window.matchMedia?.(query)?.matches ?? false),
+    () => false,
   );
 }
 
@@ -134,7 +198,7 @@ function StepMediaCard({
   if (!item.image) return null;
   return (
     <div
-      className={`media-${item.id} group/card relative w-full overflow-hidden rounded-xl border border-white/10 bg-[#071324]/80 shadow-[0_10px_30px_rgba(0,0,0,0.6)] backdrop-blur-md transition-all duration-500 hover:border-[#2E90FF]/80 hover:shadow-[0_0_25px_rgba(46,144,255,0.35)]`}
+      className={`media-${item.id} group/card relative w-full overflow-hidden rounded-xl border border-white/10 bg-[#071324]/80 shadow-[0_10px_30px_rgba(0,0,0,0.6)] backdrop-blur-md transition-all duration-500 hover:border-[#2E90FF]/80 hover:shadow-[0_0_25px_rgba(46,144,255,0.35)] shine-border`}
     >
       {/* 16:9 Image container */}
       <div className="relative aspect-[16/9] w-full overflow-hidden">
@@ -230,7 +294,9 @@ export default function Timeline({
 }: TimelineProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const wholeSliderRef = useRef<HTMLDivElement>(null);
-  const reducedMotion = usePrefersReducedMotion();
+  const phoneTrackRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = useMediaQuery(REDUCED_MOTION_QUERY);
+  const isPhone = useMediaQuery(PHONE_QUERY);
 
   // Combine and sort all items in timeline sequence (e.g. 01, 02, 03, 04, 05, 06)
   const allJourneyItems: JourneyItem[] = [...topItems, ...bottomItems].sort(
@@ -265,7 +331,7 @@ export default function Timeline({
   useIsomorphicLayoutEffect(() => {
     const section = sectionRef.current;
     const slider = wholeSliderRef.current;
-    if (!section || !slider) return;
+    if (!section || !slider || isPhone) return;
 
     if (reducedMotion) {
       gsap.set(slider, { x: 0 });
@@ -439,12 +505,108 @@ export default function Timeline({
 
     window.addEventListener("resize", handleResize);
 
+    // Sections above hydrate as they scroll into view and change height,
+    // which would leave the pin's start and end positions out of date.
+    let frame = 0;
+    const pageObserver = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => ScrollTrigger.refresh());
+    });
+    pageObserver.observe(document.body);
+
     return () => {
+      pageObserver.disconnect();
+      cancelAnimationFrame(frame);
       masterTimeline.scrollTrigger?.kill();
       masterTimeline.kill();
       window.removeEventListener("resize", handleResize);
     };
-  }, [allJourneyItems, reducedMotion, topItems, bottomItems]);
+  }, [allJourneyItems, reducedMotion, isPhone, topItems, bottomItems]);
+
+  // Phone: a current runs down the trace as you scroll (scrubbed, like the
+  // desktop line), and each step switches on as the current reaches it.
+  useIsomorphicLayoutEffect(() => {
+    const track = phoneTrackRef.current;
+    if (!isPhone || !track) return;
+
+    const steps = Array.from(track.querySelectorAll<HTMLElement>("[data-step]"));
+
+    if (reducedMotion) {
+      track.style.setProperty("--p", "1");
+      steps.forEach((step) => step.classList.add("is-on"));
+      return;
+    }
+
+    // Both use the same 72% line, so the current's head sits exactly on a
+    // pad at the moment that pad lights.
+    const current = gsap.fromTo(
+      track,
+      { "--p": 0 },
+      {
+        "--p": 1,
+        ease: "none",
+        scrollTrigger: { trigger: track, start: "top 72%", end: "bottom 72%", scrub: 0.35 },
+      },
+    );
+    const switches = steps.map((step) =>
+      ScrollTrigger.create({
+        trigger: step,
+        start: "top 72%",
+        onEnter: () => step.classList.add("is-on"),
+        onLeaveBack: () => step.classList.remove("is-on"),
+      }),
+    );
+
+    // Islands above hydrate and change height after this runs.
+    let frame = 0;
+    const observer = new ResizeObserver(() => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => ScrollTrigger.refresh());
+    });
+    observer.observe(document.body);
+
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(frame);
+      current.scrollTrigger?.kill();
+      current.kill();
+      switches.forEach((trigger) => trigger.kill());
+    };
+  }, [isPhone, reducedMotion]);
+
+  if (isPhone) {
+    return (
+      <section id={id} className="tl-m w-full px-5 pt-2 pb-20" style={sectionStyle}>
+        <style>{PHONE_TIMELINE_CSS}</style>
+        <div ref={phoneTrackRef} className="tl-m__track">
+          <span className="tl-m__trace" aria-hidden="true" />
+          <span className="tl-m__current" aria-hidden="true" />
+          <span className="tl-m__head" aria-hidden="true" />
+          <ol className="tl-m__list">
+            {allJourneyItems.map((item) => (
+              <li key={item.id} data-step className="tl-m__step">
+                <span className="tl-m__pad" aria-hidden="true" />
+                <div className="tl-m__body">
+                  <div className="flex items-center gap-2.5">
+                    <span className="tl-m__num">{item.year}</span>
+                    <h3 className="text-xl font-bold uppercase leading-tight tracking-tight text-white">
+                      {item.month}
+                    </h3>
+                  </div>
+                  <p className="mt-2 text-sm leading-relaxed" style={mutedTextStyle}>
+                    {item.content}
+                  </p>
+                </div>
+                <div className="tl-m__media">
+                  <StepMediaCard item={item} />
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section
@@ -459,7 +621,7 @@ export default function Timeline({
           className="flex h-[52vw] min-h-[600px] max-h-[720px] w-fit items-center gap-[4vw] px-[6vw] max-[600px]:h-auto max-[600px]:py-8 max-[600px]:px-[6vw]"
         >
           {/* Hardware & Concept Lead-In Card */}
-          <div className="h-full w-[26vw] min-w-[280px] max-w-[360px] shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-b from-white/10 to-transparent p-1 shadow-2xl backdrop-blur-sm max-[600px]:w-[80vw]">
+          <div className="h-full w-[26vw] min-w-[280px] max-w-[360px] shrink-0 overflow-hidden rounded-2xl border border-white/15 bg-gradient-to-b from-white/10 to-transparent p-1 shadow-2xl backdrop-blur-sm max-[600px]:w-[80vw] shine-border">
             <div className="relative h-full w-full overflow-hidden rounded-xl">
               <img
                 src={imageUrl}

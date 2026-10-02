@@ -1,6 +1,6 @@
 ---
-import { markdownify } from "@/lib/utils/textConverter";
 import type { Homepage } from "@/types";
+import TextLoop from "@/components/ui/text-loop";
 
 export interface Props {
   solutions: Homepage["solutions"];
@@ -66,10 +66,19 @@ const wide = (id: string) => `/images/solutions/${id}-wide.webp`;
           </p>
         )
       }
-      <h2
-        class="text-h3 lg:text-h2 mb-5 leading-[1.1] uppercase hasHighlight"
-        set:html={markdownify(solutions.title)}
-      />
+      <div class="mb-5">
+        <TextLoop
+          client:visible
+          staticText="Software built around"
+          rotatingTexts={["your workflow.", "your retail store.", "your restaurant.", "your warehouse."]}
+          className="text-h3 lg:text-h2 font-secondary font-bold uppercase leading-[1.1] tracking-tight flex-col items-start sm:flex-row sm:items-center sm:flex-wrap"
+          staticTextClassName="text-white mr-0 sm:mr-3 whitespace-normal sm:whitespace-nowrap"
+          rotatingTextClassName="text-primary pr-1 font-secondary font-bold uppercase drop-shadow-[0_0_14px_rgba(46,144,255,0.45)]"
+          cursorClassName="bg-primary shadow-[0_0_10px_rgba(46,144,255,0.8)]"
+          backgroundClassName="bg-gradient-to-r from-transparent via-primary/15 to-primary/25 rounded"
+          interval={3000}
+        />
+      </div>
       {
         solutions.content && (
           <p class="max-w-2xl text-base leading-[1.75] text-text">
@@ -88,7 +97,7 @@ const wide = (id: string) => `/images/solutions/${id}-wide.webp`;
               type="button"
               role="tab"
               id={`tab-${item.id}`}
-              class="solutions__card"
+              class="solutions__card shine-border"
               style={`--i:${item.index}`}
               data-solution={item.id}
               aria-selected={item.index === 0 ? "true" : "false"}
@@ -123,7 +132,7 @@ const wide = (id: string) => `/images/solutions/${id}-wide.webp`;
         <div class="solutions__terminal">
           <div class="solutions__ring" aria-hidden="true"></div>
 
-          <div class="solutions__bezel">
+          <div class="solutions__bezel shine-border">
             <div class="solutions__chrome" aria-hidden="true">
               <span class="solutions__dot"></span>
               <span class="solutions__dot"></span>
@@ -198,7 +207,7 @@ const wide = (id: string) => `/images/solutions/${id}-wide.webp`;
               type="button"
               role="tab"
               id={`tab-${item.id}`}
-              class="solutions__card"
+              class="solutions__card shine-border"
               style={`--i:${item.index}`}
               data-solution={item.id}
               aria-selected="false"

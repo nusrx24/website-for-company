@@ -17,6 +17,7 @@ const homepageCollection = defineCollection({
     banner: z.object({
       eyebrow: z.string().optional(),
       title: z.string(),
+      lead: z.string().optional(),
       content: z.string(),
       // Headline price signal. Shown as a labelled figure, never as a fixed quote.
       price_signal: z
@@ -189,7 +190,16 @@ const homepageCollection = defineCollection({
       title: z.string(),
       content: z.string(),
       team_label: z.string().optional(),
-      team: z.array(z.object({ name: z.string(), role: z.string() })),
+      // `line` describes the person's role in plain words; it is not a quote.
+      // `photo` is a path under public/, e.g. /images/team/nusair.webp.
+      team: z.array(
+        z.object({
+          name: z.string(),
+          role: z.string(),
+          line: z.string().optional(),
+          photo: z.string().optional(),
+        }),
+      ),
     }),
 
     locations: z.object({

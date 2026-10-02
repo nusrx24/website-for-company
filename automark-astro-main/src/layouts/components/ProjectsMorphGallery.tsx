@@ -4,7 +4,9 @@ import React, { useState, useEffect } from "react";
 import ScrollMorphProjects from "./ui/scroll-morph-projects";
 import ScrollMorphMobile from "./ui/scroll-morph-mobile";
 import ConstellationBackground from "./ui/constellation-background";
-import { Store, ShieldCheck, ArrowRight, Smartphone, Orbit } from "lucide-react";
+import { whatsappUrl } from "@/lib/utils/contact";
+import { Store, ShieldCheck, Smartphone, Orbit } from "lucide-react";
+import { LiquidMetalButton } from "@/components/ui/liquid-metal-button";
 
 export default function ProjectsMorphGallery() {
   const [viewMode, setViewMode] = useState<"auto" | "mobile" | "3d">("auto");
@@ -25,7 +27,7 @@ export default function ProjectsMorphGallery() {
     viewMode === "mobile" || (viewMode === "auto" && isMobileScreen);
 
   return (
-    <div className="relative w-full mt-10 lg:mt-14 overflow-hidden rounded-3xl border border-[#2E90FF]/30 bg-[#030712]/90 backdrop-blur-xl p-3 sm:p-6 lg:p-8 shadow-[0_0_50px_rgba(46,144,255,0.12)]">
+    <div className="relative w-full mt-10 lg:mt-14 overflow-hidden rounded-3xl border border-[#2E90FF]/30 bg-[#030712]/90 backdrop-blur-xl p-3 sm:p-6 lg:p-8 shadow-[0_0_50px_rgba(46,144,255,0.12)] shine-border">
       {/* Dynamic Kinetic Constellation Grid Mesh Background */}
       <ConstellationBackground
         className="absolute inset-0 z-0 pointer-events-none"
@@ -44,14 +46,14 @@ export default function ProjectsMorphGallery() {
       {/* Foreground Content */}
       <div className="relative z-10 w-full">
         {/* Top Banner Feature Bar */}
-        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-2xl border border-[#2E90FF]/25 bg-[#061122]/85 backdrop-blur-md">
+        <div className="mb-4 sm:mb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 p-3.5 sm:p-4 rounded-2xl border border-[#2E90FF]/25 bg-[#061122]/85 backdrop-blur-md shine-border">
           <div className="flex items-center gap-3">
             <div className="size-10 rounded-xl bg-[#2E90FF]/15 border border-[#2E90FF]/35 flex items-center justify-center text-[#2E90FF] shrink-0">
               <Store className="size-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h4 className="font-['Clash_Display',sans-serif] text-sm sm:text-base font-bold text-white uppercase tracking-tight">
+                <h4 className="font-secondary text-sm sm:text-base font-bold text-white uppercase tracking-tight">
                   Deployment Photo Gallery
                 </h4>
                 <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-mono text-emerald-400 font-medium">
@@ -96,15 +98,12 @@ export default function ProjectsMorphGallery() {
               </button>
             </div>
 
-            <a
-              href="https://wa.me/94711249740?text=Hello%20LapCircuit%2C%20I%20want%20to%20see%20a%20live%20POS%20demo%20at%20my%20counter."
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#2E90FF] hover:bg-[#1B7FE8] text-white font-mono text-xs font-semibold transition-colors shadow-[0_0_15px_rgba(46,144,255,0.35)] shrink-0"
-            >
-              <span>Book Live Demo</span>
-              <ArrowRight className="size-3.5" />
-            </a>
+            <LiquidMetalButton
+              size="sm"
+              label="Book a demo"
+              href={whatsappUrl("Hello LapCircuit, I want to see a live POS demo at my counter.")}
+              className="shrink-0"
+            />
           </div>
         </div>
 
