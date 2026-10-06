@@ -1,776 +1,577 @@
 ---
+import config from "@/config/config.json";
+import { contact, whatsappUrl } from "@/lib/utils/contact";
 import type { Homepage } from "@/types";
-import TextLoop from "@/components/ui/text-loop";
 
 export interface Props {
   solutions: Homepage["solutions"];
 }
 
 const { solutions } = Astro.props as Props;
+const { receipt } = solutions;
 
-/**
- * The section is a hub: one POS terminal in the middle, the six business types
- * around it. Selecting a business type changes what the terminal shows.
- *
- * The terminal deliberately renders each solution's real module list (the
- * `points` already in the content file) rather than sample sales figures.
- * Invented numbers on a product screen would be exactly the fabricated data
- * this site avoids everywhere else.
- *
- * Cards are tabs and the terminal is their tabpanel, which gives arrow-key
- * navigation for free and works on touch (tap), not hover alone.
- */
-const slug = (value: string) =>
-  value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-
-const items = solutions.items.map((item, i) => ({
-  ...item,
-  id: slug(item.title),
-  index: i,
-}));
-
-const first = items[0];
-
-/**
- * Photography lives in public/images/solutions/, pre-processed rather than run
- * through ImageMod: all six are already tiny webp (~10KB) and share one
- * treatment - matched to the same luminance, then given a partial blue tint so
- * six unrelated photographs read as a single set on a near-black page.
- * Re-encoding them at build time would only undo that.
- *
- * Source photos are Pexels (free for commercial use, no attribution required).
- * See SOLUTION-IMAGES.md at the project root for the exact list.
- */
-const thumb = (id: string) => `/images/solutions/${id}-thumb.webp`;
-const wide = (id: string) => `/images/solutions/${id}-wide.webp`;
+// The head of every receipt: who issued it and their number. Both come from
+// config.json, so the phone number is not typed a second time.
+const merchant = config.site.title;
+const merchantLine = `Tel ${contact.phoneDisplay}`;
 ---
 
-<section
-  id="solutions"
-  class="solutions section scroll-mt-24"
-  data-active={first?.id}
->
-  <!-- Cursor glow. Pure decoration, so it is hidden from assistive tech and
-       switched off entirely under reduced-motion. -->
-  <div class="solutions__glow" aria-hidden="true"></div>
-
-  <div class="container relative">
-    <div class="solutions__intro mb-12 max-w-3xl lg:mb-16">
-      {
-        solutions.eyebrow && (
-          <p class="mb-4 font-primary text-xs font-semibold tracking-[0.18em] text-primary uppercase">
-            {solutions.eyebrow}
-          </p>
-        )
-      }
-      <div class="mb-5">
-        <TextLoop
-          client:visible
-          staticText="Software built around"
-          rotatingTexts={["your workflow.", "your retail store.", "your restaurant.", "your warehouse."]}
-          className="text-h3 lg:text-h2 font-secondary font-bold uppercase leading-[1.1] tracking-tight flex-col items-start sm:flex-row sm:items-center sm:flex-wrap"
-          staticTextClassName="text-white mr-0 sm:mr-3 whitespace-normal sm:whitespace-nowrap"
-          rotatingTextClassName="text-primary pr-1 font-secondary font-bold uppercase drop-shadow-[0_0_14px_rgba(46,144,255,0.45)]"
-          cursorClassName="bg-primary shadow-[0_0_10px_rgba(46,144,255,0.8)]"
-          backgroundClassName="bg-gradient-to-r from-transparent via-primary/15 to-primary/25 rounded"
-          interval={3000}
-        />
-      </div>
-      {
-        solutions.content && (
-          <p class="max-w-2xl text-base leading-[1.75] text-text">
-            {solutions.content}
-          </p>
-        )
-      }
+{/* What LapCircuit builds, printed as till receipts: one slip per solution
+    with what it includes and where its price starts. The button on each
+    slip opens WhatsApp with a message naming that solution. On a phone the
+    slips lie in a row that is swiped sideways, one at a time. */}
+<section id="solutions" class="section">
+  <div class="wrap">
+    <div class="section-head">
+      <h2 data-breathe>{solutions.title}</h2>
+      {solutions.content && <p>{solutions.content}</p>}
     </div>
 
-    <div class="solutions__hub">
-      <!-- Column 1: first three business types -->
-      <div class="solutions__col solutions__col--left" role="tablist" aria-label="Business types, part 1">
+    <div class="receipts">
+      <ul class="receipts__grid" role="list" data-receipts>
         {
-          items.slice(0, 3).map((item) => (
-            <button
-              type="button"
-              role="tab"
-              id={`tab-${item.id}`}
-              class="solutions__card shine-border"
-              style={`--i:${item.index}`}
-              data-solution={item.id}
-              aria-selected={item.index === 0 ? "true" : "false"}
-              aria-controls="solutions-screen"
-              tabindex={item.index === 0 ? 0 : -1}
-            >
-              <img
-                class="solutions__thumb"
-                src={thumb(item.id)}
-                width="160"
-                height="160"
-                alt=""
-                loading="lazy"
-                decoding="async"
-              />
-              <span class="solutions__cardBody">
-                <span class="solutions__cardTitle">{item.title}</span>
-                {item.points.length > 0 && (
-                  <span class="solutions__cardMeta">
-                    {item.points.slice(0, 3).join(" · ")}
-                  </span>
-                )}
-              </span>
-              <span class="solutions__arrow" aria-hidden="true">&rarr;</span>
-            </button>
+          solutions.items.map((item, position) => (
+            <li class="receipt" style={`--i:${position}`}>
+              {item.badge && (
+                <span class="receipt__stamp" aria-hidden="true">
+                  {item.badge}
+                </span>
+              )}
+
+              <p class="receipt__merchant">{merchant}</p>
+              <p class="receipt__merchant-line">{merchantLine}</p>
+
+              <span class="receipt__rule" aria-hidden="true" />
+
+              <div class="receipt__item">
+                <h3>{item.title}</h3>
+                <span aria-hidden="true">×1</span>
+              </div>
+              <p class="receipt__tagline">{item.content}</p>
+
+              <span class="receipt__rule" aria-hidden="true" />
+
+              <ul class="receipt__lines" role="list">
+                {item.lines.map((line) => (
+                  <li>
+                    <span class="receipt__label">{line}</span>
+                    <span class="receipt__leader" aria-hidden="true" />
+                    <span class="receipt__incl">{receipt.included}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <span class="receipt__rule" aria-hidden="true" />
+
+              {receipt.extras.map((extra) => (
+                <p class="receipt__extra">
+                  <span>{extra.label}</span>
+                  <span>{extra.value}</span>
+                </p>
+              ))}
+
+              <p class="receipt__total">
+                <span>{item.price ? item.price_prefix : receipt.quote_label}</span>
+                <span>{item.price ?? receipt.quote_value}</span>
+              </p>
+
+              <span class="receipt__rule" aria-hidden="true" />
+
+              <a
+                class="receipt__cta"
+                href={whatsappUrl(item.enquiry)}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {receipt.cta}
+              </a>
+
+              <span class="receipt__barcode" aria-hidden="true" />
+              <p class="receipt__foot">
+                No. {String(position + 1).padStart(4, "0")} · {receipt.thanks}
+              </p>
+            </li>
           ))
         }
-      </div>
+      </ul>
 
-      <!-- Column 2: the terminal -->
-      <div class="solutions__center">
-        <div class="solutions__terminal">
-          <div class="solutions__ring" aria-hidden="true"></div>
-
-          <div class="solutions__bezel shine-border">
-            <div class="solutions__chrome" aria-hidden="true">
-              <span class="solutions__dot"></span>
-              <span class="solutions__dot"></span>
-              <span class="solutions__dot"></span>
-              <span class="solutions__chromeLabel">LapCircuit POS</span>
-            </div>
-
-            <div
-              class="solutions__screen"
-              id="solutions-screen"
-              role="tabpanel"
-              aria-live="polite"
-            >
-              {
-                items.map((item) => (
-                  <div
-                    class="solutions__view"
-                    data-view={item.id}
-                    aria-labelledby={`tab-${item.id}`}
-                    hidden={item.index !== 0}
-                  >
-                    <img
-                      class="solutions__banner"
-                      src={wide(item.id)}
-                      width="640"
-                      height="200"
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                    />
-                    <p class="solutions__viewKicker">Configured for</p>
-                    <p class="solutions__viewTitle">{item.title}</p>
-                    <p class="solutions__viewCopy">{item.content}</p>
-
-                    {item.points.length > 0 ? (
-                      <ul class="solutions__modules">
-                        {item.points.map((point) => (
-                          <li class="solutions__module">
-                            <span class="solutions__moduleDot" aria-hidden="true" />
-                            {point}
-                          </li>
-                        ))}
-                      </ul>
-                    ) : (
-                      /* Custom work has no fixed module list. Say so rather
-                         than leaving the screen half empty - and rather than
-                         inventing modules to fill it. */
-                      <p class="solutions__modules solutions__modulesEmpty">
-                        Modules are decided with you during discovery, then
-                        built to match.
-                      </p>
-                    )}
-                  </div>
-                ))
-              }
-            </div>
-          </div>
-
-          <div class="solutions__stand" aria-hidden="true"></div>
-        </div>
-
-        <p class="solutions__hint">
-          One system. Select a business type to see how it is set up.
-        </p>
-      </div>
-
-      <!-- Column 3: remaining business types -->
-      <div class="solutions__col solutions__col--right" role="tablist" aria-label="Business types, part 2">
-        {
-          items.slice(3).map((item) => (
-            <button
-              type="button"
-              role="tab"
-              id={`tab-${item.id}`}
-              class="solutions__card shine-border"
-              style={`--i:${item.index}`}
-              data-solution={item.id}
-              aria-selected="false"
-              aria-controls="solutions-screen"
-              tabindex={-1}
-            >
-              <img
-                class="solutions__thumb"
-                src={thumb(item.id)}
-                width="160"
-                height="160"
-                alt=""
-                loading="lazy"
-                decoding="async"
-              />
-              <span class="solutions__cardBody">
-                <span class="solutions__cardTitle">{item.title}</span>
-                {item.points.length > 0 && (
-                  <span class="solutions__cardMeta">
-                    {item.points.slice(0, 3).join(" · ")}
-                  </span>
-                )}
-              </span>
-              <span class="solutions__arrow" aria-hidden="true">&rarr;</span>
-            </button>
-          ))
-        }
+      {/* Phone only: one dot per receipt, the long one being the receipt in
+          view. Decoration - the receipts themselves are all in the page. */}
+      <div class="receipts__pager" data-pager aria-hidden="true">
+        {solutions.items.map((_, position) => <span class={position === 0 ? "is-on" : undefined} />)}
       </div>
     </div>
+
+    {/* Receipts rise into place the first time they are scrolled to. This
+        runs as the page is read, before anything is drawn, so they never
+        flash. Without JavaScript they are simply there. */}
+    <script is:inline>
+      (function () {
+        var el = document.currentScript.previousElementSibling;
+        if (!el || !("IntersectionObserver" in window)) return;
+        el.classList.add("will-reveal");
+        new IntersectionObserver(
+          function (entries, observer) {
+            if (!entries[0].isIntersecting) return;
+            el.classList.add("is-shown");
+            observer.disconnect();
+          },
+          { threshold: 0.12 },
+        ).observe(el);
+      })();
+    </script>
   </div>
 </section>
 
 <style>
-  .solutions {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-  }
-
-  /* ── Cursor glow ─────────────────────────────────────────────────────── */
-  .solutions__glow {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 400ms ease;
-    background: radial-gradient(
-      420px circle at var(--mx, 50%) var(--my, 40%),
-      color-mix(in srgb, var(--color-primary) 13%, transparent) 0%,
-      transparent 68%
-    );
-  }
-  .solutions[data-pointer="true"] .solutions__glow {
-    opacity: 1;
-  }
-
-  /* ── Hub layout ──────────────────────────────────────────────────────── */
-  .solutions__hub {
-    display: grid;
-    gap: 1rem;
-  }
-
-  /* The three-column hub needs real width; below 1280px the terminal and
-     cards both get cramped, so tablets keep the stacked 2-up layout. */
-  @media (min-width: 1280px) {
-    .solutions__hub {
-      grid-template-columns: 1fr minmax(360px, 1.15fr) 1fr;
-      gap: 2.5rem;
-      align-items: center;
-    }
-  }
-
-  .solutions__col {
-    display: grid;
-    gap: 0.75rem;
-    align-content: center;
-    /* Equal rows: one solution has no module list, and without this it would
-       render noticeably shorter than the two beside it. */
-    grid-auto-rows: 1fr;
-  }
-
-  @media (min-width: 640px) and (max-width: 1279px) {
-    .solutions__col {
-      grid-template-columns: 1fr 1fr;
-    }
-  }
-
-  /* ── Business cards ──────────────────────────────────────────────────── */
-  .solutions__card {
-    position: relative;
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 0.9rem;
-    width: 100%;
-    padding: 1rem 1.1rem;
-    text-align: left;
-    cursor: pointer;
-    border: 1px solid var(--color-border);
+  /* ── The counter the receipts lie on ──────────────────────────────────
+     Paper, ink and stamp colours are the receipt's own, and deliberately
+     not the site's palette: a receipt is cream paper with dark print.
+     To print them on dark paper instead, change --paper to #1c1c1f,
+     --ink to #d8d8d2, --muted to #8f8f95 and --line to #3f3f45. */
+  .receipts {
+    --paper: #fefdf8;
+    --ink: #2a2a26;
+    --muted: #7c7a72;
+    --line: #b9b6ad;
+    --stamp: #c93a28;
+    padding: 3rem 1.5rem;
     border-radius: 1rem;
-    background: color-mix(in srgb, var(--color-light) 72%, transparent);
-    backdrop-filter: blur(8px);
-    transition:
-      transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
-      border-color 260ms ease,
-      background-color 260ms ease,
-      opacity 260ms ease;
+    background-color: #111113;
+    /* Lets the layout below respond to this panel's own width. */
+    container-type: inline-size;
   }
 
-  .solutions__card:hover,
-  .solutions__card[aria-selected="true"] {
-    transform: translateY(-4px);
-    border-color: color-mix(in srgb, var(--color-primary) 55%, transparent);
-    background: color-mix(in srgb, var(--color-primary) 9%, var(--color-light));
-  }
-
-  /* Dim the rest only while a pointer is actually over the group, so the
-     default state stays legible and keyboard users never see it fade. */
-  .solutions__hub:hover .solutions__card:not(:hover):not([aria-selected="true"]) {
-    opacity: 0.55;
-  }
-
-  .solutions__card:focus-visible {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 3px;
-    opacity: 1;
-  }
-
-  .solutions__thumb {
-    width: 3.25rem;
-    height: 3.25rem;
-    flex-shrink: 0;
-    object-fit: cover;
-    border: 1px solid var(--color-border);
-    border-radius: 0.7rem;
-    /* Held back until the card is active, so the row of six reads as calm
-       rather than six competing photographs. */
-    filter: saturate(0.5) brightness(0.8);
-    transition:
-      filter 300ms ease,
-      border-color 300ms ease,
-      transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
-  }
-  .solutions__card:hover .solutions__thumb,
-  .solutions__card[aria-selected="true"] .solutions__thumb {
-    filter: saturate(1) brightness(1.06);
-    border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
-    transform: scale(1.04);
-  }
-
-  .solutions__cardBody {
+  .receipts__grid {
     display: grid;
-    gap: 0.28rem;
-    min-width: 0;
-  }
-
-  .solutions__cardTitle {
-    font-family: var(--font-secondary);
-    font-weight: 700;
-    font-size: 0.95rem;
-    line-height: 1.2;
-    text-transform: uppercase;
-    color: var(--color-text-light);
-  }
-
-  .solutions__cardMeta {
-    font-family: var(--font-primary);
-    font-size: 11px;
-    line-height: 1.5;
-    color: var(--color-text-dark);
-    /* Long module lists wrap rather than stretching the card. */
-    overflow-wrap: anywhere;
-  }
-
-  .solutions__arrow {
-    font-family: var(--font-primary);
-    color: var(--color-text-dark);
-    opacity: 0;
-    transform: translateX(-4px);
-    transition:
-      opacity 260ms ease,
-      transform 260ms ease,
-      color 260ms ease;
-  }
-  .solutions__card:hover .solutions__arrow,
-  .solutions__card[aria-selected="true"] .solutions__arrow,
-  .solutions__card:focus-visible .solutions__arrow {
-    opacity: 1;
-    transform: translateX(0);
-    color: var(--color-primary);
-  }
-
-  /* ── Connectors: only drawn where there is a gutter to draw them in ──── */
-  @media (min-width: 1280px) {
-    .solutions__card::after {
-      content: "";
-      position: absolute;
-      top: 50%;
-      width: 2.5rem;
-      height: 1px;
-      background: linear-gradient(
-        to var(--dir, right),
-        color-mix(in srgb, var(--color-primary) 60%, transparent),
-        transparent
-      );
-      opacity: 0.25;
-      transition: opacity 260ms ease;
-    }
-    .solutions__col--left .solutions__card::after {
-      left: 100%;
-      --dir: right;
-    }
-    .solutions__col--right .solutions__card::after {
-      right: 100%;
-      --dir: left;
-    }
-    .solutions__card:hover::after,
-    .solutions__card[aria-selected="true"]::after {
-      opacity: 1;
-    }
-  }
-
-  /* ── Terminal ────────────────────────────────────────────────────────── */
-  .solutions__center {
-    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
     justify-items: center;
-    gap: 1rem;
-    order: -1;
-  }
-  @media (min-width: 1280px) {
-    .solutions__center {
-      order: 0;
-    }
+    gap: 2rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
 
-  .solutions__terminal {
+  /* ── One receipt ─────────────────────────────────────────────────────── */
+  .receipt {
     position: relative;
     width: 100%;
-    max-width: 30rem;
-    transform: translate3d(
-      calc(var(--px, 0) * 5px),
-      calc(var(--py, 0) * 5px),
-      0
+    max-width: 21rem;
+    padding: 2rem 1.5rem 1.75rem;
+    background-color: var(--paper);
+    color: var(--ink);
+    font-size: 12.5px;
+    line-height: 1.625;
+    box-shadow: 0 12px 32px -16px rgb(0 0 0 / 0.35);
+    /* The torn edge along the bottom. */
+    clip-path: polygon(
+      0 0,
+      100% 0,
+      100% calc(100% - 8px),
+      97% 100%,
+      94% calc(100% - 8px),
+      91% 100%,
+      88% calc(100% - 8px),
+      85% 100%,
+      82% calc(100% - 8px),
+      79% 100%,
+      76% calc(100% - 8px),
+      73% 100%,
+      70% calc(100% - 8px),
+      67% 100%,
+      64% calc(100% - 8px),
+      61% 100%,
+      58% calc(100% - 8px),
+      55% 100%,
+      52% calc(100% - 8px),
+      49% 100%,
+      46% calc(100% - 8px),
+      43% 100%,
+      40% calc(100% - 8px),
+      37% 100%,
+      34% calc(100% - 8px),
+      31% 100%,
+      28% calc(100% - 8px),
+      25% 100%,
+      22% calc(100% - 8px),
+      19% 100%,
+      16% calc(100% - 8px),
+      13% 100%,
+      10% calc(100% - 8px),
+      7% 100%,
+      4% calc(100% - 8px),
+      1% 100%,
+      0 calc(100% - 8px)
     );
-    transition: transform 500ms cubic-bezier(0.22, 1, 0.36, 1);
   }
 
-  .solutions__ring {
-    position: absolute;
-    inset: -14% -8%;
-    z-index: -1;
-    border-radius: 50%;
-    background: radial-gradient(
-      closest-side,
-      color-mix(in srgb, var(--color-primary) 16%, transparent),
-      transparent 72%
-    );
-  }
-
-  .solutions__bezel {
-    border: 1px solid var(--color-border);
-    border-radius: 1.25rem;
-    background: color-mix(in srgb, var(--color-light) 88%, transparent);
-    backdrop-filter: blur(10px);
-    overflow: hidden;
-    box-shadow: 0 24px 60px -30px rgb(0 0 0 / 0.9);
-  }
-
-  .solutions__chrome {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    padding: 0.7rem 0.95rem;
-    border-bottom: 1px solid var(--color-border);
-  }
-  .solutions__dot {
-    width: 0.45rem;
-    height: 0.45rem;
-    border-radius: 50%;
-    background: var(--color-border);
-  }
-  .solutions__chromeLabel {
-    margin-left: auto;
-    font-family: var(--font-primary);
-    font-size: 10px;
-    letter-spacing: 0.14em;
+  .receipt__merchant {
+    font-size: 13.5px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-align: center;
     text-transform: uppercase;
-    color: var(--color-text-dark);
   }
 
-  .solutions__screen {
-    position: relative;
-    padding: 1.4rem 1.3rem 1.6rem;
-    min-height: 19rem;
+  .receipt__merchant-line {
+    margin-top: 0.25rem;
+    color: var(--muted);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-align: center;
+    text-transform: uppercase;
   }
 
-  .solutions__view[hidden] {
+  .receipt__rule {
+    display: block;
+    margin-block: 0.75rem;
+    border-top: 1px dashed var(--line);
+  }
+
+  .receipt__item {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  /* The site's headings are large white display type; on a receipt the name
+     is one more printed line. */
+  .receipt__item h3 {
+    min-width: 0;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    line-height: inherit;
+    text-transform: uppercase;
+    text-wrap: wrap;
+    word-spacing: normal;
+  }
+
+  .receipt__item span {
+    flex: none;
+    color: var(--muted);
+  }
+
+  .receipt__tagline {
+    margin-top: 0.25rem;
+    color: var(--muted);
+    font-size: 11px;
+  }
+
+  .receipt__lines {
+    display: grid;
+    gap: 0.375rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .receipt__lines li {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .receipt__label {
+    flex-shrink: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  /* The dotted line that runs from an item to its price. */
+  .receipt__leader {
+    flex: 1;
+    min-width: 0.75rem;
+    margin-bottom: 0.25rem;
+    border-bottom: 1px dotted var(--line);
+  }
+
+  .receipt__incl {
+    flex: none;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+
+  .receipt__extra {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    color: var(--muted);
+    font-size: 11.5px;
+    text-transform: uppercase;
+  }
+
+  .receipt__total {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    font-size: 17px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .receipt__cta {
+    display: block;
+    width: 100%;
+    padding-block: 0.75rem;
+    background-color: var(--ink);
+    color: var(--paper);
+    font-size: 12.5px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-align: center;
+    text-transform: uppercase;
+    transition:
+      transform 0.15s ease,
+      background-color 0.15s ease;
+  }
+
+  .receipt__cta:hover {
+    background-color: #000;
+  }
+
+  .receipt__cta:active {
+    transform: scale(0.98);
+  }
+
+  .receipt__cta:focus-visible {
+    outline: 2px solid var(--stamp);
+    outline-offset: 2px;
+  }
+
+  .receipt__barcode {
+    display: block;
+    width: 80%;
+    height: 2.5rem;
+    margin: 1.25rem auto 0;
+    opacity: 0.8;
+    background-image: repeating-linear-gradient(
+      90deg,
+      currentColor 0,
+      currentColor 2px,
+      transparent 2px,
+      transparent 5px,
+      currentColor 5px,
+      currentColor 6px,
+      transparent 6px,
+      transparent 9px
+    );
+  }
+
+  .receipt__foot {
+    margin-top: 0.5rem;
+    color: var(--muted);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  /* A rubber stamp, pressed on at an angle in the bottom corner, over the
+     sign-off. Higher up it covered the phone number, and across the barcode
+     the bars made it hard to read. */
+  .receipt__stamp {
+    position: absolute;
+    right: 0.6rem;
+    bottom: 1.45rem;
+    padding: 0.25rem 0.5rem;
+    border: 2px solid var(--stamp);
+    border-radius: 0.25rem;
+    color: var(--stamp);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    line-height: 1.5;
+    opacity: 0.8;
+    mix-blend-mode: multiply;
+    text-transform: uppercase;
+    rotate: -12deg;
+  }
+
+  .receipts__pager {
     display: none;
   }
-  .solutions__view {
-    animation: solutionsViewIn 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
 
-  @keyframes solutionsViewIn {
-    from {
-      opacity: 0;
-      transform: translateY(6px);
+  /* ── Phone: one receipt at a time, swiped sideways ────────────────────
+     Stacked, the four receipts ran to more than four screens. Here they lie
+     in a row on a counter that runs to both edges of the screen; each one
+     snaps to the middle, with the edge of the next showing so it is plain
+     there is more to the side. The print is a size larger than on a
+     computer, because the receipt is now wide enough to carry it. */
+  @media (max-width: 639.98px) {
+    .receipts {
+      margin-inline: -1.25rem;
+      padding: 1.75rem 0 1.25rem;
+      border-radius: 0;
+    }
+
+    .receipts__grid {
+      grid-template-columns: none;
+      grid-auto-columns: min(20rem, 100cqw - 4rem);
+      grid-auto-flow: column;
+      justify-items: stretch;
+      gap: 0.75rem;
+      padding: 0 1.25rem 1.25rem;
+      overflow-x: auto;
+      overscroll-behavior-x: contain;
+      scroll-padding-inline: 1.25rem;
+      scroll-snap-type: x mandatory;
+      scrollbar-width: none;
+    }
+
+    .receipts__grid::-webkit-scrollbar {
+      display: none;
+    }
+
+    .receipt {
+      max-width: none;
+      padding: 1.75rem 1.25rem;
+      font-size: 13px;
+      scroll-snap-align: center;
+    }
+
+    .receipt__merchant {
+      font-size: 14px;
+    }
+
+    .receipt__merchant-line {
+      font-size: 11.5px;
+    }
+
+    .receipt__tagline,
+    .receipt__extra {
+      font-size: 12px;
+    }
+
+    .receipt__cta {
+      padding-block: 0.875rem;
+      font-size: 13px;
+    }
+
+    .receipt__foot {
+      font-size: 11px;
+      letter-spacing: 0.16em;
+    }
+
+    .receipts__pager {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .receipts__pager span {
+      width: 6px;
+      height: 6px;
+      border-radius: 3px;
+      background-color: rgb(255 255 255 / 0.28);
+      transition:
+        width 0.25s ease,
+        background-color 0.25s ease;
+    }
+
+    .receipts__pager span.is-on {
+      width: 20px;
+      background-color: #fff;
     }
   }
 
-  .solutions__banner {
-    display: block;
-    width: calc(100% + 2.6rem);
-    height: 5.5rem;
-    margin: -1.4rem -1.3rem 1.1rem;
-    object-fit: cover;
-    /* Fades into the screen so it reads as part of the interface rather than
-       a photograph pasted on top of it. */
-    -webkit-mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
-    mask-image: linear-gradient(to bottom, #000 45%, transparent 100%);
+  /* ── Side by side: two, then four, each dropped at a slight angle ───── */
+  @container (min-width: 35rem) {
+    .receipts__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .receipt:nth-child(3n + 1) {
+      rotate: -1deg;
+    }
+
+    .receipt:nth-child(3n + 2) {
+      rotate: 0.5deg;
+      translate: 0 -0.5rem;
+    }
+
+    .receipt:nth-child(3n) {
+      rotate: 1.5deg;
+    }
   }
 
-  .solutions__viewKicker {
-    font-family: var(--font-primary);
-    font-size: 10px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
-    color: var(--color-text-dark);
+  @container (min-width: 65rem) {
+    .receipts__grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 1.75rem;
+    }
   }
 
-  .solutions__viewTitle {
-    margin-top: 0.35rem;
-    font-family: var(--font-secondary);
-    font-weight: 700;
-    font-size: 1.35rem;
-    line-height: 1.15;
-    text-transform: uppercase;
-    color: var(--color-text-light);
-  }
-
-  .solutions__viewCopy {
-    margin-top: 0.65rem;
-    font-size: 0.82rem;
-    line-height: 1.75;
-    color: var(--color-text);
-  }
-
-  .solutions__modules {
-    margin-top: 1.1rem;
-    padding-top: 1.1rem;
-    border-top: 1px solid var(--color-border);
-    display: grid;
-    gap: 0.55rem;
-  }
-
-  .solutions__module {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-family: var(--font-primary);
-    font-size: 12px;
-    color: var(--color-text);
-  }
-
-  .solutions__modulesEmpty {
-    font-family: var(--font-primary);
-    font-size: 12px;
-    line-height: 1.75;
-    color: var(--color-text-dark);
-  }
-
-  .solutions__moduleDot {
-    width: 0.3rem;
-    height: 0.3rem;
-    flex-shrink: 0;
-    border-radius: 50%;
-    background: var(--color-primary);
-  }
-
-  .solutions__stand {
-    width: 28%;
-    height: 0.55rem;
-    margin: 0 auto;
-    border: 1px solid var(--color-border);
-    border-top: 0;
-    border-radius: 0 0 0.5rem 0.5rem;
-    background: color-mix(in srgb, var(--color-light) 88%, transparent);
-  }
-
-  .solutions__hint {
-    font-family: var(--font-primary);
-    font-size: 11px;
-    text-align: center;
-    color: var(--color-text-dark);
-  }
-
-  /* ── Entrance ────────────────────────────────────────────────────────── */
-  .solutions__intro,
-  .solutions__center,
-  .solutions__card {
+  /* ── Arrival ─────────────────────────────────────────────────────────
+     The script above adds .will-reveal at once and .is-shown when the
+     receipts are scrolled to. Each one follows the last by 90ms. */
+  .receipts.will-reveal .receipt {
     opacity: 0;
     transform: translateY(14px);
   }
 
-  .solutions.is-revealed .solutions__intro {
-    animation: solutionsIn 520ms cubic-bezier(0.22, 1, 0.36, 1) both;
-  }
-  .solutions.is-revealed .solutions__center {
-    animation: solutionsIn 620ms cubic-bezier(0.22, 1, 0.36, 1) 120ms both;
-  }
-  .solutions.is-revealed .solutions__card {
-    animation: solutionsIn 460ms cubic-bezier(0.22, 1, 0.36, 1) both;
-    animation-delay: calc(260ms + var(--i) * 60ms);
+  .receipts.will-reveal.is-shown .receipt {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.6s ease,
+      transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+    transition-delay: calc(var(--i) * 90ms);
   }
 
-  @keyframes solutionsIn {
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  /* ── Reduced motion ──────────────────────────────────────────────────── */
   @media (prefers-reduced-motion: reduce) {
-    .solutions__glow {
-      display: none;
-    }
-    .solutions__terminal {
+    .receipts.will-reveal .receipt {
+      opacity: 1;
       transform: none;
       transition: none;
-    }
-    .solutions__intro,
-    .solutions__center,
-    .solutions__card {
-      opacity: 1;
-      transform: none;
-      animation: none !important;
-    }
-    .solutions__view {
-      animation: none;
-    }
-    .solutions__card:hover,
-    .solutions__card[aria-selected="true"] {
-      transform: none;
     }
   }
 </style>
 
 <script>
-  (() => {
-    const section = document.getElementById("solutions");
-    if (!section) return;
+  // On a phone the receipts are a row that is swiped. The dots under the row
+  // show which receipt is in the middle of the screen.
+  document.querySelectorAll<HTMLElement>("[data-receipts]").forEach((row) => {
+    const slips = [...row.children] as HTMLElement[];
+    const dots = [
+      ...(row.parentElement?.querySelectorAll<HTMLElement>("[data-pager] span") ?? []),
+    ];
+    if (dots.length === 0 || dots.length !== slips.length) return;
 
-    const tabs = Array.from(
-      section.querySelectorAll<HTMLButtonElement>("[data-solution]"),
-    );
-    const views = Array.from(
-      section.querySelectorAll<HTMLElement>("[data-view]"),
-    );
-    if (!tabs.length) return;
-
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-
-    /** Show one business type on the terminal. */
-    const select = (id: string, moveFocus = false) => {
-      section.dataset.active = id;
-
-      tabs.forEach((tab) => {
-        const on = tab.dataset.solution === id;
-        tab.setAttribute("aria-selected", String(on));
-        // Roving tabindex: one stop for the whole group.
-        tab.tabIndex = on ? 0 : -1;
-        if (on && moveFocus) tab.focus();
+    let frame = 0;
+    const mark = () => {
+      frame = 0;
+      const box = row.getBoundingClientRect();
+      const middle = box.left + box.width / 2;
+      let nearest = 0;
+      let best = Infinity;
+      slips.forEach((slip, index) => {
+        const slipBox = slip.getBoundingClientRect();
+        const distance = Math.abs(slipBox.left + slipBox.width / 2 - middle);
+        if (distance < best) {
+          best = distance;
+          nearest = index;
+        }
       });
-
-      views.forEach((view) => {
-        view.hidden = view.dataset.view !== id;
-      });
+      dots.forEach((dot, index) => dot.classList.toggle("is-on", index === nearest));
     };
 
-    tabs.forEach((tab, i) => {
-      const id = tab.dataset.solution!;
-
-      // Tap and click both work; hover is an enhancement, not the only route.
-      tab.addEventListener("click", () => select(id));
-      tab.addEventListener("pointerenter", (event) => {
-        if (event.pointerType === "mouse") select(id);
-      });
-      tab.addEventListener("focus", () => select(id));
-
-      tab.addEventListener("keydown", (event) => {
-        const keys = ["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp", "Home", "End"];
-        if (!keys.includes(event.key)) return;
-        event.preventDefault();
-
-        let next = i;
-        if (event.key === "ArrowRight" || event.key === "ArrowDown") {
-          next = (i + 1) % tabs.length;
-        } else if (event.key === "ArrowLeft" || event.key === "ArrowUp") {
-          next = (i - 1 + tabs.length) % tabs.length;
-        } else if (event.key === "Home") {
-          next = 0;
-        } else {
-          next = tabs.length - 1;
-        }
-
-        select(tabs[next].dataset.solution!, true);
-      });
-    });
-
-    // Cursor glow + terminal parallax. Coalesced into one rAF so moving the
-    // mouse never queues more work than a frame can absorb.
-    if (!reduced.matches && window.matchMedia("(pointer: fine)").matches) {
-      let frame = 0;
-      let px = 0;
-      let py = 0;
-      let mx = 50;
-      let my = 40;
-
-      const paint = () => {
-        frame = 0;
-        section.style.setProperty("--mx", `${mx}%`);
-        section.style.setProperty("--my", `${my}%`);
-        section.style.setProperty("--px", String(px));
-        section.style.setProperty("--py", String(py));
-      };
-
-      section.addEventListener("pointermove", (event) => {
-        const box = section.getBoundingClientRect();
-        mx = ((event.clientX - box.left) / box.width) * 100;
-        my = ((event.clientY - box.top) / box.height) * 100;
-        // -1..1, inverted so the terminal drifts against the cursor.
-        px = -((event.clientX - box.left) / box.width - 0.5) * 2;
-        py = -((event.clientY - box.top) / box.height - 0.5) * 2;
-        if (!frame) frame = requestAnimationFrame(paint);
-      });
-
-      section.addEventListener("pointerenter", () => {
-        section.dataset.pointer = "true";
-      });
-      section.addEventListener("pointerleave", () => {
-        section.dataset.pointer = "false";
-        px = 0;
-        py = 0;
-        if (!frame) frame = requestAnimationFrame(paint);
-      });
-    }
-
-    // Entrance: one shot, then stop observing.
-    if (reduced.matches) {
-      section.classList.add("is-revealed");
-    } else {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (!entry.isIntersecting) return;
-            section.classList.add("is-revealed");
-            observer.disconnect();
-          });
-        },
-        { threshold: 0.15 },
-      );
-      observer.observe(section);
-    }
-  })();
+    row.addEventListener(
+      "scroll",
+      () => {
+        frame ||= requestAnimationFrame(mark);
+      },
+      { passive: true },
+    );
+  });
 </script>

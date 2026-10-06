@@ -73,7 +73,10 @@ function generateThemeCSS() {
       " * Run: node scripts/themeGenerator.js",
       " */",
       "",
-      "@theme {",
+      // `static` keeps every token in the output. Without it Tailwind drops
+      // any variable it cannot see being used, and the section styles that
+      // live inside .astro files would lose their colours and fonts.
+      "@theme static {",
       "  /* === Colors === */",
     ];
 

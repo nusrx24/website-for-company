@@ -15,9 +15,8 @@
     "sticky_header": true
   },
   "params": {
-    "contact_form_action": "/api/contact",
-    "copyright": "&copy; 2026 <strong>LapCircuit</strong>. All rights reserved.",
-    "footer_tagline": "Practical POS and business management software, built around the way your business actually works.",
+    "footer_message_label": "Tell us how your business works. It opens in WhatsApp.",
+    "footer_message_placeholder": "Your message",
     "footer_email": "lapcircuitoff24@gmail.com",
     "footer_phone": "+94 71 124 9740",
     "whatsapp_number": "94711249740",
@@ -25,8 +24,7 @@
   },
   "navigation_button": {
     "enable": true,
-    "label": "Request a Demo",
-    "link": "https://wa.me/94711249740?text=Hello%20LapCircuit%2C%20I%20would%20like%20to%20request%20a%20demo%20for%20my%20business."
+    "label": "Request a Demo"
   },
   "google_tag_manager": {
     "enable": false,
@@ -35,6 +33,6 @@
   "metadata": {
     "meta_author": "LapCircuit",
     "meta_image": "/images/og-image.png",
-    "meta_description": "LapCircuit builds affordable, customizable POS and business management software for retail, grocery, restaurant, mobile shop, wholesale and multi-branch businesses. Offline desktop, desktop application, and cloud + mobile solutions."
+    "meta_description": "LapCircuit builds affordable POS and business management software around the way your business actually works: offline desktop systems, dedicated desktop applications, and cloud-based desktop + mobile solutions."
   }
 }

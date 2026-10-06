@@ -3,149 +3,61 @@ import Logo from "@/components/Logo.astro";
 import config from "@/config/config.json";
 import menu from "@/config/menu.json";
 import { contact, telUrl, whatsappUrl } from "@/lib/utils/contact";
-import { LiquidMetalButton } from "@/components/ui/liquid-metal-button";
-import { PillBase } from "@/components/ui/3d-adaptive-navigation-bar";
-import { ThreeDButton } from "@/components/ui/3d-button";
+import type { Menu } from "@/types";
 
-export interface ChildNavigationLink {
-  name: string;
-  url: string;
-}
-
-export interface NavigationLink {
-  name: string;
-  url: string;
-  hasChildren?: boolean;
-  children?: ChildNavigationLink[];
-}
-
-const { main }: { main: NavigationLink[] } = menu;
-const { navigation_button, settings } = config;
-const { pathname } = Astro.url;
+const { main } = menu as Menu;
+const { navigation_button } = config;
 ---
 
-<header
-  class={`header z-50 w-full transition-all duration-300 ${settings.sticky_header ? "fixed top-0" : ""}`}
->
-  <nav class="navbar container relative z-30">
-    <!-- logo -->
-    <div class="relative z-10 order-0">
-      <Logo />
-    </div>
-    <!-- navbar toggler: a real (visually hidden) checkbox so it stays keyboard reachable -->
-    <input id="nav-toggle" type="checkbox" class="peer sr-only" aria-controls="nav-menu" aria-label="Open menu" />
-    <label
-      for="nav-toggle"
-      aria-hidden="true"
-      class="nav-burger relative z-10 order-3 cursor-pointer flex lg:hidden lg:order-1 bg-light/70 border border-border hover:border-primary/60 backdrop-blur-lg size-11 rounded-xl items-center justify-center transition-colors"
-    >
+<header class="site-header">
+  <div class="wrap site-header__bar">
+    <Logo />
+
+    {/* A real (visually hidden) checkbox, so the menu stays keyboard reachable
+        and opens without JavaScript. */}
+    <input
+      id="nav-toggle"
+      type="checkbox"
+      class="sr-only"
+      aria-controls="nav-menu"
+      aria-label="Open menu"
+    />
+    <label for="nav-toggle" class="nav-burger" aria-hidden="true">
       <span class="nav-burger__bars">
         <span></span><span></span><span></span>
       </span>
     </label>
-    <!-- /navbar toggler -->
-    <ul
-      id="nav-menu"
-      role="list"
-      class="navbar-nav nav-sheet order-3 lg:hidden"
-    >
-      {
-        main.map((menu) => (
-          <>
-            {menu.hasChildren ? (
-              <li class="nav-item nav-dropdown group relative">
-                <input
-                  type="checkbox"
-                  id={`submenu-${menu.name}`}
-                  class="peer hidden lg:hidden"
-                />
-                <label
-                  for={`submenu-${menu.name}`}
-                  class={`nav-link inline-flex items-center ${
-                    menu.children?.map(({ url }) => url).includes(pathname) ||
-                    menu.children
-                      ?.map(({ url }) => `${url}/`)
-                      .includes(pathname)
-                      ? "active"
-                      : ""
-                  }`}
-                >
-                  {menu.name}
-                  <svg class="h-4 w-4 fill-current" viewBox="0 0 20 20">
-                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
-                  </svg>
-                </label>
-                <ul class="nav-dropdown-list hidden peer-checked:block lg:invisible lg:absolute lg:block lg:opacity-0 lg:group-hover:visible lg:group-hover:opacity-100">
-                  {menu.children?.map((child) => (
-                    <li class="nav-dropdown-item">
-                      <a
-                        href={child.url}
-                        aria-label={child.name}
-                        class={`nav-dropdown-link block ${
-                          (pathname === `${child.url}/` ||
-                            pathname === child.url) &&
-                          "active"
-                        }`}
-                      >
-                        {child.name}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-            ) : (
-              <li class="nav-item">
-                <a
-                  href={menu.url}
-                  class={`nav-link block ${
-                    (pathname === `${menu.url}/` || pathname === menu.url) &&
-                    "active"
-                  }`}
-                >
-                  {menu.name}
-                </a>
-              </li>
-            )}
-          </>
-        ))
-      }
+
+    <nav id="nav-menu" class="site-nav" aria-label="Main">
+      <ul class="site-nav__list" role="list">
+        {
+          main.map((item) => (
+            <li>
+              <a class="site-nav__link" href={item.url}>
+                {item.name}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+
       {
         navigation_button.enable && (
-          <li class="nav-sheet__action lg:hidden">
-            <LiquidMetalButton
-              client:media="(max-width: 1023.98px)"
-              label={navigation_button.label}
+          <div class="site-nav__action">
+            <a
+              class="btn btn-shiny btn-shiny--rest btn-sm"
               href={whatsappUrl()}
-              fullWidth
-            />
-            <p class="nav-sheet__call">
-              Or call <a href={telUrl}>{contact.phoneDisplay}</a>
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <span>{navigation_button.label}</span>
+            </a>
+            <p class="site-nav__call">
+              Or call <a class="text-link" href={telUrl}>{contact.phoneDisplay}</a>
             </p>
-          </li>
-        )
-      }
-    </ul>
-    {/* Desktop: the adaptive pill, centred in the bar so its width changes never push the logo or button. */}
-    <div class="absolute left-1/2 top-1/2 z-20 hidden -translate-x-1/2 -translate-y-1/2 lg:block">
-      <PillBase
-        client:media="(min-width: 1024px)"
-        items={main.map((item) => ({ label: item.name, href: item.url }))}
-      />
-    </div>
-    <div class="order-1 ml-auto flex items-center md:order-2 lg:ml-0">
-      {
-        navigation_button.enable && (
-          <div class="hidden lg:block">
-            <ThreeDButton
-              client:media="(min-width: 1024px)"
-              size="sm"
-              label1="FOR DEMO"
-              label2="FOR DEMO"
-              href={whatsappUrl()}
-            />
           </div>
         )
       }
-    </div>
-  </nav>
+    </nav>
+  </div>
 </header>

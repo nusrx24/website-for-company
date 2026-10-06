@@ -1,97 +1,269 @@
-.header {
-  @apply bg-transparent py-6 left-0 w-full z-50 transition-transform duration-700;
-  transform: translateY(0px);
+/*
+  Header and navigation.
+
+  Desktop: logo, four links, one small button.
+  Phone: logo and a menu button that opens a full-height sheet with the same
+  four links. The sheet is driven by a visually hidden checkbox, so it opens
+  without JavaScript; main.js only closes it again.
+*/
+
+.site-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  width: 100%;
+  border-bottom: 1px solid transparent;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease;
 }
 
-.header.hide {
-  transform: translateY(-200px);
+/* Once the page moves, the bar turns solid so the logo and links never sit
+   on top of section text. main.js toggles .scrolled. */
+.site-header.scrolled {
+  background-color: var(--color-body);
+  border-bottom-color: var(--color-border);
 }
 
-/* Once the page moves, the header becomes a solid bar so the logo and menu
-   button never sit on top of section text. main.js toggles .scrolled. */
-.header.scrolled {
-  @apply py-3;
-  background-color: rgb(5 7 10 / 0.82);
-  backdrop-filter: blur(14px) saturate(140%);
-  -webkit-backdrop-filter: blur(14px) saturate(140%);
-  box-shadow:
-    0 1px 0 var(--color-border),
-    0 14px 32px rgb(0 0 0 / 0.45);
+.site-header__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  min-height: 4.5rem;
 }
 
-/* Blue hairline along the bar's bottom edge with a slow light sweep. */
-.header::after {
-  content: "";
+/* At least a fingertip tall, whatever the height of the picture inside. */
+.site-logo {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
+.site-logo img {
+  width: auto;
+  height: 2.25rem;
+}
+
+.site-nav__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ── Menu button: three bars that fold into a cross ─────────────────────── */
+.nav-burger {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin-right: -0.625rem;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.nav-burger__bars {
+  position: relative;
+  display: block;
+  width: 22px;
+  height: 14px;
+}
+
+.nav-burger__bars > span {
   position: absolute;
-  inset-inline: 0;
-  bottom: 0;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgb(46 144 255 / 0.25) 25%,
-    rgb(90 171 255 / 0.95) 50%,
-    rgb(46 144 255 / 0.25) 75%,
-    transparent 100%
-  );
-  background-size: 200% 100%;
-  opacity: 0;
-  transition: opacity 0.4s ease;
-  pointer-events: none;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: var(--color-text-light);
+  transition:
+    transform 0.2s ease,
+    opacity 0.15s ease;
 }
 
-.header.scrolled::after {
-  opacity: 1;
-  animation: headerSweep 6s linear infinite;
+.nav-burger__bars > span:nth-child(1) { top: 0; }
+.nav-burger__bars > span:nth-child(2) { top: 6px; }
+.nav-burger__bars > span:nth-child(3) { top: 12px; }
+
+#nav-toggle:checked + .nav-burger .nav-burger__bars > span:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+#nav-toggle:checked + .nav-burger .nav-burger__bars > span:nth-child(2) { opacity: 0; }
+#nav-toggle:checked + .nav-burger .nav-burger__bars > span:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
+
+#nav-toggle:focus-visible + .nav-burger {
+  outline: 2px solid var(--color-primary-light);
+  outline-offset: 3px;
 }
 
-@keyframes headerSweep {
-  from { background-position: 100% 0; }
-  to { background-position: -100% 0; }
-}
+/* ── Phone and tablet: the sheet ────────────────────────────────────────── */
+@media (max-width: 899.98px) {
+  /* A shorter bar: on a small screen every row given to the header is a row
+     taken from the page. */
+  .site-header__bar {
+    min-height: 3.75rem;
+  }
 
-@media (prefers-reduced-motion: reduce) {
-  .header.scrolled::after {
-    animation: none;
+  .site-logo img {
+    height: 2rem;
+  }
+
+  .site-nav {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    display: flex;
+    flex-direction: column;
+    padding: 5.25rem 1.25rem calc(1.5rem + env(safe-area-inset-bottom, 0px));
+    overflow-y: auto;
+    /* Reaching the end of the sheet does not start the page behind moving. */
+    overscroll-behavior: contain;
+    background-color: var(--color-body);
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity 0.2s ease,
+      visibility 0s linear 0.2s;
+  }
+
+  #nav-toggle:checked ~ .site-nav {
+    visibility: visible;
+    opacity: 1;
+    transition:
+      opacity 0.2s ease,
+      visibility 0s;
+  }
+
+  html:has(#nav-toggle:checked) {
+    overflow: hidden;
+  }
+
+  .site-nav__list {
+    border-top: 1px solid var(--color-border);
+  }
+
+  .site-nav__link {
+    display: block;
+    padding: 1.125rem 0;
+    border-bottom: 1px solid var(--color-border);
+    color: #fff;
+    font-family: var(--font-secondary);
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.1;
+  }
+
+  /* Pinned low, within thumb reach. */
+  .site-nav__action {
+    margin-top: auto;
+    padding-top: 2.5rem;
+  }
+
+  .site-nav__action .btn {
+    width: 100%;
+    min-height: 3.25rem;
+    font-size: 0.9375rem;
+  }
+
+  .site-nav__call {
+    margin-top: 0.25rem;
+    color: var(--color-text-dark);
+    font-size: 0.875rem;
+  }
+
+  /* The number is something to tap, so it gets a fingertip's height. */
+  .site-nav__call a {
+    display: inline-block;
+    padding-block: 0.6875rem;
   }
 }
 
-/* navbar items */
-.navbar {
-  @apply relative flex flex-wrap items-center justify-between;
-}
+/* A phone held sideways is wide but very short: tighter rows, so the links
+   and the button are reached with less scrolling. */
+@media (max-width: 899.98px) and (max-height: 480px) {
+  .site-nav {
+    padding-top: 4.5rem;
+  }
 
-.navbar-brand {
-  @apply text-text-dark  text-xl font-semibold;
-  image {
-    @apply max-h-full max-w-full;
+  .site-nav__link {
+    padding: 0.75rem 0;
+    font-size: 1.375rem;
+  }
+
+  .site-nav__action {
+    padding-top: 1.5rem;
   }
 }
 
-.navbar-nav {
-  @apply text-center lg:text-left;
+@media (min-width: 640px) and (max-width: 899.98px) {
+  .site-nav {
+    padding-inline: 2rem;
+  }
 }
 
-.nav-link {
-  @apply text-white hover:text-primary block p-3 cursor-pointer font-normal transition lg:px-2 lg:py-3;
-}
+/* ── Desktop: links in the bar ──────────────────────────────────────────── */
+@media (min-width: 900px) {
+  .nav-burger {
+    display: none;
+  }
 
-.nav-dropdown {
-  @apply mr-0;
-}
+  .site-header__bar {
+    position: relative;
+  }
 
-.nav-dropdown > svg {
-  @apply pointer-events-none;
-}
+  .site-nav {
+    display: flex;
+    align-items: center;
+  }
 
-.nav-dropdown-list {
-  @apply bg-body  z-10 min-w-45 rounded p-4 shadow-sm;
-}
+  /* Centred on the bar rather than packed against the button, so the bar
+     stays balanced whether or not the button is showing. */
+  .site-nav__list {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: flex;
+    gap: 2.25rem;
+    transform: translate(-50%, -50%);
+  }
 
-.nav-dropdown-item {
-  @apply not-last:mb-2;
-}
+  .site-nav__link {
+    display: block;
+    padding: 0.5rem 0;
+    color: var(--color-text);
+    font-size: 0.875rem;
+    transition: color 0.15s ease;
+  }
 
-.nav-dropdown-link {
-  @apply text-text-dark hover:text-primary   block py-1 font-semibold transition;
+  .site-nav__link:hover {
+    color: #fff;
+  }
+
+  .site-nav__call {
+    display: none;
+  }
+
+  /* The bar's button steps aside while the hero or closing button is on
+     screen, so the same request is never shown twice at once. Without
+     JavaScript it simply stays visible. */
+  .site-nav__action .btn {
+    transition:
+      opacity 0.2s ease,
+      visibility 0s,
+      --gradient-angle-offset var(--shiny-transition),
+      --gradient-percent var(--shiny-transition),
+      --gradient-shine var(--shiny-transition);
+  }
+
+  .site-header.cta-in-view .site-nav__action .btn {
+    visibility: hidden;
+    opacity: 0;
+    transition:
+      opacity 0.2s ease,
+      visibility 0s linear 0.2s;
+  }
 }

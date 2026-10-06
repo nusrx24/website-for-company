@@ -1,19 +1,7 @@
 {
+  "_comment": "Profile links only. The email address and phone number live in config.json so they are never duplicated.",
   "main": [
-    {
-      "name": "facebook",
-      "icon": "FaFacebook",
-      "link": "https://www.facebook.com/lapcircuit"
-    },
-    {
-      "name": "linkedin",
-      "icon": "FaLinkedin",
-      "link": "https://www.linkedin.com/in/lapcircuit-off-b171b3440/"
-    },
-    {
-      "name": "email",
-      "icon": "FaEnvelope",
-      "link": "mailto:lapcircuitoff@gmail.com"
-    }
+    { "name": "Facebook", "link": "https://www.facebook.com/lapcircuit" },
+    { "name": "LinkedIn", "link": "https://www.linkedin.com/in/lapcircuit-off-b171b3440/" }
   ]
 }

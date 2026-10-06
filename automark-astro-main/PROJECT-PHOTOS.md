@@ -36,6 +36,21 @@ If you are unsure, send it as-is and say so; the format is easy to check.
 
 ---
 
+## Client logos
+
+Each client card shows one photograph and, on the open card, the client's own
+logo as a small tile. Logos go in `public/images/clients/`, one per client, and
+are set as `logo:` on that client's entry under `projects.items` in
+`src/content/homepage/-index.md`.
+
+- Use the client's own logo, with their permission to show it.
+- A roughly square image, at least 400 pixels wide, with a little empty margin
+  around the artwork. The site crops it to a rounded tile, so anything touching
+  the edge of the file gets clipped.
+- Take the place name from the client's own sign or logo.
+
+---
+
 ## Before you upload — please check each screenshot
 
 1. **Hide real customer names.** Blur or edit out any real person's name,

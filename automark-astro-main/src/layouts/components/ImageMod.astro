@@ -12,6 +12,12 @@ interface Props {
   decoding?: "async" | "auto" | "sync" | null | undefined;
   format?: "auto" | "avif" | "jpeg" | "png" | "svg" | "webp";
   fit?: "cover" | "contain" | "fill" | "none" | "scale-down";
+  // Candidate widths and the layout hint that let the browser pick a file
+  // that matches the screen instead of always downloading the largest one.
+  widths?: number[];
+  sizes?: string;
+  quality?: number;
+  fetchpriority?: "high" | "low" | "auto";
   class?: string;
   style?: any;
 }
@@ -28,6 +34,10 @@ let {
   format,
   style,
   fit,
+  widths,
+  sizes,
+  quality,
+  fetchpriority,
 } = Astro.props;
 
 src = `/public${src}`;
@@ -62,6 +72,10 @@ const isValidPath = images[src] ? true : false;
       class={className}
       format={format}
       style={style}
+      widths={widths}
+      sizes={sizes}
+      quality={quality}
+      fetchpriority={fetchpriority}
     />
   )
 }

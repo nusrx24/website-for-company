@@ -4,7 +4,7 @@
  * Run: node scripts/themeGenerator.js
  */
 
-@theme {
+@theme static {
   /* === Colors === */
   --color-primary: #2E90FF;
   --color-primary-light: #5AABFF;
@@ -18,9 +18,8 @@
   --color-text-light: #EEF2F8;
 
   /* === Font Families === */
-  --font-primary: Plus Jakarta Sans, sans-serif;
-  --font-secondary: Clash Display, sans-serif;
-  --font-mono: IBM Plex Mono, monospace;
+  --font-primary: IBM Plex Mono, monospace;
+  --font-secondary: Noto Sans, sans-serif;
 
   /* === Font Sizes === */
   --text-base: 16px;

@@ -1,0 +1,132 @@
+---
+// Flowing lines for behind a section: two mirrored fans of 36 curves that
+// sweep from the top corner to the opposite bottom corner, each one drawing
+// itself along its length, fading up and back, on its own 20-30 second loop.
+//
+// The curves, their widths, their opacities and the timing are those of the
+// "Background Paths" component this was taken from; only the colour differs
+// (the site's blue instead of grey). It is drawn as plain SVG and animated in
+// CSS, so it needs no script to run.
+
+const COUNT = 36;
+
+// A repeatable stand-in for Math.random(), so every build gives each line the
+// same duration instead of reshuffling them.
+let seed = 20261005;
+const random = () => {
+  seed = (seed * 1664525 + 1013904223) % 4294967296;
+  return seed / 4294967296;
+};
+
+// `position` is 1 for the fan that leans one way and -1 for its mirror.
+const fan = (position: number) =>
+  Array.from({ length: COUNT }, (_, i) => ({
+    d: `M-${380 - i * 5 * position} -${189 + i * 6}C-${
+      380 - i * 5 * position
+    } -${189 + i * 6} -${312 - i * 5 * position} ${216 - i * 6} ${
+      152 - i * 5 * position
+    } ${343 - i * 6}C${616 - i * 5 * position} ${470 - i * 6} ${
+      684 - i * 5 * position
+    } ${875 - i * 6} ${684 - i * 5 * position} ${875 - i * 6}`,
+    width: (0.5 + i * 0.03).toFixed(2),
+    opacity: Math.min(1, 0.1 + i * 0.03).toFixed(2),
+    duration: (20 + random() * 10).toFixed(1),
+  }));
+
+const fans = [fan(1), fan(-1)];
+---
+
+{/* Decoration only: hidden from assistive tech and never in the way of a
+    click. The parent needs `position: relative` and `overflow: hidden`. */}
+<div class="paths" data-paths aria-hidden="true">
+  {
+    fans.map((paths) => (
+      <svg viewBox="0 0 696 316" fill="none">
+        {paths.map((path) => (
+          <path
+            d={path.d}
+            pathLength="1"
+            stroke="currentColor"
+            stroke-width={path.width}
+            style={`--o:${path.opacity};animation-duration:${path.duration}s`}
+          />
+        ))}
+      </svg>
+    ))
+  }
+</div>
+
+<style>
+  .paths {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    /* The lines take this colour. */
+    color: var(--color-primary);
+  }
+
+  .paths svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* Each path has pathLength="1", so the dash values below are fractions of
+     its whole length: a stroke that starts 30% long and grows to the full
+     line, while its starting point runs to the far end and back.
+
+     --o is the line's own strength (faint for the first, solid for the
+     last). The fade multiplies it by 0.3, up to 0.6 and back. It is done
+     through stroke-opacity, not opacity, on purpose: the picture is the
+     same, but opacity makes the browser draw each of the 72 lines into its
+     own off-screen layer on every frame, which halved the frame rate on
+     phone-sized screens. */
+  .paths path {
+    stroke-opacity: var(--o);
+    animation: paths-flow 25s linear infinite;
+  }
+
+  @keyframes paths-flow {
+    0% {
+      stroke-dasharray: 0.3 1;
+      stroke-dashoffset: 0;
+      stroke-opacity: calc(var(--o) * 0.3);
+    }
+    50% {
+      stroke-dasharray: 0.65 1;
+      stroke-dashoffset: -1;
+      stroke-opacity: calc(var(--o) * 0.6);
+    }
+    100% {
+      stroke-dasharray: 1 1;
+      stroke-dashoffset: 0;
+      stroke-opacity: calc(var(--o) * 0.3);
+    }
+  }
+
+  /* Scrolled out of view: stop redrawing. The script below sets this. */
+  .paths.is-paused path {
+    animation-play-state: paused;
+  }
+
+  /* Still lines for anyone who has asked for less motion. */
+  @media (prefers-reduced-motion: reduce) {
+    .paths path {
+      animation: none;
+      stroke-opacity: calc(var(--o) * 0.45);
+    }
+  }
+</style>
+
+<script>
+  // Redrawing 72 curves has a cost, so only do it while they can be seen.
+  if ("IntersectionObserver" in window) {
+    document.querySelectorAll<HTMLElement>("[data-paths]").forEach((el) => {
+      new IntersectionObserver(([entry]) => {
+        el.classList.toggle("is-paused", !entry.isIntersecting);
+      }).observe(el);
+    });
+  }
+</script>

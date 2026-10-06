@@ -7,119 +7,79 @@ import { z } from "astro/zod";
  * content. Every section below maps to one partial in src/layouts/partials/,
  * which keeps copy editable without touching markup.
  *
+ * Each section answers one question, and nothing else belongs in it:
+ *   banner    - what does LapCircuit do?
+ *   about     - why does custom software matter?
+ *   solutions - what can LapCircuit build?
+ *   projects  - has it been built for real businesses?
+ *   process   - how do you work?
+ *   final_cta - how do I contact you?
+ *
  * Claims policy encoded here: no metric, percentage, customer count or
  * testimonial field exists anywhere in this schema. If a number cannot be
  * verified it has nowhere to live, which is deliberate.
  */
 const homepageCollection = defineCollection({
-  loader: glob({ pattern: "**/-*.{md,mdx}", base: "src/content/homepage" }),
+  loader: glob({ pattern: "**/-*.md", base: "src/content/homepage" }),
   schema: z.object({
     banner: z.object({
-      eyebrow: z.string().optional(),
       title: z.string(),
-      lead: z.string().optional(),
+      // One short sentence shown highlighted under the headline: how the
+      // software is paid for.
+      promise: z.string().optional(),
       content: z.string(),
-      // Headline price signal. Shown as a labelled figure, never as a fixed quote.
-      price_signal: z
-        .object({ label: z.string(), value: z.string() })
-        .optional(),
       // `link: "whatsapp"` resolves to the number in config.json at render time,
       // so the phone number is never duplicated into content files.
-      button_primary: z.object({
-        enable: z.boolean(),
-        label: z.string(),
-        link: z.string(),
-      }),
-      button_secondary: z.object({
-        enable: z.boolean(),
-        label: z.string(),
-        link: z.string(),
-      }),
-      // Truthful capability statements only - no invented customer counts.
-      trust_signals: z.array(z.string()).default(() => []),
-      locations: z.array(z.string()).default(() => []),
+      button_primary: z.object({ label: z.string(), link: z.string() }),
+      // A plain text link, not a second button.
+      link_secondary: z.object({ label: z.string(), link: z.string() }),
+    }),
+
+    about: z.object({
+      title: z.string(),
+      paragraphs: z.array(z.string()),
+      // Shown under the heading. A real screenshot or photo of delivered
+      // work, never a mock-up.
       media: z
         .object({
-          video: z.string().optional(),
-          poster: z.string().optional(),
+          image: z.string(),
+          alt: z.string(),
           caption: z.string().optional(),
         })
         .optional(),
     }),
 
-    /**
-     * A product demonstration rather than a feature list: four acts of one
-     * sale, each paired with a working mock of the matching POS screen.
-     * `key` selects which mock renders, so the copy stays editable here while
-     * the interface itself lives in src/layouts/partials/benefits/.
-     */
-    benefits: z.object({
-      enable: z.boolean(),
-      eyebrow: z.string().optional(),
-      title: z.string(),
-      content: z.string().optional(),
-      // Shown under the mocks. Required, because the screens contain example
-      // figures and must never be mistaken for a customer's real numbers.
-      demo_note: z.string(),
-      acts: z.array(
-        z.object({
-          key: z.enum(["checkout", "stock", "report", "receipt"]),
-          kicker: z.string(),
-          title: z.string(),
-          content: z.string(),
-        }),
-      ),
-    }),
-
+    // Each solution is printed as a till receipt (see Solutions.astro).
     solutions: z.object({
-      enable: z.boolean(),
-      eyebrow: z.string().optional(),
       title: z.string(),
       content: z.string().optional(),
+      // Wording shared by every receipt.
+      receipt: z.object({
+        // What stands at the end of each included line, e.g. "Incl".
+        included: z.string(),
+        // Small lines above the total. Facts stated elsewhere on the page
+        // only (hardware, warranty) - never a discount or a saving.
+        extras: z.array(z.object({ label: z.string(), value: z.string() })),
+        // The total line of a solution that has no starting price.
+        quote_label: z.string(),
+        quote_value: z.string(),
+        // The button on each receipt, and the sign-off under the barcode.
+        cta: z.string(),
+        thanks: z.string(),
+      }),
       items: z.array(
         z.object({
           title: z.string(),
           content: z.string(),
-          points: z.array(z.string()).default(() => []),
-          size: z.enum(["sm", "md", "lg"]).default("md"),
-          featured: z.boolean().default(false),
-        }),
-      ),
-    }),
-
-    why_lapcircuit: z.object({
-      enable: z.boolean(),
-      eyebrow: z.string().optional(),
-      title: z.string(),
-      content: z.string().optional(),
-      items: z.array(z.object({ title: z.string(), content: z.string() })),
-    }),
-
-    // A genuine ordered sequence, which is why these steps are numbered.
-    process: z.object({
-      enable: z.boolean(),
-      eyebrow: z.string().optional(),
-      title: z.string(),
-      content: z.string().optional(),
-      steps: z.array(z.object({ title: z.string(), content: z.string() })),
-    }),
-
-    pricing: z.object({
-      enable: z.boolean(),
-      eyebrow: z.string().optional(),
-      title: z.string(),
-      content: z.string().optional(),
-      // Required, not optional: a starting price must never appear unqualified.
-      note: z.string(),
-      cta_label: z.string(),
-      tiers: z.array(
-        z.object({
-          name: z.string(),
+          // What the price includes, one short line each.
+          lines: z.array(z.string()),
+          // Optional rubber stamp. A plain fact about the solution, not a
+          // claim such as "popular".
+          badge: z.string().optional(),
+          // Shown as the total: "<price_prefix> <price>", e.g. "From
+          // LKR 30,000+". Leave `price` out for work that is quoted.
           price_prefix: z.string().optional(),
-          price: z.string(),
-          description: z.string(),
-          features: z.array(z.string()).default(() => []),
-          featured: z.boolean().default(false),
+          price: z.string().optional(),
           // Prefills the WhatsApp message so an enquiry arrives with context.
           enquiry: z.string(),
         }),
@@ -127,97 +87,70 @@ const homepageCollection = defineCollection({
     }),
 
     projects: z.object({
-      enable: z.boolean(),
-      eyebrow: z.string().optional(),
       title: z.string(),
+      // Short uppercase line shown above the supporting sentence.
+      label: z.string().optional(),
       content: z.string().optional(),
-      items: z.array(
-        z.object({
-          // `name` is the public label. Set `name_public: false` for a client
-          // who has not agreed to be named - the card then shows `alias`.
-          name: z.string(),
-          name_public: z.boolean().default(true),
-          alias: z.string().optional(),
-          location: z.string().optional(),
-          sector: z.string(),
-          summary: z.string(),
-          // Only what the system genuinely handles. No metrics, no outcomes.
-          handles: z.array(z.string()).default(() => []),
-          setup: z.string().optional(),
-          images: z
-            .array(z.object({ src: z.string(), alt: z.string() }))
-            .default(() => []),
-        }),
-      ),
-      // Photographs of the systems in real use, shown beneath the cards.
-      gallery: z
+      // Optional link under the supporting sentence (e.g. the Facebook page).
+      link: z
         .object({
-          enable: z.boolean().default(true),
-          caption: z.string().optional(),
-          items: z
-            .array(z.object({ src: z.string(), alt: z.string() }))
-            .default(() => []),
+          label: z.string(),
+          href: z.string(),
         })
         .optional(),
-    }),
-
-    hardware: z.object({
-      enable: z.boolean(),
-      eyebrow: z.string().optional(),
-      title: z.string(),
-      content: z.string().optional(),
-      image: z.string().optional(),
-      image_alt: z.string().optional(),
-      note: z.string().optional(),
-      // No model numbers or specifications: we only state what we supply.
-      items: z.array(z.object({ title: z.string(), content: z.string() })),
-    }),
-
-    warranty: z.object({
-      enable: z.boolean(),
-      eyebrow: z.string().optional(),
-      title: z.string(),
-      covered_label: z.string(),
-      covered: z.string(),
-      // Required, so the boundary can never be dropped from the promise.
-      excluded_label: z.string(),
-      excluded: z.string(),
-    }),
-
-    company: z.object({
-      enable: z.boolean(),
-      eyebrow: z.string().optional(),
-      title: z.string(),
-      content: z.string(),
-      team_label: z.string().optional(),
-      // `line` describes the person's role in plain words; it is not a quote.
-      // `photo` is a path under public/, e.g. /images/team/nusair.webp.
-      team: z.array(
+      items: z.array(
         z.object({
           name: z.string(),
-          role: z.string(),
-          line: z.string().optional(),
-          photo: z.string().optional(),
+          sector: z.string(),
+          location: z.string().optional(),
+          // What LapCircuit built. No metrics, no outcomes.
+          summary: z.string(),
+          // The client's own logo, shown as a small tile on the open card.
+          // A path under public/, e.g. /images/clients/uj-stores.webp.
+          logo: z.string().optional(),
+          image: z.object({
+            src: z.string(),
+            alt: z.string(),
+            // Which part of the photo to keep when the card crops it, as a
+            // CSS object-position, e.g. "50% 30%" keeps the upper middle.
+            focus: z.string().optional(),
+          }),
         }),
       ),
     }),
 
-    locations: z.object({
-      enable: z.boolean(),
-      eyebrow: z.string().optional(),
+    // A genuine ordered sequence, which is why these steps are numbered.
+    process: z.object({
       title: z.string(),
       content: z.string().optional(),
-      places: z.array(z.string()),
-      languages: z.array(z.string()).default(() => []),
+      steps: z.array(z.object({ title: z.string(), content: z.string() })),
+      // Wording for the brick builder: the steps are bricks that stack, in
+      // order, on a base brick.
+      builder: z.object({
+        // Printed on the base brick.
+        base: z.string(),
+        // Under it before anything is built, without and with JavaScript.
+        idle: z.string(),
+        hint: z.string(),
+        // While building. {n} and {total} are filled in.
+        progress: z.string(),
+        // Once every step is in place.
+        done: z.string(),
+      }),
+      // The warranty promise and its limit, always stated together.
+      warranty: z.string().optional(),
     }),
 
     final_cta: z.object({
-      enable: z.boolean(),
       title: z.string(),
       content: z.string(),
-      // `link` accepts "whatsapp", "email", or any plain href.
-      button_primary: z.object({ label: z.string(), link: z.string() }),
-      button_secondary: z.object({ label: z.string(), link: z.string() }),
+      button: z.object({ label: z.string(), link: z.string() }),
+    }),
+
+    // Shown in the footer.
+    locations: z.object({
+      places: z.array(z.string()),
+      languages: z.array(z.string()).default(() => []),
     }),
   }),
 });

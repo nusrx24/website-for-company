@@ -25,7 +25,7 @@ const height = Number(String(logo_height).replace("px", ""));
 const isVector = source?.toLowerCase().endsWith(".svg");
 ---
 
-<a href="/" class="navbar-brand inline-block" aria-label={`${title} - home`}>
+<a href="/" class="site-logo" aria-label={`${title} - home`}>
   {
     source ? (
       isVector ? (
@@ -34,8 +34,6 @@ const isVector = source?.toLowerCase().endsWith(".svg");
           width={width}
           height={height}
           alt={title}
-          class="inline-block"
-          style={`width:${width}px;height:${height}px`}
           decoding="async"
         />
       ) : (

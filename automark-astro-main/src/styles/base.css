@@ -1,83 +1,98 @@
+/*
+  Base: document defaults and type.
+
+  The page is typographic. Hierarchy comes from two families, size and
+  whitespace, so there are no decorative rules to maintain here.
+*/
+
 html {
-  @apply text-base-sm md:text-base;
+  font-size: 16px;
+  -webkit-text-size-adjust: 100%;
+  /* In-page anchors scroll smoothly without a JS library. scroll-padding
+     clears the fixed header so a target heading is not hidden beneath it. */
+  scroll-behavior: smooth;
+  scroll-padding-top: 5.5rem;
+}
+
+/* Phone and tablet: the header is shorter there (navigation.css), and a
+   section's own hairline should land directly beneath it. */
+@media (max-width: 899.98px) {
+  html {
+    scroll-padding-top: 3.75rem;
+  }
 }
 
 body {
-  @apply bg-body text-base font-primary font-normal leading-[1.75] text-text antialiased;
+  background-color: var(--color-body);
+  color: var(--color-text);
+  font-family: var(--font-primary);
+  font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 h1,
 h2,
-h3,
-h4,
-h5,
-h6 {
-  @apply font-secondary font-bold leading-tight text-white;
+h3 {
+  margin: 0;
+  color: #fff;
+  font-family: var(--font-secondary);
+  font-weight: 600;
+  text-wrap: balance;
 }
 
+/* Headlines are set in sentence case: bold, slightly tight, in the display
+   sans. That font is variable - one file carries every weight from 100 to
+   900 - which is what lets a headline "breathe" (see components.css). */
 h1,
-.h1 {
-  @apply text-h1-sm md:text-h1;
+h2 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
-h2,
-.h2 {
-  @apply text-h2-sm md:text-h2;
+h2 {
+  font-size: clamp(1.75rem, 4.2vw, 3.125rem);
+  line-height: 1.1;
 }
 
-h3,
-.h3 {
-  @apply text-h3-sm md:text-h3;
+h3 {
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
 }
 
-h4,
-.h4 {
-  @apply text-h4;
+p {
+  margin: 0;
 }
 
-h5,
-.h5 {
-  @apply text-h5;
-}
-
-h6,
-.h6 {
-  @apply text-h6;
+a {
+  color: inherit;
+  text-decoration: none;
 }
 
 b,
 strong {
-  @apply font-semibold text-white;
+  color: #fff;
+  font-weight: 500;
 }
 
-code {
-  @apply after:border-none;
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
 }
 
-blockquote > p {
-  @apply my-0!;
-}
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-textarea:-webkit-autofill,
-textarea:-webkit-autofill:hover,
-textarea:-webkit-autofill:focus,
-select:-webkit-autofill,
-select:-webkit-autofill:hover,
-select:-webkit-autofill:focus {
-  -webkit-box-shadow: 0 0 0px 1000px var(--color-light) inset;
-  box-shadow: 0 0 0px 1000px var(--color-light) inset;
-  -webkit-text-fill-color: var(--color-text-light);
-  transition: background-color 5000s ease-in-out 0s;
+::selection {
+  background-color: var(--color-primary);
+  color: var(--color-body);
 }
 
-/* Smooth in-page scrolling for the anchor navigation, without a JS library.
-   scroll-padding clears the fixed header so a target heading is not hidden
-   underneath it. */
-html {
-  scroll-behavior: smooth;
-  scroll-padding-top: 6rem;
+/* One visible focus treatment for everything that can take the keyboard. */
+:focus-visible {
+  outline: 2px solid var(--color-primary-light);
+  outline-offset: 3px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -88,8 +103,8 @@ html {
   *,
   *::before,
   *::after {
+    transition-duration: 0.01ms !important;
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
   }
 }

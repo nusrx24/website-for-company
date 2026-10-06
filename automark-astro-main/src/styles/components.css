@@ -1,42 +1,506 @@
-/* section style */
+/*
+  Shared pieces used by more than one section. Anything that belongs to a
+  single section is styled inside that section's .astro file instead.
+*/
+
+/* Page gutter and measure. Named .wrap, not .container, so it cannot collide
+   with Tailwind's own container utility. */
+.wrap {
+  width: 100%;
+  max-width: 76rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .wrap {
+    padding-inline: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .wrap {
+    padding-inline: 2.5rem;
+  }
+}
+
+/* A section is separated from the one above by space and a single hairline.
+   Nothing else marks the boundary. */
 .section {
-  @apply py-16 xl:py-19 relative;
+  /* 56px on a phone, growing with the screen from there. */
+  padding-block: clamp(3.5rem, 10vw, 9rem);
+  border-top: 1px solid var(--color-border);
 }
 
-/* container */
-.container {
-  @apply mx-auto xl:max-w-330.5! px-8;
-}
-.container-sm {
-  @apply container xl:max-w-5xl!;
-}
-
-/* social icons */
-.social-icons {
-  @apply space-x-4;
-}
-.social-icons li {
-  @apply inline-block;
-}
-.social-icons li a {
-  @apply flex size-11 items-center justify-center rounded-full bg-white/5 hover:bg-white/20 text-center leading-9 text-white text-lg transition-all duration-200;
-}
-.social-icons li a svg {
-  @apply size-5;
+/* Heading on the left, one supporting sentence on the right. */
+.section-head {
+  display: grid;
+  gap: 1.25rem;
+  margin-bottom: clamp(2rem, 5vw, 4.5rem);
 }
 
-/* Highlight — strong tags inside headings are coloured with the primary accent */
-.hasHighlight strong {
-  @apply text-primary;
+.section-head p {
+  max-width: 44ch;
 }
 
-/* Footer */
-.footer-label {
-  @apply text-white text-h6 font-semibold mb-11;
+@media (min-width: 1024px) {
+  .section-head {
+    grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+    align-items: end;
+    gap: 3rem;
+  }
 }
 
-/* inline-block + py-1 lifts the hit area past the 24px minimum in WCAG 2.2
-   SC 2.5.8 without changing how the list looks. */
-.footer-link {
-  @apply inline-block py-1 text-text hover:text-white transition-colors duration-200;
+/* ── Button ──────────────────────────────────────────────────────────────
+   There is one button style: a dark pill with a band of light travelling
+   round its border. It is the only thing on the page that moves by itself,
+   which is the point - it marks the one action the page asks for.
+
+   Markup: <a class="btn btn-shiny"><span>Label</span></a>. The inner span is
+   required; the hover glow hangs off it.
+
+   The four animated values are registered with @property in main.css.
+   Each var() also carries a fallback, so a browser without @property shows
+   the same button with a still border instead of no background at all. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-primary);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.btn-shiny {
+  --shiny-bg: var(--color-dark);
+  --shiny-bg-subtle: var(--color-light);
+  --shiny-fg: #fff;
+  --shiny-highlight: var(--color-primary);
+  --shiny-highlight-subtle: var(--color-primary-light);
+  --shiny-animation: shiny-angle linear infinite;
+  --shiny-duration: 3s;
+  --shiny-shadow-size: 2px;
+  --shiny-transition: 800ms cubic-bezier(0.25, 1, 0.5, 1);
+
+  isolation: isolate;
+  position: relative;
+  overflow: hidden;
+  min-height: 3.25rem;
+  padding: 0 2rem;
+  border: 1px solid transparent;
+  border-radius: 360px;
+  outline-offset: 4px;
+  color: var(--shiny-fg);
+  font-size: 0.9375rem;
+  background:
+    linear-gradient(var(--shiny-bg), var(--shiny-bg)) padding-box,
+    conic-gradient(
+        from calc(var(--gradient-angle, 0deg) - var(--gradient-angle-offset, 0deg)),
+        transparent,
+        var(--shiny-highlight) var(--gradient-percent, 5%),
+        var(--gradient-shine, white) calc(var(--gradient-percent, 5%) * 2),
+        var(--shiny-highlight) calc(var(--gradient-percent, 5%) * 3),
+        transparent calc(var(--gradient-percent, 5%) * 4)
+      )
+      border-box;
+  box-shadow: inset 0 0 0 1px var(--shiny-bg-subtle);
+  transition: var(--shiny-transition);
+  transition-property: --gradient-angle-offset, --gradient-percent, --gradient-shine;
+}
+
+.btn-shiny::before,
+.btn-shiny::after,
+.btn-shiny span::before {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset-inline-start: 50%;
+  inset-block-start: 50%;
+  translate: -50% -50%;
+  z-index: -1;
+}
+
+.btn-shiny:active {
+  translate: 0 1px;
+}
+
+/* Dot texture, revealed only where the light is passing. */
+.btn-shiny::before {
+  --size: calc(100% - var(--shiny-shadow-size) * 3);
+  --position: 2px;
+  --space: calc(var(--position) * 2);
+  width: var(--size);
+  height: var(--size);
+  background: radial-gradient(
+      circle at var(--position) var(--position),
+      white calc(var(--position) / 4),
+      transparent 0
+    )
+    padding-box;
+  background-size: var(--space) var(--space);
+  background-repeat: space;
+  mask-image: conic-gradient(
+    from calc(var(--gradient-angle, 0deg) + 45deg),
+    black,
+    transparent 10% 90%,
+    black
+  );
+  border-radius: inherit;
+  opacity: 0.4;
+}
+
+/* Inner shimmer. */
+.btn-shiny::after {
+  --shiny-animation: shiny-shimmer linear infinite;
+  width: 100%;
+  aspect-ratio: 1;
+  background: linear-gradient(-50deg, transparent, var(--shiny-highlight), transparent);
+  mask-image: radial-gradient(circle at bottom, transparent 40%, black);
+  opacity: 0.6;
+}
+
+/* Glow that rises from the bottom edge on hover and focus. */
+.btn-shiny span::before {
+  --size: calc(100% + 1rem);
+  width: var(--size);
+  height: var(--size);
+  box-shadow: inset 0 -1ex 2rem 4px var(--shiny-highlight);
+  opacity: 0;
+  transition: opacity var(--shiny-transition);
+  animation: calc(var(--shiny-duration) * 1.5) shiny-breathe linear infinite;
+  /* Invisible until hover or focus, so its pulse waits until then. */
+  animation-play-state: paused;
+}
+
+/* The second, reversed animation is paused until hover; added to the first
+   it slows the light down rather than stopping it. */
+.btn-shiny,
+.btn-shiny::before,
+.btn-shiny::after {
+  animation:
+    var(--shiny-animation) var(--shiny-duration),
+    var(--shiny-animation) calc(var(--shiny-duration) / 0.4) reverse paused;
+  animation-composition: add;
+}
+
+.btn-shiny:is(:hover, :focus-visible) {
+  --gradient-percent: 20%;
+  --gradient-angle-offset: 95deg;
+  --gradient-shine: var(--shiny-highlight-subtle);
+}
+
+.btn-shiny:is(:hover, :focus-visible),
+.btn-shiny:is(:hover, :focus-visible)::before,
+.btn-shiny:is(:hover, :focus-visible)::after {
+  animation-play-state: running;
+}
+
+.btn-shiny:is(:hover, :focus-visible) span::before {
+  opacity: 1;
+  animation-play-state: running;
+}
+
+/* Scrolled out of view (main.js sets .is-away): nothing to see, so nothing
+   is drawn. The light is redrawn on every frame, and on a slow phone that
+   was costing the rest of the page its smoothness even from off screen. */
+.btn-shiny.is-away,
+.btn-shiny.is-away::before,
+.btn-shiny.is-away::after {
+  animation-play-state: paused;
+}
+
+/* Resting variant: the same button, but the light only travels while it is
+   hovered or focused. Used in the header, which stays on screen while the
+   page is being read and should not move in the corner of the eye. */
+.btn-shiny--rest:not(:hover, :focus-visible),
+.btn-shiny--rest:not(:hover, :focus-visible)::before,
+.btn-shiny--rest:not(:hover, :focus-visible)::after {
+  animation-play-state: paused;
+}
+
+.btn-sm {
+  min-height: 2.5rem;
+  padding: 0 1.125rem;
+  font-size: 0.8125rem;
+}
+
+@keyframes shiny-angle {
+  to {
+    --gradient-angle: 360deg;
+  }
+}
+
+@keyframes shiny-shimmer {
+  to {
+    rotate: 360deg;
+  }
+}
+
+@keyframes shiny-breathe {
+  from,
+  to {
+    scale: 1;
+  }
+  50% {
+    scale: 1.2;
+  }
+}
+
+/* ── Picture frame ───────────────────────────────────────────────────────
+   A 2px edge of moving chrome round every photograph and screenshot, after
+   the liquid-metal button the site used to have. Structure is the same as
+   that button's: a moving metal layer underneath, and the content set 2px
+   in on top of it so only the rim shows.
+
+   It is drawn in CSS rather than with a WebGL shader: two striped layers
+   slide past each other at different speeds, which gives the uneven,
+   flowing highlights without loading a library or opening a canvas per
+   picture. Only `transform` is animated, so the browser's compositor does
+   the work. Each layer travels exactly one stripe period per loop
+   (period / sin(angle)), which is what makes the loop seamless.
+
+   Markup: wrap the image - <div class="metal-frame"><img ...></div>. */
+.metal-frame {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 2px;
+  border-radius: 8px;
+  background-color: var(--color-light);
+}
+
+.metal-frame img {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  border-radius: 6px;
+  background-color: var(--color-light);
+}
+
+.metal-frame::before,
+.metal-frame::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* Chrome bands: dark, silver, white, with a cool fringe. */
+.metal-frame::before {
+  right: 0;
+  left: -340px;
+  background: repeating-linear-gradient(
+    135deg,
+    #0c0f13 0,
+    #2b3138 26px,
+    #aeb6c0 52px,
+    #f6f8fb 66px,
+    #8fb4e6 78px,
+    #1a1e24 104px,
+    #0c0f13 128px,
+    #4a515b 150px,
+    #d9dfe6 172px,
+    #fff 182px,
+    #6f7986 198px,
+    #14181d 222px,
+    #0c0f13 240px
+  );
+  animation: metal-flow-a 10s linear infinite;
+}
+
+/* A second, slower highlight crossing the other way. */
+.metal-frame::after {
+  right: -398px;
+  left: 0;
+  background: repeating-linear-gradient(
+    115deg,
+    rgb(255 255 255 / 0) 0,
+    rgb(255 255 255 / 0) 120px,
+    rgb(214 232 255 / 0.55) 170px,
+    rgb(255 255 255 / 0.9) 186px,
+    rgb(46 144 255 / 0.35) 204px,
+    rgb(255 255 255 / 0) 250px,
+    rgb(255 255 255 / 0) 360px
+  );
+  animation: metal-flow-b 17s linear infinite;
+}
+
+@keyframes metal-flow-a {
+  to {
+    transform: translate3d(339.41px, 0, 0);
+  }
+}
+
+@keyframes metal-flow-b {
+  to {
+    transform: translate3d(-397.22px, 0, 0);
+  }
+}
+
+/* ── Text link ───────────────────────────────────────────────────────────
+   Used wherever an action does not deserve a button. */
+.text-link {
+  color: var(--color-text-light);
+  text-decoration: underline;
+  text-decoration-color: var(--color-text-dark);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.35em;
+  transition:
+    color 0.15s ease,
+    text-decoration-color 0.15s ease;
+}
+
+.text-link:hover {
+  color: var(--color-primary-light);
+  text-decoration-color: currentColor;
+}
+
+/* ── Skip link ───────────────────────────────────────────────────────────
+   Off screen until it takes keyboard focus. */
+.skip-link {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  border-radius: 4px;
+  background-color: var(--color-primary);
+  color: var(--color-body);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transform: translateY(-200%);
+}
+
+.skip-link:focus {
+  transform: none;
+}
+
+/* ── Breathing headline ──────────────────────────────────────────────────
+   A headline marked data-breathe is split into letters by src/lib/breathe.ts,
+   and each letter swells from the font's lightest weight to 840 and back,
+   one after another, so a wave of weight runs along the line.
+
+   Timing is the source component's: 1.5s each way, eased in and out (the
+   easing is in the keyframes at the foot of this block), each letter a
+   quarter of a second behind the one before it.
+
+   Heavier letters are wider. So the script first lays the headline out at
+   its heaviest, pins the line breaks it finds there (.is-frozen), and only
+   then lets it move: lines can get shorter than that but never longer, so
+   nothing re-wraps and nothing below the headline shifts.
+
+   The resting weight below is the same 840, with kerning off, for the same
+   reason: before the script runs the headline is already laid out exactly
+   as the script will measure it. It is also what is shown to anyone who has
+   asked for less motion. */
+[data-breathe] {
+  font-variation-settings: "wght" 840;
+  font-kerning: none;
+  font-variant-ligatures: none;
+}
+
+[data-breathe].is-frozen {
+  white-space: nowrap;
+}
+
+[data-breathe] .breath {
+  animation: breath 1.5s step-end infinite alternate both;
+}
+
+/* While the script is measuring, every letter sits at its heaviest. */
+[data-breathe].is-measuring .breath {
+  animation: none;
+}
+
+/* Scrolled out of view: stop redrawing. */
+[data-breathe].is-paused .breath {
+  animation-play-state: paused;
+}
+
+/* Light to heavy along the source component's curve,
+   cubic-bezier(0.37, 0, 0.63, 1), written out at 24 moments. The letters
+   step from one to the next (see .breath above) instead of taking a new
+   weight on every frame. Drawn 16 times a second it looks the same, and the
+   browser can reuse each letter shape it has already drawn - on a phone-sized
+   screen that took the headline from about 49 frames a second to 60. */
+@keyframes breath {
+  0% {
+    font-variation-settings: "wght" 100;
+  }
+  4.17% {
+    font-variation-settings: "wght" 103;
+  }
+  8.33% {
+    font-variation-settings: "wght" 112;
+  }
+  12.5% {
+    font-variation-settings: "wght" 128;
+  }
+  16.67% {
+    font-variation-settings: "wght" 149;
+  }
+  20.83% {
+    font-variation-settings: "wght" 175;
+  }
+  25% {
+    font-variation-settings: "wght" 207;
+  }
+  29.17% {
+    font-variation-settings: "wght" 243;
+  }
+  33.33% {
+    font-variation-settings: "wght" 284;
+  }
+  37.5% {
+    font-variation-settings: "wght" 327;
+  }
+  41.67% {
+    font-variation-settings: "wght" 373;
+  }
+  45.83% {
+    font-variation-settings: "wght" 421;
+  }
+  50% {
+    font-variation-settings: "wght" 470;
+  }
+  54.17% {
+    font-variation-settings: "wght" 519;
+  }
+  58.33% {
+    font-variation-settings: "wght" 567;
+  }
+  62.5% {
+    font-variation-settings: "wght" 613;
+  }
+  66.67% {
+    font-variation-settings: "wght" 656;
+  }
+  70.83% {
+    font-variation-settings: "wght" 697;
+  }
+  75% {
+    font-variation-settings: "wght" 733;
+  }
+  79.17% {
+    font-variation-settings: "wght" 765;
+  }
+  83.33% {
+    font-variation-settings: "wght" 791;
+  }
+  87.5% {
+    font-variation-settings: "wght" 812;
+  }
+  91.67% {
+    font-variation-settings: "wght" 828;
+  }
+  95.83% {
+    font-variation-settings: "wght" 837;
+  }
+  100% {
+    font-variation-settings: "wght" 840;
+  }
 }

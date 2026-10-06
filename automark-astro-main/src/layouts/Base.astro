@@ -10,11 +10,16 @@ import {
   GoogleTagmanager,
   GoogleTagmanagerNoscript,
 } from "@digi4care/astro-google-tagmanager";
-import SocialLinks from "@/components/ui/social-links";
 
 const fontEntries = Object.entries(theme.fonts.font_family).filter(
   ([key]) => !key.includes("_type"),
 );
+
+// Which font files to fetch before the page is drawn: the three weights of
+// the body font, all of which are on the first screen (text, the button, and
+// the bold highlighted sentence under the headline).
+const preloadFor = (key: string) =>
+  key === "primary" ? [{ weight: 400 }, { weight: 500 }, { weight: 700 }] : true;
 
 export interface Props {
   title?: string;
@@ -58,7 +63,7 @@ const socialImage = new URL(
     {
       fontEntries.map(([key]) => {
         const cssVar = `--font-${key}` as any;
-        return <Font cssVariable={cssVar} preload />;
+        return <Font cssVariable={cssVar} preload={preloadFor(key)} />;
       })
     }
 
@@ -79,8 +84,6 @@ const socialImage = new URL(
         description ? description : config.metadata.meta_description,
       )}
     />
-
-    <!-- View Transitions removed to avoid conflicts with GSAP/Lenis/Swiper -->
 
     <meta name="author" content={config.metadata.meta_author} />
     <meta
@@ -114,12 +117,7 @@ const socialImage = new URL(
     <meta name="twitter:image" content={socialImage} />
     <meta name="twitter:card" content="summary_large_image" />
 
-    <!--
-      The global GSAP, ScrollTrigger and Lenis CDN scripts were removed: three
-      third-party requests that no longer animated anything. GSAP is still
-      bundled, but only inside the Process timeline island (client:visible).
-      Anchor scrolling is native CSS, and the hero video controls itself.
-    -->
+    {/* The only script on the site: header state and the phone menu. */}
     <script is:inline defer src="/scripts/main.js"></script>
   </head>
   <body>
@@ -130,15 +128,16 @@ const socialImage = new URL(
       )
     }
 
-    {/* <TwSizeIndicator /> */}
+    <a class="skip-link" href="#main-content">Skip to content</a>
     <Header />
-    {/* clip, not hidden or auto: both turn <main> into a scroll container,
-        which silently stops every sticky element inside it from pinning. */}
-    <main id="main-content" class="overflow-x-hidden supports-[overflow:clip]:overflow-x-clip">
-
+    <main id="main-content">
       <slot />
     </main>
-    <SocialLinks client:load />
     <Footer />
+
+    {/* Sets the headlines marked data-breathe breathing. */}
+    <script>
+      import "@/lib/breathe";
+    </script>
   </body>
 </html>

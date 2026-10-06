@@ -1,0 +1,82 @@
+---
+import ImageMod from "@/components/ImageMod.astro";
+import type { Homepage } from "@/types";
+
+export interface Props {
+  about: Homepage["about"];
+}
+
+const { about } = Astro.props as Props;
+---
+
+{/* Why custom software matters. The statement and a real screenshot of a
+    system we built on one side, the argument in a few plain sentences on
+    the other. */}
+<section id="about" class="section about">
+  <div class="wrap about__grid">
+    <div class="about__lead">
+      <h2 data-breathe>{about.title}</h2>
+
+      {
+        about.media && (
+          <figure class="about__media">
+            <div class="metal-frame">
+              <ImageMod
+                src={about.media.image}
+                alt={about.media.alt}
+                width={1280}
+                widths={[480, 640, 960, 1280]}
+                sizes="(min-width: 1296px) 536px, (min-width: 1024px) calc(50vw - 4.5rem), calc(100vw - 2.5rem)"
+                format="webp"
+                quality={82}
+              />
+            </div>
+            {about.media.caption && <figcaption>{about.media.caption}</figcaption>}
+          </figure>
+        )
+      }
+    </div>
+
+    <div class="about__body">
+      {about.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+    </div>
+  </div>
+</section>
+
+<style>
+  .about__grid {
+    display: grid;
+    gap: 2rem;
+  }
+
+  .about__media {
+    margin: clamp(1.75rem, 3vw, 2.5rem) 0 0;
+  }
+
+  .about__media figcaption {
+    margin-top: 0.875rem;
+    color: var(--color-text-dark);
+    font-size: 0.8125rem;
+  }
+
+  .about__body {
+    display: grid;
+    align-content: start;
+    gap: 1.25rem;
+    max-width: 56ch;
+  }
+
+  /* The first sentence carries the argument, so it reads a step larger. */
+  .about__body p:first-child {
+    color: var(--color-text-light);
+    font-size: clamp(1rem, 1.3vw, 1.125rem);
+    line-height: 1.65;
+  }
+
+  @media (min-width: 1024px) {
+    .about__grid {
+      grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
+      gap: 4rem;
+    }
+  }
+</style>

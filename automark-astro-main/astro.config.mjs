@@ -1,27 +1,24 @@
-import { unified } from "@astrojs/markdown-remark";
-import mdx from "@astrojs/mdx";
-import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
 import vercel from "@astrojs/vercel";
 import tailwindcss from "@tailwindcss/vite";
-import AutoImport from "astro-auto-import";
 import { defineConfig, fontProviders } from "astro/config";
-import remarkCollapse from "remark-collapse";
-import remarkToc from "remark-toc";
-import sharp from "sharp";
 import config from "./src/config/config.json";
 import theme from "./src/config/theme.json";
 
-// Helper to parse font string format: "FontName:wght@400;500;600;700"
+// Helper to parse font string format: "FontName:wght@400;500;600;700", or
+// "FontName:wght@100..900" for a variable font, where one file carries every
+// weight in that range.
 function parseFontString(fontStr) {
   const [name, weightPart] = fontStr.split(":");
   let weights = [400]; // default weight
 
   if (weightPart) {
-    // Extract weights from wght@400;500;600 format
-    const weightMatch = weightPart.match(/wght@?([\d;]+)/);
-    if (weightMatch) {
-      weights = weightMatch[1].split(";").map((w) => parseInt(w, 10));
+    const range = weightPart.match(/wght@?(\d+)\.\.(\d+)/);
+    const list = weightPart.match(/wght@?([\d;]+)/);
+    if (range) {
+      weights = [`${range[1]} ${range[2]}`];
+    } else if (list) {
+      weights = list[1].split(";").map((w) => parseInt(w, 10));
     }
   }
 
@@ -30,7 +27,9 @@ function parseFontString(fontStr) {
   return { name: cleanName, weights };
 }
 
-// Families that are NOT on Google Fonts and ship with the repo instead.
+// Families that are NOT on Google Fonts and ship with the repo instead. Only
+// used when theme.json names one of them; the site's headings are currently
+// set in Noto Sans, so nothing here is loaded.
 // Clash Display comes from Fontshare (ITF Free Font License); the woff2 files
 // live in src/fonts/ so the site makes no third-party font request at runtime.
 const LOCAL_FONTS = {
@@ -40,7 +39,7 @@ const LOCAL_FONTS = {
   ],
 };
 
-// Build fonts configuration from theme.json
+// Build the fonts configuration from theme.json
 const fontsConfig = Object.entries(theme.fonts.font_family)
   .filter(([key]) => !key.includes("_type")) // Filter out type entries
   .map(([key, fontStr]) => {
@@ -64,7 +63,9 @@ const fontsConfig = Object.entries(theme.fonts.font_family)
       };
     }
 
-    return { ...base, provider: fontProviders.google(), weights };
+    // Upright only: nothing on the site is set in italic, so those files are
+    // not fetched.
+    return { ...base, provider: fontProviders.google(), weights, styles: ["normal"] };
   });
 
 // The production domain is not registered yet. `src/config/config.json` is the
@@ -82,28 +83,16 @@ export default defineConfig({
   site: config.site.base_url ? config.site.base_url : "http://examplesite.com",
   base: config.site.base_path ? config.site.base_path : "/",
   trailingSlash: config.site.trailing_slash ? "always" : "never",
-  image: { service: sharp(), dangerouslyProcessSVG: true },
+  // Images are resized by Astro's built-in service (Sharp). Do not import
+  // `sharp` in this file: the project's copy and the copy Astro brings are
+  // different versions, and on Windows loading both into one process can
+  // fail, after which the dev server answers every image with "Could not
+  // find Sharp".
+  image: { dangerouslyProcessSVG: true },
   vite: { plugins: [tailwindcss()] },
   fonts: fontsConfig,
-  integrations: [
-    react(),
-    sitemap(),
-    AutoImport({
-      imports: [
-        "@/shortcodes/Button",
-        "@/shortcodes/Accordion",
-        "@/shortcodes/Notice",
-        "@/shortcodes/Video",
-        // "@/shortcodes/Youtube",
-        "@/shortcodes/Tabs",
-        "@/shortcodes/Tab",
-      ],
-    }),
-    mdx(),
-  ],
-  markdown: {
-    processor: unified(),
-    remarkPlugins: [remarkToc, [remarkCollapse, { test: "Table of contents" }]],
-    shikiConfig: { theme: "one-dark-pro", wrap: true },
-  },
+  // The page is static HTML with no UI framework. Its scripts are plain
+  // JavaScript: public/scripts/main.js, and the brick builder that lives in
+  // src/layouts/partials/Process.astro.
+  integrations: [sitemap()],
 });

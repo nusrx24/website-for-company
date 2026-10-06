@@ -2,24 +2,15 @@
   "_comment": "The site is a single page, so navigation points at section anchors on the homepage. When a real second page is added, give it a path here.",
   "main": [
     { "name": "Solutions", "url": "/#solutions" },
-    { "name": "Pricing", "url": "/#pricing" },
-    { "name": "Projects", "url": "/#projects" },
-    { "name": "Hardware", "url": "/#hardware" },
+    { "name": "Work", "url": "/#work" },
+    { "name": "About", "url": "/#about" },
     { "name": "Contact", "url": "/#contact" }
   ],
-  "footer_col_1_title": "Explore",
-  "footer_col_2_title": "Company",
-  "footer_primary": [
+  "footer": [
     { "name": "Solutions", "url": "/#solutions" },
-    { "name": "Why LapCircuit", "url": "/#why-lapcircuit" },
+    { "name": "Work", "url": "/#work" },
     { "name": "How we work", "url": "/#process" },
-    { "name": "Pricing", "url": "/#pricing" }
-  ],
-  "footer_resource": [
-    { "name": "Real projects", "url": "/#projects" },
-    { "name": "Hardware", "url": "/#hardware" },
-    { "name": "Warranty", "url": "/#warranty" },
-    { "name": "About us", "url": "/#company" },
+    { "name": "About", "url": "/#about" },
     { "name": "Contact", "url": "/#contact" }
   ]
 }

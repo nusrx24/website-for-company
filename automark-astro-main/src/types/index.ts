@@ -14,15 +14,11 @@ export interface NavLink {
 
 export interface Menu {
   main: NavLink[];
-  footer_col_1_title: string;
-  footer_col_2_title: string;
-  footer_primary: NavLink[];
-  footer_resource: NavLink[];
+  footer: NavLink[];
 }
 
 export interface SocialLink {
   name: string;
-  icon: string;
   link: string;
 }
 

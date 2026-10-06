@@ -33,3 +33,6 @@ project-photos-source/
 
 # VS Code
 .vscode/
+
+# TypeScript incremental build cache
+*.tsbuildinfo

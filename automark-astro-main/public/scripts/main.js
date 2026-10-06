@@ -1,18 +1,16 @@
 /**
  * The only script the site needs.
  *
- * Two jobs: shrink the header once the page is scrolled, and close the phone
- * menu (link tap or Escape). Everything else the template
- * shipped here (tabs, modals, accordions, sound toggle, card layout) belonged
- * to sections that no longer exist.
+ * Four small jobs: turn the header solid once the page is scrolled, close
+ * the phone menu (link tap or Escape), step the header's button aside while
+ * one of the page's own buttons is already on screen, and rest a button's
+ * moving light while that button is out of view. The page works without any
+ * of them.
  */
 (function () {
   "use strict";
 
-  function stickyHeader() {
-    const header = document.querySelector(".header");
-    if (!header) return;
-
+  function stickyHeader(header) {
     const apply = () => header.classList.toggle("scrolled", window.scrollY > 8);
 
     apply();
@@ -48,9 +46,49 @@
     });
   }
 
+  // The same request should not be on screen twice. While the hero button or
+  // the closing button is visible, the header's copy is hidden (see
+  // navigation.css, .cta-in-view).
+  function headerButton(header) {
+    const buttons = document.querySelectorAll("[data-page-cta]");
+    if (!buttons.length || !("IntersectionObserver" in window)) return;
+
+    const visible = new Set();
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) visible.add(entry.target);
+        else visible.delete(entry.target);
+      });
+      header.classList.toggle("cta-in-view", visible.size > 0);
+    });
+
+    buttons.forEach((button) => observer.observe(button));
+  }
+
+  // The light travelling round a button is redrawn on every frame. Off
+  // screen that work shows nothing, and on a slow phone it takes smoothness
+  // from whatever is on screen, so it is paused (components.css, .is-away).
+  function restButtons() {
+    const buttons = document.querySelectorAll(".btn-shiny");
+    if (!buttons.length || !("IntersectionObserver" in window)) return;
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        entry.target.classList.toggle("is-away", !entry.isIntersecting);
+      });
+    });
+
+    buttons.forEach((button) => observer.observe(button));
+  }
+
   function init() {
-    stickyHeader();
+    const header = document.querySelector(".site-header");
+    if (header) {
+      stickyHeader(header);
+      headerButton(header);
+    }
     mobileNav();
+    restButtons();
   }
 
   if (document.readyState === "loading") {
