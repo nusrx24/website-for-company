@@ -8,10 +8,11 @@ import { SHUTTER, blades, f, restPivot } from "@/lib/footer/shutter";
 import { contact, mailtoUrl, telUrl, whatsappUrl } from "@/lib/utils/contact";
 import type { Menu, SocialType } from "@/types";
 
-// The closing section: a block of the brand's blue set in monospace capitals,
-// with the company name across the full width in a drawn, geometric alphabet.
-// One letter is swapped for a "shutter" - three blades that meet at a pivot,
-// and the pivot turns to follow the pointer.
+// The closing section: a dark slate block set in monospace capitals, with the
+// company name across the full width in a drawn, geometric alphabet. One
+// letter is swapped for a "shutter" - three blue blades that meet at a pivot,
+// and the pivot turns to follow the pointer. Its colours are the four
+// variables at the top of the <style> block below.
 
 // What the giant wordmark spells, and which letter the shutter replaces
 // (counting from 0; -1 for none). It takes the place of the U: that leaves
@@ -241,12 +242,17 @@ const reachDelays = reach.map(next);
 </script>
 
 <style>
-  /* Colours. The block is the brand's blue, a touch lighter along its top
-     edge; everything on it is printed in the site's near-black. */
+  /* Colours. These four lines are the whole footer's palette.
+     The block is the site's dark slate - the colour of its panels and cards -
+     a touch lighter along its top edge, and everything on it is printed in
+     the site's off-white. Blue is kept for two things only: the one letter
+     that moves (the shutter) and the line under the message box while it is
+     being typed in. All four are colours from theme.json. */
   .sgf {
-    --sgf-bg: var(--color-primary);
-    --sgf-top: color-mix(in srgb, var(--color-primary) 87%, #fff);
-    --sgf-ink: var(--color-body);
+    --sgf-bg: var(--color-light);
+    --sgf-top: color-mix(in srgb, var(--color-light) 97%, #fff);
+    --sgf-ink: var(--color-text-light);
+    --sgf-accent: var(--color-primary);
     position: relative;
     isolation: isolate;
     overflow: hidden;
@@ -259,11 +265,6 @@ const reachDelays = reach.map(next);
     letter-spacing: 0.015em;
     text-transform: uppercase;
     -webkit-font-smoothing: antialiased;
-  }
-
-  .sgf ::selection {
-    background: var(--sgf-ink);
-    color: var(--sgf-bg);
   }
 
   /* Resets go through :where() so they never out-rank the classes below. */
@@ -350,7 +351,7 @@ const reachDelays = reach.map(next);
     bottom: -2px;
     left: 0;
     height: 2px;
-    background: var(--sgf-ink);
+    background: var(--sgf-accent);
     transform: scaleX(0);
     transform-origin: 0 50%;
     transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -624,7 +625,9 @@ const reachDelays = reach.map(next);
     transform: translate(-5px, 1.5px);
   }
 
+  /* The shutter is the one letter in the accent colour. */
   .sgf-sh polygon {
+    fill: var(--sgf-accent);
     transition: none;
   }
 

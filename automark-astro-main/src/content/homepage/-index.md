@@ -46,8 +46,9 @@ solutions:
   #   enquiry - the WhatsApp message the slip's button starts.
   receipt:
     included: "Incl"
-    # Printed above the total on every slip. The warranty is also stated
-    # under How we work.
+    # Printed above the total on every slip. This is the only place the
+    # warranty is stated, so keep "Bug-fix": it covers bugs and errors, and
+    # new features, modules and integrations are quoted separately.
     extras:
       - label: "Hardware"
         value: "Optional"
@@ -106,9 +107,13 @@ projects:
   link:
     label: "Visit our Facebook page"
     href: "https://www.facebook.com/lapcircuit"
-  # One card per client. `logo` is the client's own logo (public/images/clients)
-  # and `image` a real photograph (public/images/projects). `focus` says which
-  # part of the photograph to keep when the card crops it (a CSS object-position).
+  # The clients, shown as a carousel of logos: three at a time, changing every
+  # two seconds. A client appears once it has a `name` and a `logo` (a tile in
+  # public/images/clients, 400 x 424 with the artwork on a plain ground).
+  #
+  # `sector`, `location`, `summary` and `image` are NOT printed at present.
+  # They belong to the earlier design (a card per client with a photograph)
+  # and are kept so that design can come back without rewriting them.
   items:
     - name: "UJ Stores"
       sector: "Wholesale and grocery"
@@ -184,39 +189,21 @@ projects:
       sector: "Furniture"
       location: "Eravur"
       summary: "A billing system for a furniture shop."
+      logo: "/images/clients/sofa-city.webp"
       image:
         src: "/images/projects/sofa-city.jpg"
         alt: "The Sofa City logo: an armchair, a side table and a lamp"
         focus: "50% 15%"
 
-## PROCESS ######################################################################
-# Answers: how do you work?
-# A real ordered sequence, which is the one place on this page where numbering
-# carries meaning rather than decoration.
-process:
-  title: "How we work."
-  content: "We do not start by showing you software. We start by understanding how your business already runs."
-  steps:
-    - title: "Discuss"
-      content: "Understand the business and workflow."
-    - title: "Plan"
-      content: "Define the required system and features."
-    - title: "Develop"
-      content: "Build the software around the agreed workflow."
-    - title: "Deploy"
-      content: "Set up the system and required hardware."
-    - title: "Train"
-      content: "Help the team use the system correctly."
-    - title: "Support"
-      content: "Continue supporting the business after deployment."
-  # The steps are shown as bricks that stack on a base brick, in order.
-  builder:
-    base: "Your business"
-    idle: "Six steps, in order"
-    hint: "Pick a step to start"
-    progress: "{n} of {total} steps in place"
-    done: "Every step in place"
-  warranty: "The software we deliver carries a lifetime warranty against bugs and errors. New features, additional modules and integrations are quoted separately."
+    # Logo supplied by the owner on 2026-10-06 without the business's name.
+    # "YN" is the lettering on the logo: replace it with the real name. It is
+    # only read out by screen readers; visitors see the logo.
+    - name: "YN"
+      logo: "/images/clients/yn.webp"
+
+    # The name is as it is written on the logo.
+    - name: "Origin Design & Construction"
+      logo: "/images/clients/origin-design-construction.webp"
 
 ## FINAL CTA ####################################################################
 # Answers: how do I contact you?

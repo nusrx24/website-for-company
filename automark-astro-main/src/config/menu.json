@@ -9,7 +9,6 @@
   "footer": [
     { "name": "Solutions", "url": "/#solutions" },
     { "name": "Work", "url": "/#work" },
-    { "name": "How we work", "url": "/#process" },
     { "name": "About", "url": "/#about" },
     { "name": "Contact", "url": "/#contact" }
   ]

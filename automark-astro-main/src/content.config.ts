@@ -12,7 +12,6 @@ import { z } from "astro/zod";
  *   about     - why does custom software matter?
  *   solutions - what can LapCircuit build?
  *   projects  - has it been built for real businesses?
- *   process   - how do you work?
  *   final_cta - how do I contact you?
  *
  * Claims policy encoded here: no metric, percentage, customer count or
@@ -98,47 +97,32 @@ const homepageCollection = defineCollection({
           href: z.string(),
         })
         .optional(),
+      // The clients. The page shows them as a carousel of logos, so a client
+      // appears once it has a `name` and a `logo`.
       items: z.array(
         z.object({
           name: z.string(),
-          sector: z.string(),
+          // The client's own logo, as a tile: a path under public/, e.g.
+          // /images/clients/uj-stores.webp. A client without one is not shown.
+          logo: z.string().optional(),
+          // Not printed at present. These belonged to the earlier design, a
+          // card per client with a photograph, and are kept so that design
+          // can come back without the text being written again.
+          sector: z.string().optional(),
           location: z.string().optional(),
           // What LapCircuit built. No metrics, no outcomes.
-          summary: z.string(),
-          // The client's own logo, shown as a small tile on the open card.
-          // A path under public/, e.g. /images/clients/uj-stores.webp.
-          logo: z.string().optional(),
-          image: z.object({
-            src: z.string(),
-            alt: z.string(),
-            // Which part of the photo to keep when the card crops it, as a
-            // CSS object-position, e.g. "50% 30%" keeps the upper middle.
-            focus: z.string().optional(),
-          }),
+          summary: z.string().optional(),
+          image: z
+            .object({
+              src: z.string(),
+              alt: z.string(),
+              // Which part of the photo to keep when a card crops it, as a
+              // CSS object-position, e.g. "50% 30%" keeps the upper middle.
+              focus: z.string().optional(),
+            })
+            .optional(),
         }),
       ),
-    }),
-
-    // A genuine ordered sequence, which is why these steps are numbered.
-    process: z.object({
-      title: z.string(),
-      content: z.string().optional(),
-      steps: z.array(z.object({ title: z.string(), content: z.string() })),
-      // Wording for the brick builder: the steps are bricks that stack, in
-      // order, on a base brick.
-      builder: z.object({
-        // Printed on the base brick.
-        base: z.string(),
-        // Under it before anything is built, without and with JavaScript.
-        idle: z.string(),
-        hint: z.string(),
-        // While building. {n} and {total} are filled in.
-        progress: z.string(),
-        // Once every step is in place.
-        done: z.string(),
-      }),
-      // The warranty promise and its limit, always stated together.
-      warranty: z.string().optional(),
     }),
 
     final_cta: z.object({

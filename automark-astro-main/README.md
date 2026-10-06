@@ -9,7 +9,7 @@ runtime. Every call to action opens WhatsApp, the phone dialler or email.
 
 ## The page
 
-Six sections, each answering one question. If something does not help answer
+Five sections, each answering one question. If something does not help answer
 the question, it does not belong in that section.
 
 | Section | Partial | Answers |
@@ -18,17 +18,17 @@ the question, it does not belong in that section.
 | About | `About.astro` | Why does custom software matter? |
 | Solutions | `Solutions.astro` | What can LapCircuit build? (printed as till receipts) |
 | Work | `Work.astro` | Has it been built for real businesses? |
-| How we work | `Process.astro` (+ `LegoBrick.astro`) | How do you work? |
 | Contact | `FinalCta.astro` | How do I contact you? |
 
 Design rules that keep it that way:
 
-- **Static by default.** Four things move by themselves: the band of light
+- **Static by default.** Five things move by themselves: the band of light
   on the button (`.btn-shiny`) and the 2px chrome edge round every picture
   (`.metal-frame`), both in `src/styles/components.css`; the headlines, whose
-  letters breathe from light to heavy (see below); and the blue lines that
+  letters breathe from light to heavy (see below); the blue lines that
   flow behind the hero (`BackgroundPaths.astro`, which pauses itself whenever
-  the hero is scrolled out of view). Everything
+  the hero is scrolled out of view); and the clients' logos, which change
+  every two seconds (`LogoCarousel.astro`, which also stops off screen). Everything
   else only responds: hover and focus feedback, the phone menu opening, the
   header turning solid. The header's copy of the button uses `.btn-shiny--rest`
   so it stays still until hovered, a button's light rests while that button
@@ -49,28 +49,42 @@ Design rules that keep it that way:
   between the headline and the opening sentence. Leave it out of
   `-index.md` and nothing is shown. It replaced the panel of pricing notes
   that used to sit under the receipts.
-- **The footer is a block of the brand's blue** in monospace capitals, with the
-  company name across the full width in letters drawn as SVG
+- **The footer is a dark slate block** (the colour of the site's panels) in
+  off-white monospace capitals. Its whole palette is four variables at the
+  top of the styles in `Footer.astro`: `--sgf-bg` (the ground), `--sgf-top`
+  (its lighter top edge), `--sgf-ink` (everything printed on it) and
+  `--sgf-accent` (blue: the shutter letter and the message box's line while
+  it is typed in). The company name runs across the full width in letters
+  drawn as SVG
   (`src/lib/footer/glyphs.ts`; no font is loaded for them). One letter is a
   "shutter" whose blades follow the pointer and turn when clicked; letters
   split on hover and flip when clicked; links scramble on hover. Which letter
   the shutter replaces is `SHUTTER_AT` at the top of `Footer.astro`. The
   message box opens WhatsApp with whatever was typed: there is no mailing
   list and nothing is stored. Its two lines of wording are in `config.json`.
-- **How we work is something you build.** "Your business" is a base brick and
-  each step is a brick that goes on it, in order: clicking a step places it and
-  every step before it; clicking a placed step lifts it and every step after
-  it. Nothing moves until it is clicked. The numbered list underneath carries
-  the same content in words. Brick colours live in `LegoBrick.astro`; widths
-  and order in the `BRICKS` table at the top of `Process.astro`.
-- **Clients are one block of expanding cards** (`Work.astro`), one card per
-  client. The open card shows the photograph in colour with the client's logo,
-  type of business, name and what we built; the others are grey strips with
-  just the name. Pointing at, tabbing to or tapping a card opens it. To add a
-  client, add an entry to `projects.items` in `-index.md`; the block keeps its
-  height on a computer and grows by one short row on a phone. After a tap on
-  a phone the opened card is scrolled fully into view. The section's intro
-  can carry a small label and a link (`projects.label`, `projects.link`).
+- **There is no "How we work" section.** The six steps and their brick
+  builder were removed at the owner's request; the page goes from the clients
+  straight to the closing section. The warranty is now stated only on the
+  receipts ("Bug-fix warranty: Lifetime").
+- **Clients are a carousel of their own logos** (`Work.astro` and
+  `LogoCarousel.astro`). Three logos show at a time, each as a small rounded
+  tile; every two seconds a logo lifts away and the next settles in, the three
+  columns a fifth of a second apart. The logos are shuffled on every visit.
+  If the number of logos does not divide by three, a few logos come round
+  twice so that every column keeps the same pace, never in two windows at
+  once.
+  To add a client, put its logo in `public/images/clients/` and add an entry
+  with `name` and `logo` to `projects.items` in `-index.md`. With reduced
+  motion, or without JavaScript, every logo is shown in one plain row. The
+  names are in the page as a hidden list for screen readers. The section's
+  intro can carry a small label and a link (`projects.label`,
+  `projects.link`).
+- **The client photographs and descriptions are not shown at present.** They
+  belonged to the earlier design, a card per client. The text is still under
+  `projects.items` and the photographs are still in
+  `public/images/projects/`, unused apart from the one in the About section.
+  Delete them before going live if that design is not coming back: everything
+  in `public/` is published.
 - **The closing section names where else to find us.** Facebook, LinkedIn,
   WhatsApp and Email, each with an icon that pops up when pointed at
   (`SocialLinks.astro`). The profile links come from `social.json`.
@@ -100,13 +114,14 @@ Design rules that keep it that way:
   required. Add `btn-sm` for the small size.
 - **Two calls to action, plus a quote button on each receipt.** "Request a
   Demo" appears in the hero and in the closing section. The header carries a small copy that hides itself while
-  either of those is on screen. Do not add buttons inside sections or cards.
+  either of those is on screen. Do not add buttons inside sections.
 - **Real images only.** Screenshots and photographs of delivered systems. No
   mock-ups, renders or stock photography.
 - **Blue is for the button, the prices and link hovers.** Everything else is
   black, slate and white.
-- **Numbers only where there is a sequence.** "How we work" is numbered because
-  it is a real order; nothing else is.
+- **Numbers only where there is a sequence.** Nothing on the page is one at
+  present, so nothing is numbered (a receipt's own number is part of the
+  receipt).
 
 ## On a phone
 
@@ -123,10 +138,8 @@ that way. Check any change at 320, 360 and 430 pixels wide.
 - **The hero headline is sized from the screen's width** (three lines on a
   phone), and "Request a Demo" runs the full width in the hero and in the
   closing section, with the hero's button on the first screen.
-- **The six steps are compact rows** (number, name, sentence), and the
-  footer's page links sit two to a row.
-- **Text meant to be read is never below 11px** (the letters embossed on the
-  brick studs are decoration), and receipts are a size larger than on a
+- **The footer's page links sit two to a row.**
+- **Text is never below 11px**, and receipts are a size larger than on a
   computer.
 
 ## Running it locally
@@ -168,8 +181,8 @@ the content collection cache can go stale and fails with
 | Section order | `src/pages/index.astro` |
 | Shared buttons, links, spacing | `src/styles/components.css` |
 | Header and phone menu | `src/styles/navigation.css` |
-| Client photos and logos | `public/images/projects/` and `public/images/clients/`, listed under `projects.items` in `-index.md` |
-| Brick colours | `src/layouts/components/LegoBrick.astro` |
+| Client logos | `public/images/clients/`, listed under `projects.items` in `-index.md` |
+| How many logos show at once | `columns` on `<LogoCarousel>` in `Work.astro` |
 
 The homepage is content-driven: `content → partial → page`. Wording changes
 should only ever touch `-index.md`. Styles that belong to one section live in
@@ -184,7 +197,8 @@ These are enforced by the schema in `src/content.config.ts`, which deliberately
 has **no field** for metrics, percentages, customer counts or testimonials:
 
 - No invented statistics, growth figures or satisfaction scores.
-- Only real client work, shown with real photographs and the clients' own logos.
+- Only real clients, shown by their own logos, and real screenshots of
+  delivered systems.
 - Prices are always labelled as starting prices: each is printed as
   "From ... +", and the sentence under the Solutions heading says so.
 - The warranty line states the promise and its limit together.

@@ -1,0 +1,364 @@
+---
+// Logo carousel: a row of columns, each showing one logo at a time. Every two
+// seconds a column's logo lifts away, blurring out, and the next one settles
+// into its place with a small bounce. The columns change one after another,
+// a fifth of a second apart.
+//
+// A port of the 21st.dev "logo-carousel" React component to plain Astro, so
+// the page keeps shipping no UI framework. Same behaviour and timing:
+//   - the logos are shuffled on every visit and dealt out to the columns,
+//   - a logo stays for 2s; neighbouring columns change 200ms apart,
+//   - leaving: up 20%, fading and blurring to 6px, over 0.3s (ease-in),
+//   - arriving: from 10% low and 8px of blur, on a spring (stiffness 300,
+//     damping 20),
+//   - the columns themselves rise 50px and fade in, 100ms apart, the first
+//     time the row is scrolled to.
+//
+// Without JavaScript, or for anyone who has asked for less motion, every logo
+// is simply shown, in one wrapped row.
+import ImageMod from "@/components/ImageMod.astro";
+
+export interface Props {
+  // `src` is a path under public/, e.g. /images/clients/uj-stores.webp.
+  logos: { name: string; src: string }[];
+  // How many logos show at once.
+  columns?: number;
+  // What a screen reader calls the list of names.
+  label?: string;
+}
+
+const { logos, columns = 2, label = "Clients" } = Astro.props as Props;
+---
+
+<div class="logos" data-logos>
+  {/* The names, for screen readers and search engines. The pictures below
+      are the same list drawn as logos, three at a time, so they are hidden
+      from assistive tech rather than read out as they come and go. */}
+  <ul class="sr-only" role="list" aria-label={label}>
+    {logos.map((logo) => <li>{logo.name}</li>)}
+  </ul>
+
+  <ul class="logos__list" aria-hidden="true" data-logos-list>
+    {
+      logos.map((logo) => (
+        <li class="logos__logo">
+          <ImageMod
+            src={logo.src}
+            alt=""
+            width={160}
+            format="webp"
+            quality={85}
+            loading="lazy"
+            decoding="async"
+          />
+        </li>
+      ))
+    }
+  </ul>
+
+  {/* Empty until the script deals the logos out. */}
+  <div class="logos__columns" aria-hidden="true">
+    {
+      Array.from({ length: columns }, (_, index) => (
+        <ul class="logos__column" data-logos-column style={`--i:${index}`} />
+      ))
+    }
+  </div>
+</div>
+
+{/* Switches from the plain row to the carousel as the page is read, before
+    anything is drawn, so the row is never seen changing shape. */}
+<script is:inline>
+  (function () {
+    var el = document.currentScript.previousElementSibling;
+    if (!el || !("IntersectionObserver" in window) || !el.animate) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    el.classList.add("is-live");
+  })();
+</script>
+
+<style>
+  /* --box-w and --box-h are the window each column shows its logo through.
+     From 768px they are the source component's: 192 by 96. On a phone the
+     source's window is 96 by 56, which would draw these logos 45px tall;
+     they are full-colour pictures with small lettering rather than simple
+     marks, so the window is kept 96 tall and the logos stay the size they
+     are on a computer. */
+  .logos {
+    --box-w: 6rem;
+    --box-h: 6rem;
+    --gap: 1rem;
+  }
+
+  /* ── Plain row: every logo, wrapped ───────────────────────────────────── */
+  .logos__list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--gap);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .logos__logo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Each logo is a small tile. The clients' logos are pictures on their own
+     white (or black) ground, so the tile is what holds them together on a
+     dark page; the faint ring gives the black ones an edge. */
+  .logos__logo :global(img) {
+    display: block;
+    width: 4.8rem;
+    height: auto;
+    aspect-ratio: 1;
+    border-radius: 0.875rem;
+    background-color: #fff;
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.14);
+    object-fit: cover;
+  }
+
+  /* ── Carousel ─────────────────────────────────────────────────────────── */
+  .logos__columns {
+    display: none;
+  }
+
+  .logos.is-live .logos__list {
+    display: none;
+  }
+
+  .logos.is-live .logos__columns {
+    display: flex;
+    justify-content: center;
+    gap: var(--gap);
+  }
+
+  /* A column: a window with one logo in it. It can narrow on a small phone,
+     so three always fit. It is a size container, so the logo inside can be
+     sized from it. */
+  .logos__column {
+    position: relative;
+    flex: 0 1 var(--box-w);
+    min-width: 0;
+    height: var(--box-h);
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    list-style: none;
+    container-type: size;
+    opacity: 0;
+    transform: translateY(50px);
+  }
+
+  /* The first time the row is scrolled to (the script adds .is-in). */
+  .logos.is-in .logos__column {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.5s ease-out calc(var(--i) * 100ms),
+      transform 0.5s ease-out calc(var(--i) * 100ms);
+  }
+
+  /* Every logo dealt to a column fills its window; only the current one can
+     be seen. Leaving and arriving are animated by the script. */
+  .logos__column .logos__logo {
+    position: absolute;
+    inset: 0;
+    visibility: hidden;
+    opacity: 0;
+  }
+
+  .logos__column .logos__logo.is-current {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  /* Four fifths of the window's shorter side, as in the source. */
+  .logos__column .logos__logo :global(img) {
+    width: min(80cqw, 80cqh);
+  }
+
+  @media (min-width: 768px) {
+    .logos {
+      --box-w: 12rem;
+    }
+  }
+</style>
+
+<script>
+  // The carousel's clock, and the two animations a logo goes through.
+
+  const CYCLE = 2000; // ms a logo stays
+  const STAGGER = 200; // ms between one column changing and the next
+  const TICK = 100; // the clock moves in steps of this, as in the source
+  const LEAVE_MS = 300;
+  const ARRIVE_MS = 700; // by when the spring has come to rest
+
+  const LEAVE: Keyframe[] = [
+    { transform: "translateY(0%)", opacity: 1, filter: "blur(0px)" },
+    { transform: "translateY(-20%)", opacity: 0, filter: "blur(6px)" },
+  ];
+
+  // The arrival is a spring (stiffness 300, damping 20, mass 1): it runs a
+  // little past its resting place and comes back. Written out here as the
+  // spring's own curve, sampled 42 times, so it plays the same in every
+  // browser. `at` runs from 0 (start) to 1 (at rest), briefly beyond.
+  const ARRIVE: Keyframe[] = (() => {
+    const stiffness = 300;
+    const damping = 20;
+    const mass = 1;
+    const natural = Math.sqrt(stiffness / mass);
+    const ratio = damping / (2 * Math.sqrt(stiffness * mass));
+    const damped = natural * Math.sqrt(1 - ratio * ratio);
+    const steps = 42;
+
+    return Array.from({ length: steps + 1 }, (_, step) => {
+      const t = (step / steps) * (ARRIVE_MS / 1000);
+      const at =
+        step === steps
+          ? 1
+          : 1 -
+            Math.exp(-ratio * natural * t) *
+              (Math.cos(damped * t) + ((ratio * natural) / damped) * Math.sin(damped * t));
+
+      return {
+        transform: `translateY(${(10 * (1 - at)).toFixed(3)}%)`,
+        opacity: Math.min(1, Math.max(0, at)),
+        filter: `blur(${Math.max(0, 8 * (1 - at)).toFixed(3)}px)`,
+      };
+    });
+  })();
+
+  function shuffle<T>(items: T[]): T[] {
+    const shuffled = [...items];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
+  // Deal the shuffled logos out like cards. If they do not divide evenly,
+  // the shorter columns are topped up with a second copy of a logo, so every
+  // column takes the same time to go round.
+  //
+  // The source tops up with any logo picked at random, which can put the
+  // same logo in two windows at once. Here the pick leaves out the logos the
+  // other columns show at that turn, the turn before and the turn after
+  // (columns change a moment apart, so neighbouring turns overlap), and the
+  // logos the column already has. Only if nothing is left is it any logo.
+  //
+  // Logos are dealt by their place in `logos`, so a copy is known for what
+  // it is a copy of.
+  function deal(logos: HTMLElement[], count: number): HTMLElement[][] {
+    const order = shuffle(logos.map((_, index) => index));
+    const sets: number[][] = Array.from({ length: count }, () => []);
+    order.forEach((logo, position) => sets[position % count].push(logo));
+
+    const longest = Math.max(...sets.map((set) => set.length));
+    sets.forEach((set, column) => {
+      while (set.length < longest) {
+        const turn = set.length;
+        const taken = new Set(set);
+        sets.forEach((other, otherColumn) => {
+          if (otherColumn === column) return;
+          [turn - 1, turn, turn + 1].forEach((near) => {
+            const logo = other[(near + longest) % longest];
+            if (logo !== undefined) taken.add(logo);
+          });
+        });
+
+        const free = order.filter((logo) => !taken.has(logo));
+        const pool = free.length > 0 ? free : order;
+        set.push(pool[Math.floor(Math.random() * pool.length)]);
+      }
+    });
+
+    // The first use of a logo is the element itself; any later use, a copy.
+    const used = new Set<number>();
+    return sets.map((set) =>
+      set.map((logo) => {
+        if (used.has(logo)) return logos[logo].cloneNode(true) as HTMLElement;
+        used.add(logo);
+        return logos[logo];
+      }),
+    );
+  }
+
+  function setup(root: HTMLElement) {
+    if (!root.classList.contains("is-live")) return;
+
+    const columns = [...root.querySelectorAll<HTMLElement>("[data-logos-column]")];
+    const logos = [...root.querySelectorAll<HTMLElement>("[data-logos-list] > li")];
+    if (columns.length === 0 || logos.length === 0) return;
+
+    const sets = deal(logos, columns.length);
+    sets.forEach((set, column) => set.forEach((logo) => columns[column].appendChild(logo)));
+    sets.forEach((set) => set[0].classList.add("is-current"));
+
+    const shown = sets.map(() => 0);
+    let time = 0;
+    let timer = 0;
+    let started = false;
+    let visible = false;
+
+    // Which logo a column should be showing now. A column further along is
+    // a little ahead of the clock, which is what staggers the changes.
+    const due = (column: number) =>
+      Math.floor(((time + column * STAGGER) % (CYCLE * sets[column].length)) / CYCLE);
+
+    // The old logo leaves first; the new one arrives once it has gone.
+    const change = (column: number, next: number) => {
+      const from = sets[column][shown[column]];
+      const to = sets[column][next];
+      shown[column] = next;
+      if (from === to) return;
+
+      const leaving = from.animate(LEAVE, {
+        duration: LEAVE_MS,
+        easing: "ease-in",
+        fill: "forwards",
+      });
+      leaving.onfinish = () => {
+        from.classList.remove("is-current");
+        leaving.cancel();
+        to.classList.add("is-current");
+        to.animate(ARRIVE, { duration: ARRIVE_MS, easing: "linear" });
+      };
+    };
+
+    const tick = () => {
+      time += TICK;
+      sets.forEach((_, column) => {
+        const next = due(column);
+        if (next !== shown[column]) change(column, next);
+      });
+    };
+
+    // The clock only runs while the row can be seen.
+    const sync = () => {
+      window.clearInterval(timer);
+      timer = visible && !document.hidden ? window.setInterval(tick, TICK) : 0;
+    };
+
+    new IntersectionObserver(
+      ([entry]) => {
+        visible = entry.isIntersecting;
+        if (visible && !started) {
+          started = true;
+          root.classList.add("is-in");
+          sets.forEach((set) => set[0].animate(ARRIVE, { duration: ARRIVE_MS, easing: "linear" }));
+        }
+        sync();
+      },
+      { threshold: 0.2 },
+    ).observe(root);
+
+    document.addEventListener("visibilitychange", sync);
+  }
+
+  document.querySelectorAll<HTMLElement>("[data-logos]").forEach(setup);
+</script>

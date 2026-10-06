@@ -4,7 +4,6 @@ import { getListPage } from "@/lib/contentParser.astro";
 import About from "@/partials/About.astro";
 import FinalCta from "@/partials/FinalCta.astro";
 import Hero from "@/partials/Hero.astro";
-import Process from "@/partials/Process.astro";
 import Solutions from "@/partials/Solutions.astro";
 import Work from "@/partials/Work.astro";
 import type { Homepage } from "@/types";
@@ -14,9 +13,8 @@ const d: Homepage = homepage.data;
 ---
 
 {/*
-  Six sections, each answering one question:
-  what we do -> why it matters -> what we build -> proof -> how we work ->
-  how to reach us.
+  Five sections, each answering one question:
+  what we do -> why it matters -> what we build -> proof -> how to reach us.
 */}
 <Base
   meta_title="LapCircuit — POS & business management software, built around your workflow"
@@ -25,6 +23,5 @@ const d: Homepage = homepage.data;
   <About about={d.about} />
   <Solutions solutions={d.solutions} />
   <Work projects={d.projects} />
-  <Process process={d.process} />
   <FinalCta cta={d.final_cta} />
 </Base>

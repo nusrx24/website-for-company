@@ -92,7 +92,7 @@ export default defineConfig({
   vite: { plugins: [tailwindcss()] },
   fonts: fontsConfig,
   // The page is static HTML with no UI framework. Its scripts are plain
-  // JavaScript: public/scripts/main.js, and the brick builder that lives in
-  // src/layouts/partials/Process.astro.
+  // JavaScript: public/scripts/main.js, and the small <script> blocks inside
+  // the partials that need one (footer, client cards, receipts).
   integrations: [sitemap()],
 });
