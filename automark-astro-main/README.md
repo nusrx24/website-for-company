@@ -43,7 +43,8 @@ Design rules that keep it that way:
   slip. Paper and ink colours are set at the top of the styles in
   `Solutions.astro`. On a phone the slips lie in one row that is swiped
   sideways, one at a time, with the edge of the next showing and a row of
-  dots underneath; stacked, they ran to more than four screens.
+  dots underneath; stacked, they ran to more than four screens. The row is
+  used up to 672px wide, which is where two receipts first fit side by side.
 - **One highlighted sentence under the hero headline.** `banner.promise`
   (how the software is paid for) is picked out in blue like a highlighter,
   between the headline and the opening sentence. Leave it out of
@@ -87,7 +88,9 @@ Design rules that keep it that way:
   in `public/` is published.
 - **The closing section names where else to find us.** Facebook, LinkedIn,
   WhatsApp and Email, each with an icon that pops up when pointed at
-  (`SocialLinks.astro`). The profile links come from `social.json`.
+  (`SocialLinks.astro`). The profile links come from `social.json`. On a
+  phone the four names share one line, as wide as the button above them, so
+  an icon pops up into empty space instead of over another name.
 - **Headings and paragraphs are Noto Sans; the interface is IBM Plex Mono.**
   Noto Sans is a variable font: one 35 KB file carries every weight from 100
   to 900 (`secondary` in `theme.json`, written `Noto+Sans:wght@100..900`).
@@ -126,7 +129,9 @@ Design rules that keep it that way:
 ## On a phone
 
 The page is laid out for a phone first; these are the rules that keep it
-that way. Check any change at 320, 360 and 430 pixels wide.
+that way. Check any change at 320, 360 and 430 pixels wide, and also at 600
+and 667: the widths between a phone and a tablet (small tablets, phones held
+sideways) are where a layout meant for one or the other goes wrong unseen.
 
 - **Nothing scrolls sideways** except the row of receipts, which is meant to.
 - **Anything tapped is at least 44px tall**: buttons, links standing alone,

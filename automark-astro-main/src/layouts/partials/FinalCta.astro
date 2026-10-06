@@ -72,6 +72,16 @@ const href = isWhatsapp ? whatsappUrl() : cta.button.link;
     }
   }
 
+  /* Phone: the four names share one line as wide as the button above (see
+     SocialLinks.astro). They have no padding at the sides there, so the
+     offset that lines them up on wider screens is not needed. */
+  @media (max-width: 519.98px) {
+    .cta__actions :global(.cta__social) {
+      justify-content: space-between;
+      margin-inline: 0;
+    }
+  }
+
   /* Phone: the button runs the full width, as in the hero. */
   @media (max-width: 479.98px) {
     .cta .btn {

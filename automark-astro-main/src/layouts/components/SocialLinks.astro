@@ -201,6 +201,31 @@ const external = (href: string) =>
     }
   }
 
+  /* Phone: every name on one line, spread across the width. They are set a
+     size smaller with no padding at the sides, so all four fit on the
+     narrowest phone, and taller padding keeps each one a fingertip tall.
+     On one line a name's icon pops up into the empty space above the row;
+     when the names wrapped onto two lines it covered a name in the line
+     above. */
+  @media (max-width: 519.98px) {
+    .social-links {
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 26rem;
+    }
+
+    .social-links__link {
+      min-width: 2.75rem;
+      padding: 0.75rem 0;
+      text-align: center;
+    }
+
+    .social-links__name {
+      font-size: clamp(0.8125rem, 3.9vw, 1rem);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .social-links__item,
     .social-links__pop {

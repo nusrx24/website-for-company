@@ -407,8 +407,11 @@ const merchantLine = `Tel ${contact.phoneDisplay}`;
      in a row on a counter that runs to both edges of the screen; each one
      snaps to the middle, with the edge of the next showing so it is plain
      there is more to the side. The print is a size larger than on a
-     computer, because the receipt is now wide enough to carry it. */
-  @media (max-width: 639.98px) {
+     computer, because the receipt is now wide enough to carry it.
+
+     It is used up to 672px wide: only from there do two receipts fit side
+     by side (see "Side by side" below, which starts at the same width). */
+  @media (max-width: 671.98px) {
     .receipts {
       margin-inline: -1.25rem;
       padding: 1.75rem 0 1.25rem;
@@ -485,30 +488,49 @@ const merchantLine = `Tel ${contact.phoneDisplay}`;
     }
   }
 
-  /* ── Side by side: two, then four, each dropped at a slight angle ───── */
-  @container (min-width: 35rem) {
+  /* From 640px the page's own margin is wider (2rem), and the counter has to
+     reach the edges of the screen through that instead. */
+  @media (min-width: 640px) and (max-width: 671.98px) {
+    .receipts {
+      margin-inline: -2rem;
+    }
+
     .receipts__grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .receipt:nth-child(3n + 1) {
-      rotate: -1deg;
-    }
-
-    .receipt:nth-child(3n + 2) {
-      rotate: 0.5deg;
-      translate: 0 -0.5rem;
-    }
-
-    .receipt:nth-child(3n) {
-      rotate: 1.5deg;
+      padding-inline: 2rem;
+      scroll-padding-inline: 2rem;
     }
   }
 
-  @container (min-width: 65rem) {
-    .receipts__grid {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 1.75rem;
+  /* ── Side by side: two, then four, each dropped at a slight angle ─────
+     Decided by the width of the counter, but only from 672px. Below that
+     the receipts are the swipe row above, whose counter is as wide as the
+     screen: without this guard these rules reached into it on screens
+     560 to 639px wide and crushed the receipts into slivers. */
+  @media (min-width: 672px) {
+    @container (min-width: 35rem) {
+      .receipts__grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .receipt:nth-child(3n + 1) {
+        rotate: -1deg;
+      }
+
+      .receipt:nth-child(3n + 2) {
+        rotate: 0.5deg;
+        translate: 0 -0.5rem;
+      }
+
+      .receipt:nth-child(3n) {
+        rotate: 1.5deg;
+      }
+    }
+
+    @container (min-width: 65rem) {
+      .receipts__grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 1.75rem;
+      }
     }
   }
 
