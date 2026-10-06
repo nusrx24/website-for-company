@@ -74,10 +74,15 @@ Design rules that keep it that way:
 - **The closing section names where else to find us.** Facebook, LinkedIn,
   WhatsApp and Email, each with an icon that pops up when pointed at
   (`SocialLinks.astro`). The profile links come from `social.json`.
-- **Headings are Noto Sans, in sentence case.** It is a variable font: one
-  35 KB file carries every weight from 100 to 900 (`secondary` in
-  `theme.json`, written `Noto+Sans:wght@100..900`). Body text stays IBM Plex
-  Mono.
+- **Headings and paragraphs are Noto Sans; the interface is IBM Plex Mono.**
+  Noto Sans is a variable font: one 35 KB file carries every weight from 100
+  to 900 (`secondary` in `theme.json`, written `Noto+Sans:wght@100..900`).
+  Headings are set in sentence case. Every paragraph and picture caption
+  uses it too, at 16px, through one rule in `base.css`. The mono
+  (`primary`) is kept for what is not a paragraph: the menu, buttons, links
+  standing alone, labels and numbers. The receipts and the footer keep the
+  mono for all of their lettering, paragraphs included, because each is an
+  object with its own print.
 - **Headlines breathe.** Add `data-breathe` to a heading and its letters swell
   from the lightest weight to 840 and back, one after another
   (`src/lib/breathe.ts` and "Breathing headline" in `components.css`). The

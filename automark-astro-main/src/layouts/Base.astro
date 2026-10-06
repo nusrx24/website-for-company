@@ -15,11 +15,11 @@ const fontEntries = Object.entries(theme.fonts.font_family).filter(
   ([key]) => !key.includes("_type"),
 );
 
-// Which font files to fetch before the page is drawn: the three weights of
-// the body font, all of which are on the first screen (text, the button, and
-// the bold highlighted sentence under the headline).
+// Which font files to fetch before the page is drawn. The bold weight of the
+// mono is only used by the receipts and a label, well down the page, so it
+// is left to load when it is needed.
 const preloadFor = (key: string) =>
-  key === "primary" ? [{ weight: 400 }, { weight: 500 }, { weight: 700 }] : true;
+  key === "primary" ? [{ weight: 400 }, { weight: 500 }] : true;
 
 export interface Props {
   title?: string;

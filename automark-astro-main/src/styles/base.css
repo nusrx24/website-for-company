@@ -67,6 +67,23 @@ p {
   margin: 0;
 }
 
+/* Running text - anything written as a paragraph, and picture captions - is
+   set in the same sans as the headlines, a size up from the interface around
+   it: the sans is narrower than the mono, so at the same size it reads
+   smaller. The interface itself (menu, buttons, labels, numbers) stays in
+   the mono.
+
+   Two things keep the mono for their paragraphs too, because each is an
+   object with its own lettering rather than a paragraph of the page: the
+   receipts (till print) and the footer (monospace capitals). So does the
+   "Or call" line in the phone menu, which is part of the menu. */
+p:not(.receipt p, .sgf p, .site-nav__call),
+figcaption {
+  font-family: var(--font-secondary);
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
 a {
   color: inherit;
   text-decoration: none;
