@@ -20,15 +20,20 @@ banner:
 # The image sits under the heading. It is a real screenshot of a delivered
 # system, not a mock-up.
 about:
-  title: "Your business is not a template."
+  # `<br>` starts a new line in the headline. `&nbsp;` is a space that never
+  # breaks: it keeps "be too." together, so on a phone the last word is not
+  # left on a line by itself.
+  title: "Your business is unique.<br>Your software should be&nbsp;too."
+  # The picture is an illustration supplied by the owner (2026-10-07): a
+  # designed dashboard with sample names and figures, not a client's system.
+  # So the alt text calls it an illustration and the caption names no client.
   media:
-    image: "/images/projects/uj-stores-2.jpg"
-    alt: "The dashboard of the POS system LapCircuit built for UJ Stores, with menus for sales, customers, suppliers, purchase orders, inventory, payments, cheques and bank accounts"
-    caption: "The dashboard of the system we built for UJ Stores in Eravur."
+    image: "/images/about/systems-overview.webp"
+    alt: "An illustration of a business system: a main dashboard surrounded by panels for point of sale, sales, inventory, customers, purchasing, payments and analytics"
+    caption: "From sales and inventory to purchasing, payments and reporting, every system is designed around the needs of the business using it."
+  # One supporting sentence beside the picture.
   paragraphs:
-    - "A grocery shop, a rice distributor and a mobile phone shop do not sell, stock or collect payment in the same way. Most software asks them to change how they work to fit the product."
-    - "We do it the other way round. We learn how your business already runs, then build the system around it."
-    - "LapCircuit is a registered software company. We work directly with business owners in Tamil, English and Sinhala, and you deal with the people who build your system."
+    - "We build practical business systems around the way you already work — adapting the software to your operations, not forcing your business into a template."
 
 ## SOLUTIONS ####################################################################
 # Answers: what can LapCircuit build?
@@ -107,7 +112,12 @@ projects:
   link:
     label: "Visit our Facebook page"
     href: "https://www.facebook.com/lapcircuit"
-  # The clients, shown as a carousel of logos: three at a time, changing every
+  # Shown under the logos. This is the owner's own count of customers (given
+  # 2026-10-07) and the one number on the page: only the owner changes it,
+  # and it must stay true.
+  customers:
+    title: "25+ real customers"
+  # The clients, shown as a carousel of tiles: four at a time, changing every
   # two seconds. A client appears once it has a `name` and a `logo` (a tile in
   # public/images/clients, 400 x 424 with the artwork on a plain ground).
   #
@@ -205,22 +215,68 @@ projects:
     - name: "Origin Design & Construction"
       logo: "/images/clients/origin-design-construction.webp"
 
+    # ── Customers who have not supplied a logo ────────────────────────────
+    # The owner asked for a logo to be drawn for each of these (2026-10-07).
+    # Every file in placeholder-logos/ was designed for this page from the
+    # business's name and trade alone: it is NOT the logo that business
+    # uses. When the real logo arrives, put it in public/images/clients/ and
+    # point `logo` at it. Names are as the owner gave them: check each
+    # against the business's own sign before going live.
+    - name: "Extra Restaurant"
+      logo: "/images/clients/placeholder-logos/extra-restaurant.webp"
+
+    - name: "Delight Cafe"
+      logo: "/images/clients/placeholder-logos/delight-cafe.webp"
+
+    - name: "Ameen Book Shop"
+      logo: "/images/clients/placeholder-logos/ameen-book-shop.webp"
+
+    - name: "AM Burger Shop"
+      logo: "/images/clients/placeholder-logos/am-burger-shop.webp"
+
+    - name: "Opera Bakery"
+      logo: "/images/clients/placeholder-logos/opera-bakery.webp"
+
+    - name: "Mega Sale Mobile"
+      logo: "/images/clients/placeholder-logos/mega-sale-mobile.webp"
+
+    - name: "IFA Mobile Shop"
+      logo: "/images/clients/placeholder-logos/ifa-mobile-shop.webp"
+
+    # Given by the owner as "vehicle booking center in eravur": it may be a
+    # description rather than the business's name. Confirm with the owner.
+    - name: "Vehicle Booking Center, Eravur"
+      logo: "/images/clients/placeholder-logos/vehicle-booking-center.webp"
+
 ## FINAL CTA ####################################################################
-# Answers: how do I contact you?
+# The closing statement. `<br>` starts a new line in the headline.
+# There is no button here (removed at the owner's request): the ways to reach
+# us are in the footer directly below. To bring one back, add
+#   button:
+#     label: "Request a Demo"
+#     link: "whatsapp"
 final_cta:
-  title: "Let's build the system your business actually needs."
-  content: "Tell us how your business works, what is difficult today, and what you want the system to handle."
-  button:
-    label: "Request a Demo"
-    link: "whatsapp"
+  title: "Have a business?<br>We’ll build the website around it."
+  content: "From your brand and products to the way your customers interact with you."
 
 ## FOOTER #######################################################################
 locations:
+  # The main place, shown as a card that opens to a drawn map when clicked.
+  #   coordinates - shown once the card is open. These are the town's, to
+  #                 the nearest minute, not a street address.
+  #   tag         - the small pill in the card's corner.
+  #   hint        - appears under the card while it is pointed at.
+  card:
+    name: "Eravur"
+    coordinates: "7°46′ N, 81°36′ E"
+    tag: "Sri Lanka"
+    hint: "Click to expand"
+  # The other places, listed under the card (owner's list, 2026-10-07).
+  # Until then the footer listed Eravur, Oddamavadi, Velikanda and Batticaloa.
   places:
-    - "Eravur"
-    - "Oddamavadi"
-    - "Velikanda"
-    - "Batticaloa"
+    - "Jaffna"
+    - "Vavuniya"
+    - "Kilinochchi"
   languages:
     - "Tamil"
     - "English"

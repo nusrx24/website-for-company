@@ -18,14 +18,15 @@ the question, it does not belong in that section.
 | About | `About.astro` | Why does custom software matter? |
 | Solutions | `Solutions.astro` | What can LapCircuit build? (printed as till receipts) |
 | Work | `Work.astro` | Has it been built for real businesses? |
-| Contact | `FinalCta.astro` | How do I contact you? |
+| Closing | `FinalCta.astro` | What is the offer? (the ways to reach us are in the footer below it) |
 
 Design rules that keep it that way:
 
-- **Static by default.** Five things move by themselves: the band of light
+- **Static by default.** Six things move by themselves: the band of light
   on the button (`.btn-shiny`) and the 2px chrome edge round every picture
-  (`.metal-frame`), both in `src/styles/components.css`; the headlines, whose
-  letters breathe from light to heavy (see below); the blue lines that
+  (`.metal-frame`), both in `src/styles/components.css`; the section
+  headlines, whose letters breathe from light to heavy (see below); the hero
+  headline, which is scanned (see below); the blue lines that
   flow behind the hero (`BackgroundPaths.astro`, which pauses itself whenever
   the hero is scrolled out of view); and the clients' logos, which change
   every two seconds (`LogoCarousel.astro`, which also stops off screen). Everything
@@ -54,43 +55,81 @@ Design rules that keep it that way:
   off-white monospace capitals. Its whole palette is four variables at the
   top of the styles in `Footer.astro`: `--sgf-bg` (the ground), `--sgf-top`
   (its lighter top edge), `--sgf-ink` (everything printed on it) and
-  `--sgf-accent` (blue: the shutter letter and the message box's line while
-  it is typed in). The company name runs across the full width in letters
+  `--sgf-accent` (blue: the shutter letter). It opens with the four places
+  to find us (see below). The company name runs across the full width in letters
   drawn as SVG
   (`src/lib/footer/glyphs.ts`; no font is loaded for them). One letter is a
   "shutter" whose blades follow the pointer and turn when clicked; letters
   split on hover and flip when clicked; links scramble on hover. Which letter
-  the shutter replaces is `SHUTTER_AT` at the top of `Footer.astro`. The
-  message box opens WhatsApp with whatever was typed: there is no mailing
-  list and nothing is stored. Its two lines of wording are in `config.json`.
+  the shutter replaces is `SHUTTER_AT` at the top of `Footer.astro`.
 - **There is no "How we work" section.** The six steps and their brick
   builder were removed at the owner's request; the page goes from the clients
   straight to the closing section. The warranty is now stated only on the
   receipts ("Bug-fix warranty: Lifetime").
 - **Clients are a carousel of their own logos** (`Work.astro` and
-  `LogoCarousel.astro`). Three logos show at a time, each as a small rounded
-  tile; every two seconds a logo lifts away and the next settles in, the three
-  columns a fifth of a second apart. The logos are shuffled on every visit.
-  If the number of logos does not divide by three, a few logos come round
-  twice so that every column keeps the same pace, never in two windows at
-  once.
+  `LogoCarousel.astro`). Four logos show at a time, each as a small rounded
+  tile; every two seconds a logo lifts away and the next settles in, the
+  columns a fifth of a second apart. The logos are shuffled on every visit
+  and dealt out to the columns, each logo to one column only, so none is
+  ever on screen twice; if they do not divide evenly some columns simply
+  hold one more than others.
   To add a client, put its logo in `public/images/clients/` and add an entry
   with `name` and `logo` to `projects.items` in `-index.md`. With reduced
   motion, or without JavaScript, every logo is shown in one plain row. The
   names are in the page as a hidden list for screen readers. The section's
   intro can carry a small label and a link (`projects.label`,
   `projects.link`).
+- **Customers without a logo are in the same carousel, with a stand-in.**
+  At the owner's request, a logo was drawn for each customer who had not
+  supplied one: the eight files in `public/images/clients/placeholder-logos/`
+  (a serving dome for the restaurant, a cup for the cafe, a book, a burger,
+  wheat, a phone, a car, each in its own colours and lettering). They were
+  designed for this page from the business's name and trade alone. They are
+  **not** the logos those businesses use, and must not be described as
+  such. When a real logo arrives, put it in `public/images/clients/` and
+  point that entry's `logo` at it; ask each business whether it is content
+  to be shown this way until then. Spell each name as the business spells
+  it on its own sign. Size: 400 by 424.
+- **Under the logos: a count of customers** (`projects.customers.title` in
+  `-index.md`, at present "25+ real customers"). It is the owner's own count and
+  the one number on the page: only the owner changes it, and it must stay
+  true.
 - **The client photographs and descriptions are not shown at present.** They
   belonged to the earlier design, a card per client. The text is still under
   `projects.items` and the photographs are still in
-  `public/images/projects/`, unused apart from the one in the About section.
+  `public/images/projects/`, all of them now unused.
   Delete them before going live if that design is not coming back: everything
   in `public/` is published.
-- **The closing section names where else to find us.** Facebook, LinkedIn,
-  WhatsApp and Email, each with an icon that pops up when pointed at
-  (`SocialLinks.astro`). The profile links come from `social.json`. On a
-  phone the four names share one line, as wide as the button above them, so
-  an icon pops up into empty space instead of over another name.
+- **The footer opens with where else to find us.** Facebook, LinkedIn,
+  WhatsApp and Email as four round icon buttons on a line of their own
+  (`SocialLinks.astro`). Pointing at one fills the circle from the bottom up
+  in that network's colour and shows its name on a small label underneath;
+  the same happens when it is reached with the keyboard. On a touch screen
+  there is no label: the circle fills the moment it is touched and stays
+  filled a quarter of a second after the finger lifts (a small script marks
+  the button `is-pressed`, because phones do not all apply `:active` to a
+  touched link and a tap is too short to see otherwise). Each network's
+  colour is in the `ICONS` list at the top of the component (email, which
+  has no colour of its own, takes the site's blue). The profile links come
+  from `social.json`; WhatsApp and email from `config.json`. The footer
+  leaves 20px under the buttons for the label, so it never lands on the
+  links below. The closing section above is just a headline and a sentence.
+- **The footer shows the main place as a card** (`LocationCard.astro`, filled
+  from `locations.card` in `-index.md`). It is a small navy card with the
+  town's name; it leans towards the pointer, and a click or a tap opens it
+  into a drawn map with a pin and the town's coordinates. The map is a
+  drawing, not a map of the town. The whole card is the site's blue at
+  different strengths, like a plan on blueprint paper; its colours are the
+  `--loc-…` lines at the top of the component's `<style>`, each mixed from
+  the theme's own colours. The card is a real button, so it opens from the
+  keyboard (Enter or Space) and says whether it is open; with reduced motion
+  it opens at once and does not lean. The other places are listed under it
+  (`locations.places`), then the languages. Leave `locations.card` out and
+  the footer is two plain lines. On a wide screen this block stands at the
+  right of the footer's middle column, beside the contact links (`.sgf-copy`
+  in `Footer.astro`); its box is as wide as the open card, so opening the
+  card moves nothing sideways. On a phone it is at the left margin with the
+  rest.
 - **Headings and paragraphs are Noto Sans; the interface is IBM Plex Mono.**
   Noto Sans is a variable font: one 35 KB file carries every weight from 100
   to 900 (`secondary` in `theme.json`, written `Noto+Sans:wght@100..900`).
@@ -105,8 +144,15 @@ Design rules that keep it that way:
   (`src/lib/breathe.ts` and "Breathing headline" in `components.css`). The
   script pins each headline's line breaks at its heaviest first, so the
   moving letters never re-wrap a line or push the page about. It is on the
-  hero headline and the five section headlines; item names (clients, steps)
-  use the same font but stay still.
+  four section headlines. The hero headline has an effect of its own.
+- **The hero headline is scanned.** It is shown at a quarter of its strength
+  except for a band at full strength that sweeps across it and back every
+  2.6 seconds, with a thin glowing blue line travelling with the band
+  ("Scanner" in `Hero.astro`, a port of a "text scanner" component). It is
+  a moving mask over the headline, so the blue words keep their colour. A
+  small script makes the line turn round where the words end when the
+  headline wraps on a phone, and rests the sweep off screen. With reduced
+  motion the headline is simply there, at full strength.
 - **Blue words in the hero headline.** In `banner.title`, words wrapped in
   `**two asterisks**` are set in the brand's blue; the rest are white.
 - **Framing a picture.** Wrap the image in `<div class="metal-frame">`, or put
@@ -115,11 +161,23 @@ Design rules that keep it that way:
 - **One button style.** Markup is
   `<a class="btn btn-shiny"><span>Label</span></a>`; the inner `<span>` is
   required. Add `btn-sm` for the small size.
-- **Two calls to action, plus a quote button on each receipt.** "Request a
-  Demo" appears in the hero and in the closing section. The header carries a small copy that hides itself while
-  either of those is on screen. Do not add buttons inside sections.
-- **Real images only.** Screenshots and photographs of delivered systems. No
-  mock-ups, renders or stock photography.
+- **One call to action, plus a quote button on each receipt.** "Request a
+  Demo" appears in the hero. The header carries a small copy that hides
+  itself while the hero's is on screen. The closing section has no button
+  (removed at the owner's request; `final_cta.button` in `-index.md` is
+  optional and brings one back). Do not add buttons inside sections.
+- **The About section is a statement, a picture and one sentence.** The
+  statement runs across the top in two lines (`<br>` in `about.title`
+  starts the second; `&nbsp;` keeps two words together). Under it the
+  picture sits in the chrome frame with its caption, and the sentence
+  (`about.paragraphs`) beside it, or under it on a phone.
+- **The About picture is an illustration, not a client's system.** It is a
+  designed dashboard with sample names and figures, chosen by the owner in
+  place of the real UJ Stores screenshot (`public/images/about/`; the file
+  is the owner's picture trimmed of the empty background it had on the right
+  and along the bottom). Its caption and alt text therefore name no client and
+  call it an illustration. Keep it that way: never caption it as a real
+  customer's system or quote its numbers as results. No stock photography.
 - **Blue is for the button, the prices and link hovers.** Everything else is
   black, slate and white.
 - **Numbers only where there is a sequence.** Nothing on the page is one at
@@ -135,14 +193,12 @@ sideways) are where a layout meant for one or the other goes wrong unseen.
 
 - **Nothing scrolls sideways** except the row of receipts, which is meant to.
 - **Anything tapped is at least 44px tall**: buttons, links standing alone,
-  the menu button, footer links, the footer's message box and its arrow.
-- **The footer's message box is set at 16px** on touch screens. Below that an
-  iPhone zooms the whole page in when the box is tapped.
+  the menu button, the footer's social names and links.
 - **The header is 60px tall** below 900px wide (72px above), and in-page
   links stop with a section's top line directly beneath it.
 - **The hero headline is sized from the screen's width** (three lines on a
-  phone), and "Request a Demo" runs the full width in the hero and in the
-  closing section, with the hero's button on the first screen.
+  phone), and "Request a Demo" runs the full width in the hero, on the
+  first screen.
 - **The footer's page links sit two to a row.**
 - **Text is never below 11px**, and receipts are a size larger than on a
   computer.
@@ -180,7 +236,6 @@ the content collection cache can go stale and fails with
 | Colours and fonts | `src/config/theme.json`, then run the theme generator |
 | Site title, domain, phone, email | `src/config/config.json` |
 | Header and footer links | `src/config/menu.json` |
-| Footer message box wording | `footer_message_*` in `src/config/config.json` |
 | Facebook and LinkedIn links | `src/config/social.json` |
 | A section's layout | `src/layouts/partials/<Section>.astro` |
 | Section order | `src/pages/index.astro` |
@@ -201,9 +256,15 @@ page through `src/lib/utils/contact.ts`. Do not type them anywhere else.
 These are enforced by the schema in `src/content.config.ts`, which deliberately
 has **no field** for metrics, percentages, customer counts or testimonials:
 
-- No invented statistics, growth figures or satisfaction scores.
-- Only real clients, shown by their own logos, and real screenshots of
-  delivered systems.
+- No invented statistics, growth figures or satisfaction scores. The one
+  number on the page is the count of customers under the logos: it is the
+  owner's own figure, and only the owner changes it.
+- Only real clients, shown by their own logos. Where a client has not
+  supplied one, the owner chose to show a stand-in drawn for this page
+  (`placeholder-logos/`); it is replaced by the real logo as soon as there
+  is one, and is never added for a business that is not a customer. The one
+  picture of a system (About) is an illustration with sample data and is not
+  presented as a client's.
 - Prices are always labelled as starting prices: each is printed as
   "From ... +", and the sentence under the Solutions heading says so.
 - The warranty line states the promise and its limit together.

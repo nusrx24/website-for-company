@@ -1,6 +1,6 @@
 ---
-import SocialLinks from "@/components/SocialLinks.astro";
 import { whatsappUrl } from "@/lib/utils/contact";
+import { markdownify } from "@/lib/utils/textConverter";
 import type { Homepage } from "@/types";
 
 export interface Props {
@@ -9,77 +9,58 @@ export interface Props {
 
 const { cta } = Astro.props as Props;
 
-// Content says `whatsapp` so the number stays in config.json only. Anything
-// else is treated as a plain href.
-const isWhatsapp = cta.button.link === "whatsapp";
-const href = isWhatsapp ? whatsappUrl() : cta.button.link;
+// The button is optional: leave `button` out of the content and the section
+// is a headline and a sentence. When it is there, content says `whatsapp` so
+// the number stays in config.json only; anything else is a plain href.
+const { button } = cta;
+const isWhatsapp = button?.link === "whatsapp";
+const href = button && (isWhatsapp ? whatsappUrl() : button.link);
 ---
 
-{/* How to reach us: one sentence and one button. Phone, email and the
-    locations are in the footer directly below. */}
+{/* The closing statement: a headline and one sentence. The ways to reach us
+    (Facebook, LinkedIn, WhatsApp, email, the phone number) and the locations
+    are in the footer directly below. */}
 <section id="contact" class="section cta">
   <div class="wrap">
-    <h2 data-breathe>{cta.title}</h2>
+    <h2 data-breathe set:html={markdownify(cta.title)} />
     <p>{cta.content}</p>
-    <div class="cta__actions">
-      <a
-        class="btn btn-shiny"
-        href={href}
-        target={isWhatsapp ? "_blank" : null}
-        rel={isWhatsapp ? "noopener noreferrer" : null}
-        data-page-cta
-      >
-        <span>{cta.button.label}</span>
-      </a>
-      <SocialLinks class="cta__social" />
-    </div>
+    {
+      button && (
+        <a
+          class="btn btn-shiny"
+          href={href}
+          target={isWhatsapp ? "_blank" : null}
+          rel={isWhatsapp ? "noopener noreferrer" : null}
+          data-page-cta
+        >
+          <span>{button.label}</span>
+        </a>
+      )
+    }
   </div>
 </section>
 
 <style>
+  /* 32px on a phone, growing with the screen from there. On the narrowest
+     phones (under 360px) it drops to 30px, so a long last line still fits
+     instead of leaving its final word on a line of its own. */
   .cta h2 {
     max-width: 22ch;
-    font-size: clamp(2rem, 5.2vw, 4rem);
+    font-size: clamp(1.875rem, max(5.2vw, min(8.9vw, 2rem)), 4rem);
     line-height: 1.08;
   }
 
   .cta p {
     max-width: 52ch;
-    margin-block: clamp(1.5rem, 3vw, 2rem) clamp(2rem, 3.5vw, 2.5rem);
+    margin-top: clamp(1.5rem, 3vw, 2rem);
     color: var(--color-text-light);
     font-size: clamp(1.0625rem, 1.4vw, 1.1875rem);
     line-height: 1.6;
   }
 
-  /* The button on the left, the social links on the right; stacked on a
-     phone. The top margin leaves room for the icon that pops up. */
-  .cta__actions {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 4.5rem 2rem;
-  }
-
-  .cta__actions :global(.cta__social) {
-    margin-right: -1.25rem;
-  }
-
-  @media (max-width: 767.98px) {
-    .cta__actions :global(.cta__social) {
-      justify-content: flex-start;
-      margin-inline: -1.25rem 0;
-    }
-  }
-
-  /* Phone: the four names share one line as wide as the button above (see
-     SocialLinks.astro). They have no padding at the sides there, so the
-     offset that lines them up on wider screens is not needed. */
-  @media (max-width: 519.98px) {
-    .cta__actions :global(.cta__social) {
-      justify-content: space-between;
-      margin-inline: 0;
-    }
+  /* Only when the content has a button. */
+  .cta .btn {
+    margin-top: clamp(2rem, 3.5vw, 2.5rem);
   }
 
   /* Phone: the button runs the full width, as in the hero. */

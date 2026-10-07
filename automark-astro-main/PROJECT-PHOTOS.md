@@ -54,6 +54,13 @@ are.
   site crops it to a rounded tile, so anything touching the edge of the file
   gets clipped.
 - Take the place name from the client's own sign or logo.
+- **No logo yet?** The eight files in
+  `public/images/clients/placeholder-logos/` are stand-ins the owner asked
+  for: each was drawn for this page from the business's name and trade, and
+  is not the logo that business uses. Replace a stand-in with the real logo
+  as soon as the client sends it, ask the client whether they are content to
+  be shown this way until then, and check the spelling of the name against
+  the client's own sign.
 
 ---
 

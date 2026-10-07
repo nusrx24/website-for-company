@@ -1,13 +1,18 @@
 ---
-// Social links with a pop-up icon on hover.
+// Social links as round icon buttons.
 //
-// A port of the 21st.dev "social-links" React component to plain Astro, so
-// the page keeps shipping no UI framework. Same behaviour:
-//   - pointing at (or tabbing to) a name fades the others to half strength,
-//   - the brand icon rises above the name, un-blurring, at a small random tilt,
-//   - a click gives the icon a quick pulse.
-// The whole row has no background; each icon sits on a frosted, see-through
-// glass tile and its logo is cut out, so the section behind shows through.
+// A port of the 21st.dev "social-media" (SocialTooltip) React component to
+// plain Astro, so the page keeps shipping no UI framework. Same sizes and
+// timings: a 48px circle with a 28px icon; pointing at it fills the circle
+// from the bottom up in that network's colour over 0.3s, turns the icon
+// white, and shows the network's name on a small label that settles under
+// the circle.
+//
+// Three things differ. The icons are drawn in the page (the source loads
+// each as a picture from another site, which cannot change colour); the
+// circle rests on the site's near-black instead of the page background, so
+// it can be seen on the footer; and the link can be reached with the
+// keyboard, where it behaves as if pointed at.
 import config from "@/config/config.json";
 import social from "@/config/social.json";
 import { mailtoUrl, whatsappUrl } from "@/lib/utils/contact";
@@ -19,25 +24,36 @@ export interface Props {
 
 const { class: className } = Astro.props as Props;
 
-// Brand marks, drawn on a 24x24 grid. Logos are a single filled path with
-// their inner shapes cut out (transparent), except email, which is stroked.
-const ICONS: Record<string, { color: string; path: string; stroke?: boolean }> = {
+// One entry per network.
+//   fill  - what the circle fills with, and the colour of the name label:
+//           the network's own colour; for email, which has none, the site's.
+//   label - the colour of the lettering on the name label. White by default;
+//           dark where white would be hard to read on a bright colour.
+//   shapes - the mark, drawn on a 24x24 grid and coloured by the link.
+type Icon = { fill: string; label?: string; shapes: string };
+
+const ICONS: Record<string, Icon> = {
   Facebook: {
-    color: "#1877F2",
-    path: "M9.101 23.691v-7.98H6.627v-3.667h2.474v-1.58c0-4.085 1.848-5.978 5.858-5.978.401 0 .955.042 1.468.103a8.68 8.68 0 0 1 1.141.195v3.325a8.623 8.623 0 0 0-.653-.036 26.805 26.805 0 0 0-.733-.009c-.707 0-1.259.096-1.675.309a1.686 1.686 0 0 0-.679.622c-.258.42-.374.995-.374 1.752v1.297h3.919l-.386 2.103-.287 1.564h-3.246v8.245C19.396 23.238 24 18.179 24 12.044c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.628 3.874 10.35 9.101 11.647Z",
+    fill: "#1877F2",
+    shapes:
+      '<path fill="currentColor" d="M13.5 22v-8.5h2.9l.6-3.5h-3.5V7.9c0-1 .5-1.9 2-1.9H17V3.1s-1.3-.2-2.6-.2c-2.8 0-4.6 1.7-4.6 4.7V10H7v3.5h2.8V22z"/>',
   },
   LinkedIn: {
-    color: "#0A66C2",
-    path: "M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z",
+    fill: "#0A66C2",
+    shapes:
+      '<g fill="currentColor"><circle cx="5" cy="5.2" r="2.2"/><rect x="3.1" y="9" width="3.8" height="12"/><path d="M9.6 9h3.6v1.7c.6-1.1 2-2 3.9-2 3.6 0 4.4 2.3 4.4 5.4V21h-3.8v-6.1c0-1.5 0-3.2-1.9-3.2s-2.3 1.4-2.3 3.1V21H9.6z"/></g>',
   },
   WhatsApp: {
-    color: "#25D366",
-    path: "M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z",
+    fill: "#25D366",
+    label: "#04140A",
+    shapes:
+      '<path fill="currentColor" d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/>',
   },
   Email: {
-    color: "#EA4335",
-    path: "M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zm18 3-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7",
-    stroke: true,
+    fill: "var(--color-primary)",
+    label: "#05070A",
+    shapes:
+      '<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/><path d="m3.2 7.2 8.8 6 8.8-6"/></g>',
   },
 };
 
@@ -49,46 +65,32 @@ const links = [
   { name: "LinkedIn", href: profile("LinkedIn") },
   { name: "WhatsApp", href: whatsappUrl() },
   { name: "Email", href: mailtoUrl("Software enquiry") },
-].filter((link): link is { name: string; href: string } => Boolean(link.href));
+].filter((link): link is { name: string; href: string } => Boolean(link.href && ICONS[link.name]));
 
 const external = (href: string) =>
   /^https?:/.test(href) ? { target: "_blank", rel: "noopener noreferrer" } : {};
 ---
 
-<ul
-  class:list={["social-links", className]}
-  aria-label={`${config.site.title} on social media`}
-  data-social-links
->
+<ul class:list={["social", className]} aria-label={`${config.site.title} on social media`}>
   {
     links.map((link) => {
       const icon = ICONS[link.name];
       return (
-        <li class="social-links__item">
+        <li
+          class="social__item"
+          style={`--social-fill:${icon.fill};--social-label:${icon.label ?? "#fff"}`}
+        >
           <a
             id={`social-${link.name.toLowerCase()}`}
-            class="social-links__link"
+            class="social__link"
             href={link.href}
+            aria-label={link.name}
             {...external(link.href)}
           >
-            <span class="social-links__name">{link.name}</span>
-            {icon && (
-              <span class="social-links__pop" aria-hidden="true">
-                <span class="social-links__tile">
-                  <svg viewBox="0 0 24 24" width="34" height="34">
-                    <path
-                      d={icon.path}
-                      fill={icon.stroke ? "none" : icon.color}
-                      stroke={icon.stroke ? icon.color : "none"}
-                      stroke-width={icon.stroke ? 2 : undefined}
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
-                </span>
-              </span>
-            )}
+            <span class="social__fill" aria-hidden="true" />
+            <svg class="social__icon" viewBox="0 0 24 24" aria-hidden="true" set:html={icon.shapes} />
           </a>
+          <span class="social__tip" aria-hidden="true">{link.name}</span>
         </li>
       );
     })
@@ -96,168 +98,172 @@ const external = (href: string) =>
 </ul>
 
 <style>
-  .social-links {
+  .social {
+    /* The circle at rest, and the icon on it. */
+    --social-ground: var(--color-body);
+    --social-icon: var(--color-text-light);
+
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 0;
+    gap: 1rem;
     margin: 0;
     padding: 0;
     list-style: none;
-    /* Fully transparent: whatever is behind the row shows through. */
-    background: transparent;
   }
 
-  .social-links__item {
-    transition: opacity 0.2s ease-out;
-  }
-
-  /* While one name is pointed at, the rest step back. */
-  .social-links:has(.social-links__link:hover, .social-links__link:focus-visible)
-    .social-links__item:not(:has(.social-links__link:hover, .social-links__link:focus-visible)) {
-    opacity: 0.5;
-  }
-
-  .social-links__link {
+  .social__item {
     position: relative;
-    display: block;
-    padding: 0.5rem 1.25rem;
-    color: inherit;
+  }
+
+  .social__link {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 50%;
+    background-color: var(--social-ground);
+    color: var(--social-icon);
     text-decoration: none;
-    cursor: pointer;
+    transition:
+      color 0.3s ease-in-out,
+      box-shadow 0.3s ease-in-out;
     -webkit-tap-highlight-color: transparent;
   }
 
-  .social-links__link:focus-visible {
-    outline: 1px dashed currentColor;
-    outline-offset: 2px;
-    border-radius: 6px;
-  }
-
-  .social-links__name {
-    display: block;
-    font-size: 1.125rem;
-    font-weight: 500;
-  }
-
-  /* The icon rises from just above the name, un-blurring as it comes. */
-  .social-links__pop {
+  /* The colour that rises from the bottom of the circle. */
+  .social__fill {
     position: absolute;
-    left: 50%;
-    bottom: 100%;
-    display: grid;
-    place-items: center;
-    pointer-events: none;
-    opacity: 0;
-    filter: blur(2px);
-    transform: translate(-50%, 10px) rotate(var(--rot, 0deg));
-    transition:
-      opacity 0.2s ease-out,
-      filter 0.2s ease-out,
-      transform 0.2s ease-out;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 0;
+    background-color: var(--social-fill);
+    transition: height 0.3s ease-in-out;
   }
 
-  .social-links__link:hover .social-links__pop,
-  .social-links__link:focus-visible .social-links__pop {
-    opacity: 1;
-    filter: blur(0);
-    transform: translate(-50%, 0) rotate(var(--rot, 0deg));
-  }
-
-  /* Frosted glass: see-through, blurring what's behind it. */
-  .social-links__tile {
-    display: grid;
-    place-items: center;
-    width: 4rem;
-    height: 4rem;
-    border: 1px solid rgb(255 255 255 / 0.22);
-    border-radius: 18px;
-    background: linear-gradient(
-      145deg,
-      rgb(255 255 255 / 0.16),
-      rgb(255 255 255 / 0.04)
-    );
-    box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.25),
-      0 10px 30px -10px rgb(0 0 0 / 0.6);
-    -webkit-backdrop-filter: blur(10px) saturate(140%);
-    backdrop-filter: blur(10px) saturate(140%);
-  }
-
-  .social-links__tile svg {
+  .social__icon {
+    position: relative;
+    z-index: 1;
     display: block;
-    filter: drop-shadow(0 2px 6px rgb(0 0 0 / 0.35));
+    width: 1.75rem;
+    height: 1.75rem;
   }
 
-  /* Click: a quick pulse, like the original's scale [1, 1.3, 1]. */
-  .social-links__link.is-pulse .social-links__tile {
-    animation: social-pulse 0.3s ease-out;
+  /* The name, on a label under the circle. It starts 8px below the circle
+     and settles 10px lower as it appears. It lets clicks through, so it
+     never gets in the way of a link it happens to cover. */
+  .social__tip {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    z-index: 2;
+    padding: 0.375rem 0.625rem;
+    border-radius: 0.375rem;
+    background-color: var(--social-fill);
+    color: var(--social-label);
+    font-family: var(--font-secondary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.43;
+    letter-spacing: normal;
+    text-transform: none;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-50%);
+    transition:
+      opacity 0.3s ease-in-out,
+      transform 0.3s ease-in-out,
+      visibility 0s linear 0.3s;
   }
 
-  @keyframes social-pulse {
-    50% {
-      transform: scale(1.3);
+  /* ── Pointed at, or reached with the keyboard ─────────────────────────── */
+  @media (hover: hover) {
+    .social__item:hover .social__link {
+      color: #fff;
+      box-shadow: 0 10px 22px -8px color-mix(in srgb, var(--social-fill) 75%, transparent);
+    }
+
+    .social__item:hover .social__fill {
+      height: 100%;
+    }
+
+    .social__item:hover .social__tip {
+      opacity: 1;
+      visibility: visible;
+      transform: translate(-50%, 10px);
+      transition:
+        opacity 0.3s ease-in-out,
+        transform 0.3s ease-in-out,
+        visibility 0s;
     }
   }
 
-  /* Phone: every name on one line, spread across the width. They are set a
-     size smaller with no padding at the sides, so all four fit on the
-     narrowest phone, and taller padding keeps each one a fingertip tall.
-     On one line a name's icon pops up into the empty space above the row;
-     when the names wrapped onto two lines it covered a name in the line
-     above. */
-  @media (max-width: 519.98px) {
-    .social-links {
-      flex-wrap: nowrap;
-      justify-content: space-between;
-      width: 100%;
-      max-width: 26rem;
-    }
-
-    .social-links__link {
-      min-width: 2.75rem;
-      padding: 0.75rem 0;
-      text-align: center;
-    }
-
-    .social-links__name {
-      font-size: clamp(0.8125rem, 3.9vw, 1rem);
-    }
+  .social__link:focus-visible {
+    color: #fff;
+    box-shadow: 0 10px 22px -8px color-mix(in srgb, var(--social-fill) 75%, transparent);
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .social-links__item,
-    .social-links__pop {
-      transition: none;
-    }
+  .social__link:focus-visible .social__fill {
+    height: 100%;
+  }
 
-    .social-links__pop {
-      filter: none;
-    }
+  .social__link:focus-visible + .social__tip {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 10px);
+    transition:
+      opacity 0.3s ease-in-out,
+      transform 0.3s ease-in-out,
+      visibility 0s;
+  }
 
-    .social-links__link.is-pulse .social-links__tile {
-      animation: none;
-    }
+  /* Pressed with a mouse. */
+  .social__link:active {
+    color: #fff;
+  }
+
+  .social__link:active .social__fill {
+    height: 100%;
+  }
+
+  /* Touched. A finger has nothing to point with, and a tap is over in a
+     tenth of a second, so the script below marks the button as pressed and
+     the circle fills quickly: the answer to the tap is seen before the link
+     opens. (Phones do not all apply :active to a touched link.) */
+  .social__link.is-pressed {
+    color: #fff;
+  }
+
+  .social__link.is-pressed .social__fill {
+    height: 100%;
+    transition-duration: 0.12s;
   }
 </style>
 
 <script>
-  // A fresh random tilt (-10deg to 10deg) each time a name is pointed at, and
-  // a pulse when it is clicked. Everything else is CSS.
-  document.querySelectorAll<HTMLElement>("[data-social-links]").forEach((list) => {
-    list.querySelectorAll<HTMLAnchorElement>(".social-links__link").forEach((link) => {
-      const tilt = () =>
-        link.style.setProperty("--rot", `${(Math.random() * 20 - 10).toFixed(1)}deg`);
+  // On a touch screen, fill the circle the moment it is touched and keep it
+  // filled for a quarter of a second after the finger lifts.
+  document.querySelectorAll<HTMLAnchorElement>(".social__link").forEach((link) => {
+    let release = 0;
 
-      link.addEventListener("pointerenter", tilt);
-      link.addEventListener("focus", tilt);
-      link.addEventListener("click", () => {
-        link.classList.remove("is-pulse");
-        void link.offsetWidth;
-        link.classList.add("is-pulse");
-      });
-      link.addEventListener("animationend", () => link.classList.remove("is-pulse"));
+    const lift = () => {
+      window.clearTimeout(release);
+      release = window.setTimeout(() => link.classList.remove("is-pressed"), 250);
+    };
+
+    link.addEventListener("pointerdown", (event) => {
+      if (event.pointerType === "mouse") return;
+      window.clearTimeout(release);
+      link.classList.add("is-pressed");
     });
+    link.addEventListener("pointerup", lift);
+    link.addEventListener("pointercancel", lift);
+    link.addEventListener("pointerleave", lift);
   });
 </script>

@@ -23,7 +23,15 @@ const primaryHref = isWhatsapp ? whatsappUrl() : banner.button_primary.link;
   <BackgroundPaths />
 
   <div class="wrap hero__content">
-    <h1 class="hero__title" data-breathe set:html={markdownify(banner.title)} />
+    {/* The headline is scanned: dim, but for a band of full strength that
+        sweeps across it and back with a thin blue line. See "Scanner" in
+        the styles below. */}
+    <h1 class="hero__title" data-scan>
+      <span class="scan">
+        <span class="scan__text" set:html={markdownify(banner.title)} />
+        <span class="scan__line" aria-hidden="true"></span>
+      </span>
+    </h1>
 
     <div class="hero__row">
       <div class="hero__intro">
@@ -70,8 +78,8 @@ const primaryHref = isWhatsapp ? whatsappUrl() : banner.button_primary.link;
     z-index: 1;
   }
 
-  /* The one large thing on the page. Its letters breathe: see "Breathing
-     headline" in components.css.
+  /* The one large thing on the page, and the one headline with an effect of
+     its own (the others breathe: see components.css).
 
      On a phone it is set in three short lines and sized from the width of
      the screen (14vw), so it fills the screen it is on instead of sitting
@@ -88,6 +96,113 @@ const primaryHref = isWhatsapp ? whatsappUrl() : banner.button_primary.link;
   .hero__title :global(strong) {
     color: var(--color-primary);
     font-weight: inherit;
+  }
+
+  /* ── Scanner ──────────────────────────────────────────────────────────
+     A port of the "text scanner" component. The headline is shown at a
+     quarter of its strength, except for a band at full strength that sweeps
+     across it and back; a thin blue line with a glow travels with the band.
+     The component's own values: 2.6s each way, eased in and out, the band
+     the middle fifth of a gradient 2.4 times as wide as the text.
+
+     The component paints its letters with that moving gradient. Here the
+     same gradient is a mask laid over the headline instead: the picture is
+     the same, and the blue words keep their own colour under it.
+
+     .scan is the block the line crosses. It hugs the words - the script at
+     the foot of this file sets its width to the longest line when the
+     headline wraps - so the line turns round where the words end.
+
+     Without JavaScript the sweep still runs. For anyone who has asked for
+     less motion, none of this applies and the headline is simply there. */
+  .scan {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    vertical-align: top;
+  }
+
+  .scan__text {
+    display: block;
+  }
+
+  .scan__line {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* The padding (given back as margin) is room for the tails of letters:
+       a mask cuts off anything outside the box it is laid on. */
+    .scan__text {
+      margin: -0.2em -0.06em;
+      padding: 0.2em 0.06em;
+      -webkit-mask-image: linear-gradient(
+        90deg,
+        rgb(0 0 0 / 0.25) 0 40%,
+        #000 50%,
+        rgb(0 0 0 / 0.25) 60% 100%
+      );
+      mask-image: linear-gradient(
+        90deg,
+        rgb(0 0 0 / 0.25) 0 40%,
+        #000 50%,
+        rgb(0 0 0 / 0.25) 60% 100%
+      );
+      -webkit-mask-size: 240% 100%;
+      mask-size: 240% 100%;
+      animation: hero-scan-text 2.6s ease-in-out infinite alternate;
+    }
+
+    /* As wide as the text, with the visible line at its left edge: sliding
+       the whole strip by its own width carries the line from one end of the
+       text to the other without the browser laying anything out again. */
+    .scan__line {
+      position: absolute;
+      top: -0.375rem;
+      bottom: -0.375rem;
+      left: 0;
+      display: block;
+      width: 100%;
+      pointer-events: none;
+      animation: hero-scan-line 2.6s ease-in-out infinite alternate;
+    }
+
+    .scan__line::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 0.125rem;
+      background: var(--color-primary);
+      box-shadow: 0 0 14px var(--color-primary);
+    }
+
+    /* Scrolled out of view: stop redrawing. The script sets this. */
+    .hero__title.is-paused .scan__text,
+    .hero__title.is-paused .scan__line {
+      animation-play-state: paused;
+    }
+  }
+
+  @keyframes hero-scan-text {
+    from {
+      -webkit-mask-position: 100% 0;
+      mask-position: 100% 0;
+    }
+    to {
+      -webkit-mask-position: 0% 0;
+      mask-position: 0% 0;
+    }
+  }
+
+  @keyframes hero-scan-line {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(calc(100% - 0.125rem));
+    }
   }
 
   .hero__row {
@@ -216,3 +331,48 @@ const primaryHref = isWhatsapp ? whatsappUrl() : banner.button_primary.link;
     }
   }
 </style>
+
+<script>
+  // Two small jobs for the scanned headline.
+  //
+  // The scanner's line should turn round where the words end. On a phone the
+  // headline wraps, and a wrapped block is as wide as the screen rather than
+  // as its longest line, so the longest line is measured and the block is
+  // made that wide. (Every line already fits in that width, so nothing
+  // re-wraps.)
+  //
+  // And the sweep rests while the headline is scrolled out of view.
+  document.querySelectorAll<HTMLElement>("[data-scan]").forEach((title) => {
+    const block = title.querySelector<HTMLElement>(".scan");
+    const text = title.querySelector<HTMLElement>(".scan__text");
+    if (!block || !text) return;
+
+    let fitted = -1;
+    const fit = () => {
+      block.style.width = "";
+      const left = block.getBoundingClientRect().left;
+      const range = document.createRange();
+      range.selectNodeContents(text);
+
+      let right = 0;
+      for (const box of range.getClientRects()) right = Math.max(right, box.right - left);
+      if (right > 0) block.style.width = `${Math.ceil(right)}px`;
+      fitted = title.clientWidth;
+    };
+
+    fit();
+    document.fonts?.ready.then(fit);
+
+    if (typeof ResizeObserver === "function") {
+      new ResizeObserver(() => {
+        if (title.clientWidth !== fitted) requestAnimationFrame(fit);
+      }).observe(title);
+    }
+
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(([entry]) => {
+        title.classList.toggle("is-paused", !entry.isIntersecting);
+      }).observe(title);
+    }
+  });
+</script>

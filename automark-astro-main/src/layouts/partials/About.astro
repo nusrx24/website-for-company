@@ -1,5 +1,6 @@
 ---
 import ImageMod from "@/components/ImageMod.astro";
+import { markdownify } from "@/lib/utils/textConverter";
 import type { Homepage } from "@/types";
 
 export interface Props {
@@ -9,33 +10,31 @@ export interface Props {
 const { about } = Astro.props as Props;
 ---
 
-{/* Why custom software matters. The statement and a real screenshot of a
-    system we built on one side, the argument in a few plain sentences on
-    the other. */}
+{/* Why custom software matters: the statement across the top, a picture of
+    the kind of system we build under it, and one supporting sentence beside
+    the picture. */}
 <section id="about" class="section about">
   <div class="wrap about__grid">
-    <div class="about__lead">
-      <h2 data-breathe>{about.title}</h2>
+    <h2 class="about__title" data-breathe set:html={markdownify(about.title)} />
 
-      {
-        about.media && (
-          <figure class="about__media">
-            <div class="metal-frame">
-              <ImageMod
-                src={about.media.image}
-                alt={about.media.alt}
-                width={1280}
-                widths={[480, 640, 960, 1280]}
-                sizes="(min-width: 1296px) 536px, (min-width: 1024px) calc(50vw - 4.5rem), calc(100vw - 2.5rem)"
-                format="webp"
-                quality={82}
-              />
-            </div>
-            {about.media.caption && <figcaption>{about.media.caption}</figcaption>}
-          </figure>
-        )
-      }
-    </div>
+    {
+      about.media && (
+        <figure class="about__media">
+          <div class="metal-frame">
+            <ImageMod
+              src={about.media.image}
+              alt={about.media.alt}
+              width={1265}
+              widths={[480, 720, 960, 1265]}
+              sizes="(min-width: 1296px) 626px, (min-width: 1024px) calc((100vw - 9rem) * 0.5834), (min-width: 640px) calc(100vw - 4rem), calc(100vw - 2.5rem)"
+              format="webp"
+              quality={84}
+            />
+          </div>
+          {about.media.caption && <figcaption>{about.media.caption}</figcaption>}
+        </figure>
+      )
+    }
 
     <div class="about__body">
       {about.paragraphs.map((paragraph) => <p>{paragraph}</p>)}
@@ -44,13 +43,14 @@ const { about } = Astro.props as Props;
 </section>
 
 <style>
+  /* One column on a phone: statement, picture, sentence. */
   .about__grid {
     display: grid;
-    gap: 2rem;
+    gap: clamp(1.75rem, 3vw, 2.5rem) 2rem;
   }
 
   .about__media {
-    margin: clamp(1.75rem, 3vw, 2.5rem) 0 0;
+    margin: 0;
   }
 
   .about__media figcaption {
@@ -73,10 +73,17 @@ const { about } = Astro.props as Props;
     line-height: 1.6;
   }
 
+  /* On a computer the statement runs across the top, so each of its two
+     sentences keeps to one line; under it the picture takes the wider
+     share, because it is full of fine detail, and the sentence the rest. */
   @media (min-width: 1024px) {
     .about__grid {
-      grid-template-columns: minmax(0, 6fr) minmax(0, 6fr);
-      gap: 4rem;
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      column-gap: 4rem;
+    }
+
+    .about__title {
+      grid-column: 1 / -1;
     }
   }
 </style>

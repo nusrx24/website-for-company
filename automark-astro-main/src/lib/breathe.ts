@@ -30,7 +30,11 @@ function split(el: HTMLElement): HTMLElement[] {
   const letters: HTMLElement[] = [];
   for (const node of texts) {
     const fragment = document.createDocumentFragment();
-    for (const ch of Array.from((node.textContent ?? "").replace(/\s+/g, " "))) {
+    // Runs of ordinary spaces and line ends become one space. A no-break
+    // space (&nbsp; in the content) is left alone: it is there to keep two
+    // words on the same line, and `\s` would have turned it into a space
+    // that breaks.
+    for (const ch of Array.from((node.textContent ?? "").replace(/[ \t\n\r\f]+/g, " "))) {
       const span = document.createElement("span");
       span.className = "breath";
       span.setAttribute("aria-hidden", "true");

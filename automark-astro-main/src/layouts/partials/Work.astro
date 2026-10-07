@@ -8,15 +8,17 @@ export interface Props {
 
 const { projects } = Astro.props as Props;
 
-// The carousel shows each client's own logo. A client without one is left out.
+// The carousel shows every client that has a tile: the client's own logo, or
+// for a client who has not supplied one, a stand-in drawn for this page.
 const logos = projects.items.flatMap((item) =>
   item.logo ? [{ name: item.name, src: item.logo }] : [],
 );
 ---
 
-{/* Proof: the businesses we build for, shown as their own logos. Three show
-    at a time and each gives way to the next every two seconds. The full list
-    of names is in the page for screen readers and search engines. */}
+{/* Proof: the businesses we build for. Their tiles, four at a time, each
+    giving way to the next every two seconds (the full list of names is in
+    the page for screen readers and search engines); and under them, how
+    many customers there are. */}
 <section id="work" class="section">
   <div class="wrap">
     <div class="section-head">
@@ -41,7 +43,10 @@ const logos = projects.items.flatMap((item) =>
       )}
     </div>
 
-    <LogoCarousel logos={logos} columns={3} />
+    <LogoCarousel logos={logos} columns={4} />
+
+    {/* How many customers there are. The count is the owner's own. */}
+    {projects.customers && <h3 class="work-count">{projects.customers.title}</h3>}
   </div>
 </section>
 
@@ -85,5 +90,12 @@ const logos = projects.items.flatMap((item) =>
       min-height: 2.75rem;
       margin-block: -0.5rem;
     }
+  }
+
+  /* ── The count of customers ─────────────────────────────────────────────
+     One line, centred under the logos like them. */
+  .work-count {
+    margin-top: clamp(1.75rem, 3.5vw, 2.5rem);
+    text-align: center;
   }
 </style>

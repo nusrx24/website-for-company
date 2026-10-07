@@ -1,0 +1,593 @@
+---
+// Location card: a small navy card with a place's name on it. It leans
+// towards the pointer, and a click opens it into a little drawn map - roads
+// that draw themselves, a few buildings, a pin dropping into the middle -
+// with the place's coordinates under its name. Another click closes it.
+//
+// A port of the 21st.dev "expand-map" (LocationMap) React component to plain
+// Astro, so the page keeps shipping no UI framework. Same sizes (240 by 140,
+// opening to 360 by 280), the same roads, buildings and timings. Two things
+// differ: its neutral-and-green colours are the site's blue throughout, and
+// it is a real <button>, so it can be opened from the keyboard and says
+// whether it is open.
+//
+// The map is a drawing, not a map of the place: it shows that there is a
+// place, not where its streets run.
+export interface Props {
+  name: string;
+  // Shown under the name once the card is open.
+  coordinates?: string;
+  // The small pill in the top corner.
+  tag?: string;
+  // Appears under the card while it is pointed at.
+  hint?: string;
+}
+
+const { name, coordinates, tag, hint } = Astro.props as Props;
+
+// The streets of the drawn map: where each runs (a percentage of the card),
+// how thick and how strong it is, and when it is drawn (seconds).
+const roads = [
+  { dir: "h", at: 35, size: 4, alpha: 0.25, time: 0.8, delay: 0.2 },
+  { dir: "h", at: 65, size: 4, alpha: 0.25, time: 0.8, delay: 0.3 },
+  { dir: "v", at: 30, size: 3, alpha: 0.2, time: 0.6, delay: 0.4 },
+  { dir: "v", at: 70, size: 3, alpha: 0.2, time: 0.6, delay: 0.5 },
+  ...[20, 50, 80].map((at, i) => ({ dir: "h", at, size: 1.5, alpha: 0.1, time: 0.5, delay: 0.6 + i * 0.1 })),
+  ...[15, 45, 55, 85].map((at, i) => ({ dir: "v", at, size: 1.5, alpha: 0.1, time: 0.5, delay: 0.7 + i * 0.1 })),
+];
+
+// The buildings: position and size (percentages of the card), how solid the
+// block and its edge are, and when it appears.
+const buildings = [
+  { place: "top:40%;left:10%;width:15%;height:20%", fill: 0.3, edge: 0.2, delay: 0.5 },
+  { place: "top:15%;left:35%;width:12%;height:15%", fill: 0.25, edge: 0.15, delay: 0.6 },
+  { place: "top:70%;left:75%;width:18%;height:18%", fill: 0.28, edge: 0.18, delay: 0.7 },
+  { place: "top:20%;right:10%;width:10%;height:25%", fill: 0.22, edge: 0.15, delay: 0.55 },
+  { place: "top:55%;left:5%;width:8%;height:12%", fill: 0.2, edge: 0.12, delay: 0.65 },
+  { place: "top:8%;left:75%;width:14%;height:10%", fill: 0.22, edge: 0.15, delay: 0.75 },
+];
+---
+
+<button type="button" class="loc" data-loc aria-expanded="false">
+  <span class="loc__card">
+    <span class="loc__wash" aria-hidden="true"></span>
+
+    {/* The map, seen only while the card is open. */}
+    <span class="loc__map" aria-hidden="true">
+      {
+        roads.map((road) => (
+          <span
+            class={`loc__road loc__road--${road.dir}`}
+            style={`--at:${road.at}%;--size:${road.size}px;--alpha:${road.alpha};--time:${road.time}s;--delay:${road.delay.toFixed(2)}s`}
+          />
+        ))
+      }
+      {
+        buildings.map((building) => (
+          <span
+            class="loc__building"
+            style={`${building.place};--fill:${building.fill};--edge:${building.edge};--delay:${building.delay}s`}
+          />
+        ))
+      }
+      <span class="loc__pin">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"></path>
+          <circle cx="12" cy="9" r="2.5"></circle>
+        </svg>
+      </span>
+      <span class="loc__fade"></span>
+    </span>
+
+    {/* Faint squared paper, seen only while the card is closed. */}
+    <span class="loc__grid" aria-hidden="true"></span>
+
+    <span class="loc__content">
+      <span class="loc__top">
+        <svg
+          class="loc__icon"
+          width="18"
+          height="18"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <polygon points="3 6 9 3 15 6 21 3 21 18 15 21 9 18 3 21"></polygon>
+          <line x1="9" x2="9" y1="3" y2="18"></line>
+          <line x1="15" x2="15" y1="6" y2="21"></line>
+        </svg>
+
+        {
+          tag && (
+            <span class="loc__tag">
+              <span class="loc__dot" aria-hidden="true" />
+              {tag}
+            </span>
+          )
+        }
+      </span>
+
+      <span class="loc__bottom">
+        <span class="loc__name">{name}</span>
+        {coordinates && <span class="loc__coords">{coordinates}</span>}
+        <span class="loc__rule" aria-hidden="true"></span>
+      </span>
+    </span>
+  </span>
+
+  {hint && <span class="loc__hint" aria-hidden="true">{hint}</span>}
+</button>
+
+<style>
+  /* ── Colours ────────────────────────────────────────────────────────────
+     The whole card is the site's blue, at different strengths, the way a
+     plan is drawn on blueprint paper: a deep navy ground, a blue edge,
+     streets and buildings in pale blue, and the pin in the full brand blue.
+     Everything is mixed from the theme's own colours, so it follows them.
+     To change the look, change these lines. */
+  .loc {
+    --loc-accent: var(--color-primary);
+    --loc-accent-light: var(--color-primary-light);
+    /* The card's ground, and the edge around it. */
+    --loc-bg: color-mix(in srgb, var(--color-primary) 13%, var(--color-body));
+    --loc-edge: color-mix(in srgb, var(--color-primary) 34%, var(--color-border));
+    /* The ground of the map once the card is open. */
+    --loc-map: color-mix(in srgb, var(--color-primary) 22%, var(--color-light));
+    /* Streets, and buildings. */
+    --loc-road: color-mix(in srgb, var(--color-primary-light) 55%, var(--color-text-light));
+    --loc-block: var(--color-primary-light);
+    /* The name, and the smaller print. */
+    --loc-ink: var(--color-text-light);
+    --loc-dim: color-mix(in srgb, var(--color-primary-light) 45%, var(--color-text));
+    --loc-ease: cubic-bezier(0.42, 0, 0.58, 1);
+
+    position: relative;
+    display: block;
+    max-width: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--loc-ink);
+    font-family: var(--font-secondary);
+    font-size: 0.875rem;
+    line-height: 1.4;
+    letter-spacing: normal;
+    text-align: left;
+    text-transform: none;
+    cursor: pointer;
+    user-select: none;
+    perspective: 1000px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .loc:focus-visible {
+    outline: none;
+  }
+
+  .loc:focus-visible .loc__card {
+    outline: 2px solid var(--loc-accent-light);
+    outline-offset: 3px;
+  }
+
+  /* The card. --rx and --ry are the lean towards the pointer, set by the
+     script. Opening is the source's spring (stiffness 400, damping 35),
+     which hardly overshoots: an ease-out of the same length. */
+  .loc__card {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    width: 240px;
+    max-width: 100%;
+    height: 140px;
+    border: 1px solid var(--loc-edge);
+    border-radius: 1rem;
+    background-color: var(--loc-bg);
+    transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+    transform-style: preserve-3d;
+    transition:
+      width 0.38s cubic-bezier(0.2, 0.9, 0.3, 1),
+      height 0.38s cubic-bezier(0.2, 0.9, 0.3, 1);
+  }
+
+  .loc.is-open .loc__card {
+    width: 360px;
+    height: 280px;
+  }
+
+  .loc__wash {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom right,
+      color-mix(in srgb, var(--loc-map) 20%, transparent),
+      transparent,
+      color-mix(in srgb, var(--loc-map) 40%, transparent)
+    );
+  }
+
+  /* ── The map ────────────────────────────────────────────────────────────
+     Everything in it is drawn when the card opens, each piece at its own
+     moment. Closing only fades the whole map out; the pieces go back to
+     their starting places half a second later, once it can no longer be
+     seen (that is what the `0s ... 0.5s` transitions below are for). */
+  .loc__map {
+    position: absolute;
+    inset: 0;
+    background-color: var(--loc-map);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s var(--loc-ease) 0.1s;
+  }
+
+  .loc.is-open .loc__map {
+    opacity: 1;
+  }
+
+  .loc__road {
+    position: absolute;
+    background-color: color-mix(in srgb, var(--loc-road) calc(var(--alpha) * 100%), transparent);
+    transition: transform 0s linear 0.5s;
+  }
+
+  .loc__road--h {
+    top: calc(var(--at) - var(--size) / 2);
+    left: 0;
+    width: 100%;
+    height: var(--size);
+    transform: scaleX(0);
+    transform-origin: 0 50%;
+  }
+
+  .loc__road--v {
+    top: 0;
+    left: calc(var(--at) - var(--size) / 2);
+    width: var(--size);
+    height: 100%;
+    transform: scaleY(0);
+    transform-origin: 50% 0;
+  }
+
+  .loc.is-open .loc__road {
+    transform: none;
+    transition: transform var(--time) var(--loc-ease) var(--delay);
+  }
+
+  .loc__building {
+    position: absolute;
+    border: 1px solid color-mix(in srgb, var(--loc-block) calc(var(--edge) * 100%), transparent);
+    border-radius: 2px;
+    background-color: color-mix(in srgb, var(--loc-block) calc(var(--fill) * 100%), transparent);
+    opacity: 0;
+    transform: scale(0.8);
+    transition:
+      opacity 0s linear 0.5s,
+      transform 0s linear 0.5s;
+  }
+
+  .loc.is-open .loc__building {
+    opacity: 1;
+    transform: none;
+    transition:
+      opacity 0.4s var(--loc-ease) var(--delay),
+      transform 0.4s var(--loc-ease) var(--delay);
+  }
+
+  /* The pin drops in on a spring (stiffness 400, damping 20): it goes a
+     little past its size and comes back. */
+  .loc__pin {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, calc(-50% - 20px)) scale(0);
+    transition: transform 0s linear 0.5s;
+  }
+
+  .loc.is-open .loc__pin {
+    transform: translate(-50%, -50%) scale(1);
+    transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s;
+  }
+
+  .loc__pin svg {
+    display: block;
+    filter: drop-shadow(0 0 10px color-mix(in srgb, var(--loc-accent) 50%, transparent));
+  }
+
+  .loc__pin path {
+    fill: var(--loc-accent);
+  }
+
+  .loc__pin circle {
+    fill: var(--loc-bg);
+  }
+
+  .loc__fade {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, var(--loc-bg), transparent 50%, transparent);
+    opacity: 0.6;
+  }
+
+  /* Squared paper, 20px to a square. The source draws it almost unseen in
+     grey; in blue it is the ruling of the blueprint, so it is a little
+     stronger. */
+  .loc__grid {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(to right, var(--loc-accent-light) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--loc-accent-light) 1px, transparent 1px);
+    background-size: 20px 20px;
+    opacity: 0.08;
+    transition: opacity 0.3s var(--loc-ease);
+  }
+
+  .loc.is-open .loc__grid {
+    opacity: 0;
+  }
+
+  /* ── What is written on the card ──────────────────────────────────────── */
+  .loc__content {
+    position: relative;
+    z-index: 1;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    padding: 20px;
+  }
+
+  .loc__top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+  }
+
+  .loc__icon {
+    color: var(--loc-accent-light);
+    filter: drop-shadow(0 0 4px color-mix(in srgb, var(--loc-accent) 30%, transparent));
+    transition:
+      opacity 0.3s var(--loc-ease),
+      filter 0.3s var(--loc-ease);
+  }
+
+  .loc.is-open .loc__icon {
+    opacity: 0;
+  }
+
+  .loc__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    background-color: color-mix(in srgb, var(--loc-accent-light) 12%, transparent);
+    color: var(--loc-dim);
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1.5;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
+    transition:
+      transform 0.2s var(--loc-ease),
+      background-color 0.2s var(--loc-ease);
+  }
+
+  .loc__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: var(--loc-accent-light);
+  }
+
+  .loc__bottom {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .loc__name {
+    color: var(--loc-ink);
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.43;
+    letter-spacing: -0.025em;
+    transition: transform 0.35s cubic-bezier(0.34, 1.4, 0.64, 1);
+  }
+
+  /* The coordinates take no room until the card is open. */
+  .loc__coords {
+    overflow: hidden;
+    max-height: 0;
+    color: var(--loc-dim);
+    font-family: var(--font-primary);
+    font-size: 0.75rem;
+    line-height: 1.33;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition:
+      opacity 0.25s var(--loc-ease),
+      transform 0.25s var(--loc-ease),
+      max-height 0.25s var(--loc-ease),
+      margin-top 0.25s var(--loc-ease),
+      visibility 0s linear 0.25s;
+  }
+
+  .loc.is-open .loc__coords {
+    max-height: 2em;
+    margin-top: 4px;
+    opacity: 1;
+    visibility: visible;
+    transform: none;
+    transition:
+      opacity 0.25s var(--loc-ease),
+      transform 0.25s var(--loc-ease),
+      max-height 0.25s var(--loc-ease),
+      margin-top 0.25s var(--loc-ease),
+      visibility 0s;
+  }
+
+  /* A line under the name: a third of its length at rest, all of it while
+     the card is pointed at or open. */
+  .loc__rule {
+    height: 1px;
+    margin-top: 4px;
+    background: linear-gradient(
+      to right,
+      color-mix(in srgb, var(--loc-accent) 70%, transparent),
+      color-mix(in srgb, var(--loc-accent-light) 40%, transparent),
+      transparent
+    );
+    transform: scaleX(0.3);
+    transform-origin: 0 50%;
+    transition: transform 0.4s ease-out;
+  }
+
+  .loc.is-open .loc__rule {
+    transform: none;
+  }
+
+  .loc__hint {
+    position: absolute;
+    bottom: -24px;
+    left: 50%;
+    color: var(--loc-dim);
+    font-size: 10px;
+    line-height: 1.5;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translate(-50%, 4px);
+    transition:
+      opacity 0.2s var(--loc-ease),
+      transform 0.2s var(--loc-ease);
+  }
+
+  /* ── Pointed at (or reached with the keyboard) ────────────────────────── */
+  @media (hover: hover) {
+    .loc:hover .loc__icon {
+      filter: drop-shadow(0 0 8px color-mix(in srgb, var(--loc-accent) 60%, transparent));
+    }
+
+    .loc:hover .loc__tag {
+      background-color: color-mix(in srgb, var(--loc-accent-light) 18%, transparent);
+      transform: scale(1.05);
+    }
+
+    .loc:hover .loc__name {
+      transform: translateX(4px);
+    }
+
+    .loc:hover .loc__rule {
+      transform: none;
+    }
+
+    .loc:hover:not(.is-open) .loc__hint {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+
+  .loc:focus-visible .loc__name {
+    transform: translateX(4px);
+  }
+
+  .loc:focus-visible .loc__rule {
+    transform: none;
+  }
+
+  .loc:focus-visible:not(.is-open) .loc__hint {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+
+  /* ── Reduced motion ─────────────────────────────────────────────────────
+     base.css already takes the movement out of every transition. Here the
+     waits go as well, so the open card is simply there, map and all, rather
+     than arriving piece by piece over a second. The script leaves the lean
+     out too. */
+  @media (prefers-reduced-motion: reduce) {
+    .loc__map,
+    .loc__road,
+    .loc__building,
+    .loc__pin,
+    .loc__coords {
+      transition-delay: 0s !important;
+    }
+  }
+</style>
+
+<script>
+  // A click opens and closes the card. While the pointer is over it, the
+  // card leans towards the pointer: up to 8 degrees each way, reached 50px
+  // from its centre, on the source's spring (stiffness 300, damping 30).
+  const STIFFNESS = 300;
+  const DAMPING = 30;
+  const REACH = 50; // px from the centre at which the lean is greatest
+  const LEAN = 8; // degrees
+
+  document.querySelectorAll<HTMLButtonElement>("[data-loc]").forEach((root) => {
+    const card = root.querySelector<HTMLElement>(".loc__card");
+    if (!card) return;
+
+    root.addEventListener("click", () => {
+      const open = root.classList.toggle("is-open");
+      root.setAttribute("aria-expanded", String(open));
+    });
+
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const lean = { x: 0, y: 0 };
+    const speed = { x: 0, y: 0 };
+    const goal = { x: 0, y: 0 };
+    let frame = 0;
+    let last = 0;
+
+    const step = (now: number) => {
+      const dt = Math.min(0.032, (now - last) / 1000);
+      last = now;
+
+      (["x", "y"] as const).forEach((axis) => {
+        speed[axis] += (STIFFNESS * (goal[axis] - lean[axis]) - DAMPING * speed[axis]) * dt;
+        lean[axis] += speed[axis] * dt;
+      });
+
+      const rest = (["x", "y"] as const).every(
+        (axis) => Math.abs(goal[axis] - lean[axis]) < 0.01 && Math.abs(speed[axis]) < 0.01,
+      );
+      if (rest) {
+        lean.x = goal.x;
+        lean.y = goal.y;
+      }
+
+      card.style.setProperty("--rx", `${lean.x.toFixed(2)}deg`);
+      card.style.setProperty("--ry", `${lean.y.toFixed(2)}deg`);
+      frame = rest ? 0 : requestAnimationFrame(step);
+    };
+
+    const aim = (x: number, y: number) => {
+      goal.x = x;
+      goal.y = y;
+      if (frame) return;
+      last = performance.now();
+      frame = requestAnimationFrame(step);
+    };
+
+    const within = (value: number) => Math.max(-REACH, Math.min(REACH, value));
+
+    root.addEventListener("pointermove", (event) => {
+      if (event.pointerType !== "mouse" || reduce.matches) return;
+      const box = root.getBoundingClientRect();
+      const across = within(event.clientX - (box.left + box.width / 2));
+      const down = within(event.clientY - (box.top + box.height / 2));
+      aim((-down / REACH) * LEAN, (across / REACH) * LEAN);
+    });
+
+    root.addEventListener("pointerleave", () => aim(0, 0));
+  });
+</script>

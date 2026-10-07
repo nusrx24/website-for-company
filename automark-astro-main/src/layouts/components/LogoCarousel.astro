@@ -137,8 +137,8 @@ const { logos, columns = 2, label = "Clients" } = Astro.props as Props;
   }
 
   /* A column: a window with one logo in it. It can narrow on a small phone,
-     so three always fit. It is a size container, so the logo inside can be
-     sized from it. */
+     so the whole row always fits. It is a size container, so the logo inside
+     can be sized from it. */
   .logos__column {
     position: relative;
     flex: 0 1 var(--box-w);
@@ -179,6 +179,14 @@ const { logos, columns = 2, label = "Clients" } = Astro.props as Props;
   /* Four fifths of the window's shorter side, as in the source. */
   .logos__column .logos__logo :global(img) {
     width: min(80cqw, 80cqh);
+  }
+
+  /* Phone: the windows sit closer together, which leaves more of the row's
+     width for the logos themselves when four are shown at once. */
+  @media (max-width: 479.98px) {
+    .logos {
+      --gap: 0.5rem;
+    }
   }
 
   @media (min-width: 768px) {
@@ -241,51 +249,18 @@ const { logos, columns = 2, label = "Clients" } = Astro.props as Props;
     return shuffled;
   }
 
-  // Deal the shuffled logos out like cards. If they do not divide evenly,
-  // the shorter columns are topped up with a second copy of a logo, so every
-  // column takes the same time to go round.
+  // Deal the shuffled logos out like cards, one to each column in turn. If
+  // they do not divide evenly, some columns hold one more than the others,
+  // and each column simply goes round its own. Every logo is in exactly one
+  // column, so no logo is ever on screen twice.
   //
-  // The source tops up with any logo picked at random, which can put the
-  // same logo in two windows at once. Here the pick leaves out the logos the
-  // other columns show at that turn, the turn before and the turn after
-  // (columns change a moment apart, so neighbouring turns overlap), and the
-  // logos the column already has. Only if nothing is left is it any logo.
-  //
-  // Logos are dealt by their place in `logos`, so a copy is known for what
-  // it is a copy of.
+  // (The source tops the shorter columns up with logos picked at random, so
+  // that every column takes the same time to go round. That can put one logo
+  // in two windows at once, and shows the picked logos twice as often.)
   function deal(logos: HTMLElement[], count: number): HTMLElement[][] {
-    const order = shuffle(logos.map((_, index) => index));
-    const sets: number[][] = Array.from({ length: count }, () => []);
-    order.forEach((logo, position) => sets[position % count].push(logo));
-
-    const longest = Math.max(...sets.map((set) => set.length));
-    sets.forEach((set, column) => {
-      while (set.length < longest) {
-        const turn = set.length;
-        const taken = new Set(set);
-        sets.forEach((other, otherColumn) => {
-          if (otherColumn === column) return;
-          [turn - 1, turn, turn + 1].forEach((near) => {
-            const logo = other[(near + longest) % longest];
-            if (logo !== undefined) taken.add(logo);
-          });
-        });
-
-        const free = order.filter((logo) => !taken.has(logo));
-        const pool = free.length > 0 ? free : order;
-        set.push(pool[Math.floor(Math.random() * pool.length)]);
-      }
-    });
-
-    // The first use of a logo is the element itself; any later use, a copy.
-    const used = new Set<number>();
-    return sets.map((set) =>
-      set.map((logo) => {
-        if (used.has(logo)) return logos[logo].cloneNode(true) as HTMLElement;
-        used.add(logo);
-        return logos[logo];
-      }),
-    );
+    const sets: HTMLElement[][] = Array.from({ length: count }, () => []);
+    shuffle(logos).forEach((logo, position) => sets[position % count].push(logo));
+    return sets;
   }
 
   function setup(root: HTMLElement) {
@@ -297,7 +272,7 @@ const { logos, columns = 2, label = "Clients" } = Astro.props as Props;
 
     const sets = deal(logos, columns.length);
     sets.forEach((set, column) => set.forEach((logo) => columns[column].appendChild(logo)));
-    sets.forEach((set) => set[0].classList.add("is-current"));
+    sets.forEach((set) => set[0]?.classList.add("is-current"));
 
     const shown = sets.map(() => 0);
     let time = 0;
@@ -306,9 +281,12 @@ const { logos, columns = 2, label = "Clients" } = Astro.props as Props;
     let visible = false;
 
     // Which logo a column should be showing now. A column further along is
-    // a little ahead of the clock, which is what staggers the changes.
-    const due = (column: number) =>
-      Math.floor(((time + column * STAGGER) % (CYCLE * sets[column].length)) / CYCLE);
+    // a little ahead of the clock, which is what staggers the changes. A
+    // column goes round its own logos, however many it was dealt.
+    const due = (column: number) => {
+      const size = sets[column].length;
+      return size > 1 ? Math.floor(((time + column * STAGGER) % (CYCLE * size)) / CYCLE) : 0;
+    };
 
     // The old logo leaves first; the new one arrives once it has gone.
     const change = (column: number, next: number) => {
@@ -350,7 +328,7 @@ const { logos, columns = 2, label = "Clients" } = Astro.props as Props;
         if (visible && !started) {
           started = true;
           root.classList.add("is-in");
-          sets.forEach((set) => set[0].animate(ARRIVE, { duration: ARRIVE_MS, easing: "linear" }));
+          sets.forEach((set) => set[0]?.animate(ARRIVE, { duration: ARRIVE_MS, easing: "linear" }));
         }
         sync();
       },

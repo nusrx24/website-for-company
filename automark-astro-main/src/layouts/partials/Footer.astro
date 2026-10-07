@@ -1,4 +1,6 @@
 ---
+import LocationCard from "@/components/LocationCard.astro";
+import SocialLinks from "@/components/SocialLinks.astro";
 import config from "@/config/config.json";
 import menu from "@/config/menu.json";
 import social from "@/config/social.json";
@@ -8,8 +10,10 @@ import { SHUTTER, blades, f, restPivot } from "@/lib/footer/shutter";
 import { contact, mailtoUrl, telUrl, whatsappUrl } from "@/lib/utils/contact";
 import type { Menu, SocialType } from "@/types";
 
-// The closing section: a dark slate block set in monospace capitals, with the
-// company name across the full width in a drawn, geometric alphabet. One
+// The closing section: a dark slate block set in monospace capitals. It opens
+// with the four places to find us (Facebook, LinkedIn, WhatsApp, Email), and
+// ends with the company name across the full width in a drawn, geometric
+// alphabet. One
 // letter is swapped for a "shutter" - three blue blades that meet at a pivot,
 // and the pivot turns to follow the pointer. Its colours are the four
 // variables at the top of the <style> block below.
@@ -42,17 +46,10 @@ const reach = [
 ];
 
 const { data } = await getListPage("homepage", "-index");
-const { places, languages } = data.locations;
+// The small print: the main place as a card, the other places under it.
+const { card, places, languages } = data.locations;
 
-const { footer_message_label, footer_message_placeholder } = config.params;
 const year = new Date().getFullYear();
-const small = [
-  `© ${year}`,
-  config.site.title,
-  "",
-  places.join(" · "),
-  languages.join(" · "),
-].join("\n");
 
 const external = (href: string) =>
   /^https?:/.test(href) ? { target: "_blank", rel: "noopener noreferrer" } : {};
@@ -60,7 +57,7 @@ const external = (href: string) =>
 // The top row fades in piece by piece, 60ms apart, in reading order.
 let step = 0;
 const next = () => `--sgf-d:${(step += 60)}ms`;
-const formDelay = next();
+const socialDelay = next();
 const navigateDelays = navigate.map(next);
 const smallDelay = next();
 const reachDelays = reach.map(next);
@@ -68,45 +65,10 @@ const reachDelays = reach.map(next);
 
 <footer class="sgf" data-sgf data-in="true">
   <div class="sgf-top">
-    {/* A message box rather than a newsletter signup: there is no mailing
-        list. What is typed opens in WhatsApp, ready to send. It is a plain
-        form, so it works without JavaScript too. */}
-    <form
-      class="sgf-form sgf-fade"
-      style={formDelay}
-      action={`https://wa.me/${contact.whatsappNumber}`}
-      method="get"
-      target="_blank"
-      novalidate
-      data-empty="Type a message first"
-    >
-      <label for="sgf-message" class="sgf-lede">{footer_message_label}</label>
-      <div class="sgf-field" data-state="idle">
-        <input
-          id="sgf-message"
-          class="sgf-input"
-          type="text"
-          name="text"
-          autocomplete="off"
-          spellcheck="false"
-          placeholder={footer_message_placeholder}
-          aria-describedby="sgf-msg"
-        />
-        <button class="sgf-go" type="submit" aria-label="Send on WhatsApp">
-          <svg viewBox="0 0 12 12" aria-hidden="true">
-            <path d="M1 6h9.2M6.4 2.2 10.2 6l-3.8 3.8" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="square"></path>
-          </svg>
-        </button>
-        <div class="sgf-done" role="status" hidden>
-          <svg viewBox="0 0 12 12" aria-hidden="true">
-            <path d="M1.5 6.4 4.6 9.4 10.6 2.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="square"></path>
-          </svg>
-          <span>Continue in WhatsApp</span>
-          <button type="button">Clear</button>
-        </div>
-      </div>
-      <p id="sgf-msg" class="sgf-msg" aria-live="polite"></p>
-    </form>
+    {/* Where else to find us, first. Pointing at a name raises its icon. */}
+    <div class="sgf-social sgf-fade" style={socialDelay}>
+      <SocialLinks />
+    </div>
 
     <nav aria-label="Footer">
       <ul class="sgf-list sgf-list--pair">
@@ -125,7 +87,25 @@ const reachDelays = reach.map(next);
       </ul>
     </nav>
 
-    <p class="sgf-copy sgf-fade" style={smallDelay}>{small}</p>
+    <div class="sgf-copy sgf-fade" style={smallDelay}>
+      <p>© {year}<br />{config.site.title}</p>
+      {
+        card && (
+          <div class="sgf-place">
+            <LocationCard
+              name={card.name}
+              coordinates={card.coordinates}
+              tag={card.tag}
+              hint={card.hint}
+            />
+          </div>
+        )
+      }
+      <div class="sgf-lines">
+        {places.length > 0 && <p>{places.join(" · ")}</p>}
+        {languages.length > 0 && <p>{languages.join(" · ")}</p>}
+      </div>
+    </div>
 
     <nav aria-label="Contact">
       <ul class="sgf-list">
@@ -245,9 +225,8 @@ const reachDelays = reach.map(next);
   /* Colours. These four lines are the whole footer's palette.
      The block is the site's dark slate - the colour of its panels and cards -
      a touch lighter along its top edge, and everything on it is printed in
-     the site's off-white. Blue is kept for two things only: the one letter
-     that moves (the shutter) and the line under the message box while it is
-     being typed in. All four are colours from theme.json. */
+     the site's off-white. Blue is kept for one thing only: the one letter
+     that moves (the shutter). All four are colours from theme.json. */
   .sgf {
     --sgf-bg: var(--color-light);
     --sgf-top: color-mix(in srgb, var(--color-light) 97%, #fff);
@@ -303,11 +282,13 @@ const reachDelays = reach.map(next);
     display: none;
   }
 
-  /* ── Top row ─────────────────────────────────────────────────────────── */
+  /* ── Top row ───────────────────────────────────────────────────────────
+     The four social buttons have a line of their own, the full width. Below
+     them: the page links, the small print and the contact links. */
   .sgf-top {
     box-sizing: border-box;
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 2fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
     column-gap: 24px;
     row-gap: 36px;
     padding: clamp(64px, 11.5cqw, 150px) clamp(16px, 2.6cqw, 40px) 0;
@@ -324,141 +305,26 @@ const reachDelays = reach.map(next);
     translate: 0 10px;
   }
 
-  /* ── Message box ─────────────────────────────────────────────────────── */
-  .sgf-form {
-    max-width: 266px;
+  /* ── Where to find us ───────────────────────────────────────────────────
+     Four round icon buttons (SocialLinks.astro) on a line of their own,
+     starting at the footer's margin like everything under them. */
+  .sgf-social {
+    grid-column: 1 / -1;
+    letter-spacing: normal;
+    text-transform: none;
   }
 
-  .sgf-lede {
-    display: block;
-    max-width: 232px;
+  .sgf-social :global(.social) {
+    justify-content: flex-start;
   }
 
-  .sgf-field {
-    position: relative;
-    display: flex;
-    align-items: center;
-    margin-top: clamp(18px, 2.2cqw, 26px);
-    padding: 4px 0 5px;
-    border-bottom: 1px solid var(--sgf-ink);
-  }
-
-  /* A second, heavier rule that wipes in while the field has focus. */
-  .sgf-field::after {
-    content: "";
-    position: absolute;
-    right: 0;
-    bottom: -2px;
-    left: 0;
-    height: 2px;
-    background: var(--sgf-accent);
-    transform: scaleX(0);
-    transform-origin: 0 50%;
-    transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-
-  .sgf-field:focus-within::after {
-    transform: scaleX(1);
-  }
-
-  .sgf-field[data-state="error"] {
-    animation: sgf-shake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97);
-  }
-
-  @keyframes sgf-shake {
-    20%,
-    60% {
-      translate: -5px 0;
+  /* Pointing at a button shows its name on a label that reaches 50px below
+     it. This is the room for that label, so it does not land on the links
+     underneath. A touch screen shows no label and needs no room. */
+  @media (hover: hover) {
+    .sgf-social {
+      padding-bottom: 20px;
     }
-    40%,
-    80% {
-      translate: 5px 0;
-    }
-  }
-
-  .sgf-input {
-    flex: 1;
-    min-width: 0;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    outline: none;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    letter-spacing: inherit;
-    text-transform: uppercase;
-    appearance: none;
-  }
-
-  .sgf-input::placeholder {
-    color: var(--sgf-ink);
-    opacity: 1;
-    transition: opacity 0.25s;
-  }
-
-  .sgf-input:focus::placeholder {
-    opacity: 0.4;
-  }
-
-  .sgf-go {
-    display: grid;
-    flex: none;
-    place-items: center;
-    width: 26px;
-    height: 20px;
-    margin-right: -6px;
-  }
-
-  .sgf-go svg {
-    width: 11px;
-    height: 11px;
-    transition: translate 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-
-  .sgf-go:hover svg,
-  .sgf-go:focus-visible svg {
-    translate: 4px 0;
-  }
-
-  .sgf-go:focus-visible {
-    outline: 1px dashed var(--sgf-ink);
-    outline-offset: 1px;
-  }
-
-  .sgf-done {
-    display: flex;
-    flex: 1;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .sgf-done svg {
-    flex: none;
-    width: 12px;
-    height: 12px;
-  }
-
-  .sgf-done button {
-    margin-left: auto;
-    opacity: 0.55;
-    transition: opacity 0.2s;
-  }
-
-  .sgf-done button:hover,
-  .sgf-done button:focus-visible {
-    opacity: 1;
-    outline: none;
-    text-decoration: underline;
-    text-underline-offset: 3px;
-  }
-
-  .sgf-msg {
-    min-height: 1.2em;
-    margin-top: 8px;
-    font-size: 0.86em;
-    opacity: 0.85;
   }
 
   /* ── Links: a mono label, an arrow that walks right, an underline that
@@ -513,18 +379,15 @@ const reachDelays = reach.map(next);
     outline: none;
   }
 
-  /* On a touch screen everything that is tapped is a fingertip tall (44px):
-     the links, the message box, its arrow and "Clear". The link's underline
-     moves up with the text, which now sits in the middle of a taller row.
-
-     The message box is also set at 16px there. Below that size an iPhone
-     zooms the whole page in when the box is tapped and leaves it zoomed. */
+  /* On a touch screen every link is a fingertip tall (44px). The underline
+     moves up with the text, which now sits in the middle of a taller row. */
   @media (pointer: coarse) {
     .sgf-list {
       gap: 0;
     }
 
     .sgf-link {
+      min-width: 44px;
       min-height: 44px;
       padding: 0;
     }
@@ -533,34 +396,28 @@ const reachDelays = reach.map(next);
       bottom: calc(50% - 0.6em - 3px);
     }
 
-    .sgf-input {
-      min-height: 44px;
-      font-size: 16px;
-    }
-
-    .sgf-go {
-      place-items: center end;
-      width: 44px;
-      height: 44px;
-    }
-
-    .sgf-go svg {
-      width: 13px;
-      height: 13px;
-    }
-
-    .sgf-done {
-      min-height: 44px;
-    }
-
-    .sgf-done button {
-      min-height: 44px;
-      padding-inline: 8px;
-    }
   }
 
+  /* The small print: the year and name, the location card, then the other
+     places and the languages, a blank line apart.
+     On a wide footer it stands at the right of its column, next to the
+     contact links (owner's request). Its box is as wide as the card is when
+     open, so the card opens into room that is already there and the lines
+     around it never move sideways. */
   .sgf-copy {
-    white-space: pre-line;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.18em;
+    justify-self: end;
+    width: min(360px, 100%);
+  }
+
+  /* The room under the card is for its hint ("Click to expand"), which
+     appears 9px below it and must not sit on the places listed next. */
+  .sgf-place {
+    max-width: 100%;
+    margin-bottom: 20px;
   }
 
   /* ── The wordmark ────────────────────────────────────────────────────── */
@@ -642,12 +499,11 @@ const reachDelays = reach.map(next);
       grid-column: 1 / -1;
     }
 
+    /* Under the other blocks, and back at the left margin with them. */
     .sgf-copy {
       order: 3;
-    }
-
-    .sgf-form {
-      max-width: 360px;
+      justify-self: start;
+      width: 100%;
     }
   }
 
@@ -676,20 +532,12 @@ const reachDelays = reach.map(next);
 
     .sgf-top {
       row-gap: 28px;
-      padding-top: 56px;
+      padding-top: 5rem;
       padding-inline: 1.25rem;
     }
 
     .sgf-mark {
       padding-inline: 1.25rem;
-    }
-
-    .sgf-form {
-      max-width: none;
-    }
-
-    .sgf-lede {
-      max-width: 30ch;
     }
   }
 
@@ -698,13 +546,10 @@ const reachDelays = reach.map(next);
     .sgf .sgf-fade,
     .sgf .sgf-half,
     .sgf .sgf-link svg,
-    .sgf .sgf-link::after,
-    .sgf .sgf-field::after,
-    .sgf .sgf-go svg {
+    .sgf .sgf-link::after {
       transition: none !important;
     }
 
-    .sgf .sgf-field,
     .sgf .sgf-flip {
       animation: none !important;
     }
@@ -722,8 +567,7 @@ const reachDelays = reach.map(next);
 
 <script>
   // What moves in the footer: the shutter follows the pointer and turns when
-  // clicked, letters flip when clicked, links scramble on hover, and the
-  // message box checks itself before opening WhatsApp.
+  // clicked, letters flip when clicked, and links scramble on hover.
   import { approach, blades, clamp, f, restPivot, scramble } from "@/lib/footer/shutter";
 
   document.querySelectorAll<HTMLElement>("[data-sgf]").forEach((root) => {
@@ -852,53 +696,6 @@ const reachDelays = reach.map(next);
       ).observe(root);
 
       reduce.addEventListener("change", start);
-    }
-
-    // ── The message box ─────────────────────────────────────────────────
-    const form = root.querySelector<HTMLFormElement>(".sgf-form");
-    const field = form?.querySelector<HTMLElement>(".sgf-field");
-    const input = form?.querySelector<HTMLInputElement>(".sgf-input");
-    const go = form?.querySelector<HTMLButtonElement>(".sgf-go");
-    const done = form?.querySelector<HTMLElement>(".sgf-done");
-    const message = form?.querySelector<HTMLElement>(".sgf-msg");
-
-    if (form && field && input && go && done && message) {
-      const show = (state: "idle" | "error" | "done") => {
-        field.dataset.state = state;
-        input.hidden = go.hidden = state === "done";
-        done.hidden = state !== "done";
-        message.textContent = state === "error" ? (form.dataset.empty ?? "") : "";
-        if (state === "error") input.setAttribute("aria-invalid", "true");
-        else input.removeAttribute("aria-invalid");
-      };
-
-      form.addEventListener("submit", (event) => {
-        event.preventDefault();
-        const text = input.value.trim();
-
-        if (!text) {
-          show("error");
-          // Restart the shake so a second empty try shakes again.
-          field.style.animation = "none";
-          void field.offsetWidth;
-          field.style.animation = "";
-          input.focus();
-          return;
-        }
-
-        window.open(`${form.action}?text=${encodeURIComponent(text)}`, "_blank", "noopener");
-        show("done");
-      });
-
-      input.addEventListener("input", () => {
-        if (field.dataset.state === "error") show("idle");
-      });
-
-      done.querySelector("button")?.addEventListener("click", () => {
-        input.value = "";
-        show("idle");
-        input.focus();
-      });
     }
   });
 </script>
