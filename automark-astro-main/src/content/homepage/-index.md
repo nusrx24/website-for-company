@@ -16,24 +16,21 @@ banner:
     link: "#solutions"
 
 ## ABOUT ########################################################################
-# Answers: why does custom software matter?
-# The image sits under the heading. It is a real screenshot of a delivered
-# system, not a mock-up.
+# Communicates the value of customized POS & business systems immediately.
 about:
-  # `<br>` starts a new line in the headline. `&nbsp;` is a space that never
-  # breaks: it keeps "be too." together, so on a phone the last word is not
-  # left on a line by itself.
-  title: "Your business is unique.<br>Your software should be&nbsp;too."
-  # The picture is an illustration supplied by the owner (2026-10-07): a
-  # designed dashboard with sample names and figures, not a client's system.
-  # So the alt text calls it an illustration and the caption names no client.
-  media:
-    image: "/images/about/systems-overview.webp"
-    alt: "An illustration of a business system: a main dashboard surrounded by panels for point of sale, sales, inventory, customers, purchasing, payments and analytics"
-    caption: "From sales and inventory to purchasing, payments and reporting, every system is designed around the needs of the business using it."
-  # One supporting sentence beside the picture.
+  eyebrow: "CUSTOM POS & BUSINESS SOFTWARE"
+  title: "POS SOFTWARE BUILT AROUND YOUR BUSINESS."
   paragraphs:
-    - "We build practical business systems around the way you already work — adapting the software to your operations, not forcing your business into a template."
+    - "We build customized POS systems to help you manage sales, track stock, and handle your daily business operations—all in one place."
+  features:
+    - "Sales & Billing"
+    - "Stock Management"
+    - "Business Reports"
+  supporting: "For retail shops, groceries, restaurants, mobile shops, wholesalers, and more."
+  closing: "A better fit for the way you work."
+  media:
+    image: "/images/about/pos-checkout-system.webp"
+    alt: "Point-of-sale checkout system showing touchscreen billing interface, receipt printer, and barcode scanner"
 
 ## SOLUTIONS ####################################################################
 # Answers: what can LapCircuit build?
@@ -99,6 +96,15 @@ solutions:
         - "Custom build"
         - "Setup + training"
       enquiry: "Hello LapCircuit, I would like a quote for custom business software."
+    - title: "Business Website"
+      content: "A website for your business — your brand, products and services, online for customers to find you."
+      lines:
+        - "Custom design"
+        - "Mobile friendly"
+        - "Domain + hosting"
+      price_prefix: "From"
+      price: "LKR 15,000+"
+      enquiry: "Hello LapCircuit, I would like a quote for a Business Website."
 
 ## WORK #########################################################################
 # Answers: has it been built for real businesses?
@@ -274,9 +280,14 @@ locations:
   # The other places, listed under the card (owner's list, 2026-10-07).
   # Until then the footer listed Eravur, Oddamavadi, Velikanda and Batticaloa.
   places:
+    - "Eravur"
+    - "Oddamavadi"
+    - "Valaichchenai"
+    - "Batticaloa"
     - "Jaffna"
-    - "Vavuniya"
     - "Kilinochchi"
+    - "Mullaitivu"
+    - "Colombo"
   languages:
     - "Tamil"
     - "English"

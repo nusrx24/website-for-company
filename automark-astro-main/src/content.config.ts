@@ -39,13 +39,13 @@ const homepageCollection = defineCollection({
     }),
 
     about: z.object({
+      eyebrow: z.string().optional(),
       // `<br>` starts a new line in the headline.
       title: z.string(),
       paragraphs: z.array(z.string()),
-      // Shown under the heading. At the owner's choice (2026-10-07) this is
-      // an illustration of a system with sample figures rather than a real
-      // screenshot, so its caption and alt text must not present it as a
-      // client's own system or its numbers as real.
+      features: z.array(z.string()).optional(),
+      supporting: z.string().optional(),
+      closing: z.string().optional(),
       media: z
         .object({
           image: z.string(),

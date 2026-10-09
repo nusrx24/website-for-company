@@ -2,16 +2,12 @@
 import LocationCard from "@/components/LocationCard.astro";
 import SocialLinks from "@/components/SocialLinks.astro";
 import config from "@/config/config.json";
-import menu from "@/config/menu.json";
-import social from "@/config/social.json";
 import { getListPage } from "@/lib/contentParser.astro";
 import { CAP, glyphOf, layout } from "@/lib/footer/glyphs";
 import { SHUTTER, blades, f, restPivot } from "@/lib/footer/shutter";
-import { contact, mailtoUrl, telUrl, whatsappUrl } from "@/lib/utils/contact";
-import type { Menu, SocialType } from "@/types";
 
 // The closing section: a dark slate block set in monospace capitals. It opens
-// with the four places to find us (Facebook, LinkedIn, WhatsApp, Email), and
+// with the places to find us, and
 // ends with the company name across the full width in a drawn, geometric
 // alphabet. One
 // letter is swapped for a "shutter" - three blue blades that meet at a pivot,
@@ -28,64 +24,21 @@ const SHUTTER_AT = 7;
 const { items, width } = layout(WORD, SHUTTER_AT);
 const rest = restPivot(0);
 
-// No legal links: the template's privacy and terms pages were Lorem Ipsum and
-// have been removed. Add real ones before publishing anything that collects
-// personal data.
-const { footer } = menu as Menu;
-const navigate = footer.map((item) => ({ label: item.name, href: item.url }));
-
-// Every way to reach the company. A social entry shows only once it has a
-// real profile link in social.json.
-const reach = [
-  { label: "WhatsApp", href: whatsappUrl() },
-  { label: contact.phoneDisplay, href: telUrl },
-  { label: contact.email, href: mailtoUrl("Software enquiry") },
-  ...(social as SocialType).main
-    .filter((item) => item.link)
-    .map((item) => ({ label: item.name, href: item.link })),
-];
-
 const { data } = await getListPage("homepage", "-index");
 // The small print: the main place as a card, the other places under it.
 const { card, places, languages } = data.locations;
 
 const year = new Date().getFullYear();
 
-const external = (href: string) =>
-  /^https?:/.test(href) ? { target: "_blank", rel: "noopener noreferrer" } : {};
-
-// The top row fades in piece by piece, 60ms apart, in reading order.
+// Elements fade in piece by piece in reading order.
 let step = 0;
 const next = () => `--sgf-d:${(step += 60)}ms`;
-const socialDelay = next();
-const navigateDelays = navigate.map(next);
 const smallDelay = next();
-const reachDelays = reach.map(next);
+const socialDelay = next();
 ---
 
 <footer class="sgf" data-sgf data-in="true">
   <div class="sgf-top">
-    {/* Where else to find us, first. Pointing at a name raises its icon. */}
-    <div class="sgf-social sgf-fade" style={socialDelay}>
-      <SocialLinks />
-    </div>
-
-    <nav aria-label="Footer">
-      <ul class="sgf-list sgf-list--pair">
-        {
-          navigate.map((link, i) => (
-            <li class="sgf-fade" style={navigateDelays[i]}>
-              <a class="sgf-link" href={link.href} aria-label={link.label}>
-                <span data-label aria-hidden="true">{link.label}</span>
-                <svg viewBox="0 0 12 12" aria-hidden="true">
-                  <path d="M1 6h9.2M6.4 2.2 10.2 6l-3.8 3.8" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="square" />
-                </svg>
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </nav>
 
     <div class="sgf-copy sgf-fade" style={smallDelay}>
       <p>© {year}<br />{config.site.title}</p>
@@ -107,27 +60,9 @@ const reachDelays = reach.map(next);
       </div>
     </div>
 
-    <nav aria-label="Contact">
-      <ul class="sgf-list">
-        {
-          reach.map((link, i) => (
-            <li class="sgf-fade" style={reachDelays[i]}>
-              <a
-                class="sgf-link"
-                href={link.href}
-                aria-label={link.label}
-                {...external(link.href)}
-              >
-                <span data-label aria-hidden="true">{link.label}</span>
-                <svg viewBox="0 0 12 12" aria-hidden="true">
-                  <path d="M1 6h9.2M6.4 2.2 10.2 6l-3.8 3.8" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="square" />
-                </svg>
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-    </nav>
+    <div class="sgf-social sgf-fade" style={socialDelay}>
+      <SocialLinks />
+    </div>
   </div>
 
   <div class="sgf-mark">
@@ -282,14 +217,14 @@ const reachDelays = reach.map(next);
   }
 
   /* ── Top row ───────────────────────────────────────────────────────────
-     The four social buttons have a line of their own, the full width. Below
-     them: the page links, the small print and the contact links. */
+     Location info on the left, social media icon buttons on the right. */
   .sgf-top {
     box-sizing: border-box;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
-    column-gap: 24px;
-    row-gap: 36px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: clamp(40px, 8cqw, 100px);
+    flex-wrap: wrap;
     padding: clamp(64px, 11.5cqw, 150px) clamp(16px, 2.6cqw, 40px) 0;
   }
 
@@ -305,10 +240,8 @@ const reachDelays = reach.map(next);
   }
 
   /* ── Where to find us ───────────────────────────────────────────────────
-     Four round icon buttons (SocialLinks.astro) on a line of their own,
-     starting at the footer's margin like everything under them. */
+     Four round icon buttons (SocialLinks.astro) placed alongside the location. */
   .sgf-social {
-    grid-column: 1 / -1;
     letter-spacing: normal;
     text-transform: none;
   }
@@ -317,98 +250,20 @@ const reachDelays = reach.map(next);
     justify-content: flex-start;
   }
 
-  /* Pointing at a button shows its name on a label that reaches 50px below
-     it. This is the room for that label, so it does not land on the links
-     underneath. A touch screen shows no label and needs no room. */
+  /* Room for hover label below icon buttons */
   @media (hover: hover) {
     .sgf-social {
-      padding-bottom: 20px;
+      padding-bottom: 24px;
     }
-  }
-
-  /* ── Links: a mono label, an arrow that walks right, an underline that
-        wipes in ───────────────────────────────────────────────────────── */
-  .sgf-list {
-    display: flex;
-    flex-direction: column;
-    gap: clamp(5px, 0.6cqw, 7px);
-  }
-
-  .sgf-link {
-    position: relative;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.65em;
-    padding: 1px 0;
-    white-space: nowrap;
-  }
-
-  .sgf-link::after {
-    content: "";
-    position: absolute;
-    right: 1.6em;
-    bottom: -2px;
-    left: 0;
-    height: 1px;
-    background: currentColor;
-    transform: scaleX(0);
-    transform-origin: 100% 50%;
-    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-
-  .sgf-link:hover::after,
-  .sgf-link:focus-visible::after {
-    transform: scaleX(1);
-    transform-origin: 0 50%;
-  }
-
-  .sgf-link svg {
-    flex: none;
-    width: 0.8em;
-    height: 0.8em;
-    transition: translate 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
-  }
-
-  .sgf-link:hover svg,
-  .sgf-link:focus-visible svg {
-    translate: 5px 0;
-  }
-
-  .sgf-link:focus-visible {
-    outline: none;
-  }
-
-  /* On a touch screen every link is a fingertip tall (44px). The underline
-     moves up with the text, which now sits in the middle of a taller row. */
-  @media (pointer: coarse) {
-    .sgf-list {
-      gap: 0;
-    }
-
-    .sgf-link {
-      min-width: 44px;
-      min-height: 44px;
-      padding: 0;
-    }
-
-    .sgf-link::after {
-      bottom: calc(50% - 0.6em - 3px);
-    }
-
   }
 
   /* The small print: the year and name, the location card, then the other
-     places and the languages, a blank line apart.
-     On a wide footer it stands at the right of its column, next to the
-     contact links (owner's request). Its box is as wide as the card is when
-     open, so the card opens into room that is already there and the lines
-     around it never move sideways. */
+     places and the languages. */
   .sgf-copy {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     gap: 1.18em;
-    justify-self: end;
     width: min(360px, 100%);
   }
 
@@ -488,36 +343,10 @@ const reachDelays = reach.map(next);
   }
 
   /* ── Narrower footers ────────────────────────────────────────────────── */
-  @container (max-width: 760px) {
+  @container (max-width: 640px) {
     .sgf-top {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-    }
-
-    .sgf-top > :first-child,
-    .sgf-top > .sgf-copy {
-      grid-column: 1 / -1;
-    }
-
-    /* Under the other blocks, and back at the left margin with them. */
-    .sgf-copy {
-      order: 3;
-      justify-self: start;
-      width: 100%;
-    }
-  }
-
-  /* One column a little earlier than the source design (460px, not 420px),
-     so the email address always has room on one line. */
-  @container (max-width: 460px) {
-    .sgf-top {
-      grid-template-columns: minmax(0, 1fr);
-    }
-
-    /* The page links are short, so they pair up and take half the rows. */
-    .sgf-list--pair {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      column-gap: 24px;
+      flex-direction: column;
+      gap: 32px;
     }
   }
 
