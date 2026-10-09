@@ -215,38 +215,38 @@ projects:
     - name: "Origin Design & Construction"
       logo: "/images/clients/origin-design-construction.webp"
 
-    # ── Customers who have not supplied a logo ────────────────────────────
-    # The owner asked for a logo to be drawn for each of these (2026-10-07).
-    # Every file in placeholder-logos/ was designed for this page from the
-    # business's name and trade alone: it is NOT the logo that business
-    # uses. When the real logo arrives, put it in public/images/clients/ and
-    # point `logo` at it. Names are as the owner gave them: check each
-    # against the business's own sign before going live.
+    - name: "Hanz Scento"
+      logo: "/images/clients/hanz-scento.webp"
+
+    - name: "Lumera Boutique"
+      logo: "/images/clients/lumera-boutique.webp"
+
+    - name: "Baby Shopz"
+      logo: "/images/clients/baby-shopz.webp"
+
+    - name: "RSP Electrics"
+      logo: "/images/clients/rsp-electrics.webp"
+
+    - name: "Happy Corner"
+      logo: "/images/clients/happy-corner.webp"
+
+    - name: "S&Z Financial"
+      logo: "/images/clients/sz-financial.webp"
+
+    - name: "Y2K Rice Port"
+      logo: "/images/clients/y2k-rice-port.webp"
+
     - name: "Extra Restaurant"
-      logo: "/images/clients/placeholder-logos/extra-restaurant.webp"
-
-    - name: "Delight Cafe"
-      logo: "/images/clients/placeholder-logos/delight-cafe.webp"
-
-    - name: "Ameen Book Shop"
-      logo: "/images/clients/placeholder-logos/ameen-book-shop.webp"
+      logo: "/images/clients/extra-restaurant.webp"
 
     - name: "AM Burger Shop"
-      logo: "/images/clients/placeholder-logos/am-burger-shop.webp"
+      logo: "/images/clients/am-burger-shop.webp"
 
-    - name: "Opera Bakery"
-      logo: "/images/clients/placeholder-logos/opera-bakery.webp"
+    - name: "Apex Auto Care"
+      logo: "/images/clients/apex-auto-care.webp"
 
-    - name: "Mega Sale Mobile"
-      logo: "/images/clients/placeholder-logos/mega-sale-mobile.webp"
 
-    - name: "IFA Mobile Shop"
-      logo: "/images/clients/placeholder-logos/ifa-mobile-shop.webp"
 
-    # Given by the owner as "vehicle booking center in eravur": it may be a
-    # description rather than the business's name. Confirm with the owner.
-    - name: "Vehicle Booking Center, Eravur"
-      logo: "/images/clients/placeholder-logos/vehicle-booking-center.webp"
 
 ## FINAL CTA ####################################################################
 # The closing statement. `<br>` starts a new line in the headline.
