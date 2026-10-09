@@ -220,15 +220,9 @@
     align-items: center;
   }
 
-  /* Centred on the bar rather than packed against the button, so the bar
-     stays balanced whether or not the button is showing. */
+  /* Centred navigation is now rendered by the 3D Adaptive NavPill */
   .site-nav__list {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    display: flex;
-    gap: 2.25rem;
-    transform: translate(-50%, -50%);
+    display: none;
   }
 
   .site-nav__link {

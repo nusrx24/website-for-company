@@ -117,7 +117,7 @@ projects:
   content: "See the businesses we’ve worked with, completed projects, customer success stories, and ongoing solutions on our Facebook page."
   link:
     label: "Visit our Facebook page"
-    href: "https://www.facebook.com/lapcircuit"
+    href: "https://www.facebook.com/share/1DG333Txap/"
   # Shown under the logos. This is the owner's own count of customers (given
   # 2026-10-07) and the one number on the page: only the owner changes it,
   # and it must stay true.

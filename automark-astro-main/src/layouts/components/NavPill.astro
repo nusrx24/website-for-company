@@ -1,0 +1,595 @@
+---
+import menu from "@/config/menu.json";
+import type { Menu } from "@/types";
+
+const { main } = menu as Menu;
+const defaultSection = main[0];
+---
+
+<div class="nav-pill-wrapper" data-nav-pill-wrapper>
+  <nav
+    class="nav-pill"
+    data-nav-pill
+    aria-label="Section navigation"
+    aria-expanded="false"
+  >
+    {/* ── 3D Specular & Glass Lighting Layers ── */}
+    <div class="nav-pill__ridge" aria-hidden="true"></div>
+    <div class="nav-pill__hemi" aria-hidden="true"></div>
+    <div class="nav-pill__dirlight" aria-hidden="true"></div>
+    <div class="nav-pill__gloss-main" aria-hidden="true"></div>
+    <div class="nav-pill__gloss-sec" aria-hidden="true"></div>
+    <div class="nav-pill__edge-left" aria-hidden="true"></div>
+    <div class="nav-pill__edge-right" aria-hidden="true"></div>
+    <div class="nav-pill__bottom-curve" aria-hidden="true"></div>
+    <div class="nav-pill__bottom-shadow" aria-hidden="true"></div>
+    <div class="nav-pill__glow" aria-hidden="true"></div>
+    <div class="nav-pill__rim" aria-hidden="true"></div>
+
+    {/* ── Collapsed State (Active section display) ── */}
+    <div class="nav-pill__collapsed" data-pill-collapsed>
+      <span class="nav-pill__active-label" data-pill-active-label>
+        {defaultSection.name}
+      </span>
+    </div>
+
+    {/* ── Expanded State (All sections list) ── */}
+    <ul class="nav-pill__expanded" data-pill-expanded role="list">
+      {
+        main.map((item, index) => {
+          const sectionId = item.url.replace(/^\/?#/, "");
+          return (
+            <li class="nav-pill__item" style={`--item-delay: ${index * 0.04}s;`}>
+              <a
+                class:list={["nav-pill__link", { "is-active": index === 0 }]}
+                href={item.url}
+                data-section-id={sectionId}
+              >
+                {item.name}
+              </a>
+            </li>
+          );
+        })
+      }
+    </ul>
+  </nav>
+</div>
+
+<script>
+  function initNavPill() {
+    const wrapper = document.querySelector<HTMLElement>("[data-nav-pill-wrapper]");
+    const pill = document.querySelector<HTMLElement>("[data-nav-pill]");
+    if (!pill || !wrapper) return;
+
+    const labelEl = pill.querySelector<HTMLElement>("[data-pill-active-label]");
+    const links = pill.querySelectorAll<HTMLAnchorElement>(".nav-pill__link");
+
+    let isExpanded = false;
+    let isHovering = false;
+    let isProgrammatic = false;
+    let hoverTimeout: number | null = null;
+    let programTimeout: number | null = null;
+    let activeSection = links[0]?.dataset.sectionId || "about";
+
+    function setExpanded(expanded: boolean) {
+      if (isExpanded === expanded) return;
+      isExpanded = expanded;
+      pill.classList.toggle("is-expanded", expanded);
+      pill.setAttribute("aria-expanded", String(expanded));
+    }
+
+    wrapper.addEventListener("mouseenter", () => {
+      isHovering = true;
+      if (hoverTimeout) clearTimeout(hoverTimeout);
+      setExpanded(true);
+    });
+
+    wrapper.addEventListener("mouseleave", () => {
+      isHovering = false;
+      if (hoverTimeout) clearTimeout(hoverTimeout);
+      hoverTimeout = window.setTimeout(() => {
+        if (!isHovering) setExpanded(false);
+      }, 550);
+    });
+
+    pill.addEventListener("click", (e) => {
+      if (!isExpanded && !(e.target as HTMLElement).closest(".nav-pill__link")) {
+        setExpanded(true);
+      }
+    });
+
+    pill.addEventListener("focusin", () => {
+      setExpanded(true);
+    });
+
+    pill.addEventListener("focusout", (e) => {
+      if (!pill.contains(e.relatedTarget as Node)) {
+        setExpanded(false);
+      }
+    });
+
+    function updateActiveState(sectionId: string, newLabel?: string) {
+      if (activeSection === sectionId && !newLabel) return;
+      activeSection = sectionId;
+
+      links.forEach((link) => {
+        const matches = link.dataset.sectionId === sectionId;
+        link.classList.toggle("is-active", matches);
+      });
+
+      if (labelEl) {
+        const text =
+          newLabel ||
+          Array.from(links).find((l) => l.dataset.sectionId === sectionId)?.textContent?.trim();
+        if (text && labelEl.textContent?.trim() !== text) {
+          labelEl.classList.add("is-changing");
+          setTimeout(() => {
+            labelEl.textContent = text;
+            labelEl.classList.remove("is-changing");
+          }, 140);
+        }
+      }
+    }
+
+    // Handle clicks
+    links.forEach((link) => {
+      link.addEventListener("click", (e) => {
+        const sectionId = link.dataset.sectionId;
+        if (!sectionId) return;
+
+        const targetEl = document.getElementById(sectionId);
+        if (targetEl) {
+          // In-page smooth scroll on homepage
+          e.preventDefault();
+          isProgrammatic = true;
+          if (programTimeout) clearTimeout(programTimeout);
+
+          updateActiveState(sectionId, link.textContent?.trim());
+          targetEl.scrollIntoView({ behavior: "smooth" });
+          history.pushState(null, "", `#${sectionId}`);
+
+          // Unlock scrollspy after scroll finishes
+          programTimeout = window.setTimeout(() => {
+            isProgrammatic = false;
+          }, 850);
+        }
+
+        isHovering = false;
+        setExpanded(false);
+      });
+    });
+
+    // Check URL hash on initial load
+    if (window.location.hash) {
+      const hashId = window.location.hash.replace("#", "");
+      const match = Array.from(links).find((l) => l.dataset.sectionId === hashId);
+      if (match) {
+        updateActiveState(hashId, match.textContent?.trim());
+      }
+    }
+
+    // ScrollSpy based on offset positions (robust on all screen sizes)
+    const sectionIds = Array.from(links)
+      .map((l) => l.dataset.sectionId)
+      .filter((id): id is string => Boolean(id));
+
+    const sectionElements = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => el !== null);
+
+    if (sectionElements.length > 0) {
+      let ticking = false;
+
+      function onScroll() {
+        if (isProgrammatic) return;
+
+        const scrollY = window.scrollY;
+        const viewportHeight = window.innerHeight;
+        const docHeight = document.documentElement.scrollHeight;
+
+        // Bottom of page: always highlight Contact
+        if (scrollY + viewportHeight >= docHeight - 80) {
+          const lastId = sectionIds[sectionIds.length - 1];
+          if (lastId) updateActiveState(lastId);
+          return;
+        }
+
+        // Top of page: before reaching second section, highlight first section
+        const triggerLine = scrollY + 160;
+        let currentId = sectionElements[0].id;
+
+        for (let i = 0; i < sectionElements.length; i++) {
+          const el = sectionElements[i];
+          if (el.offsetTop <= triggerLine) {
+            currentId = el.id;
+          } else {
+            break;
+          }
+        }
+
+        updateActiveState(currentId);
+      }
+
+      window.addEventListener(
+        "scroll",
+        () => {
+          if (!ticking) {
+            requestAnimationFrame(() => {
+              onScroll();
+              ticking = false;
+            });
+            ticking = true;
+          }
+        },
+        { passive: true }
+      );
+
+      // Run once after fonts/layout ready
+      requestAnimationFrame(onScroll);
+    }
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initNavPill);
+  } else {
+    initNavPill();
+  }
+</script>
+
+<style>
+  /* ── 3D Transparent Glassmorphic Navigation Pill ── */
+  .nav-pill-wrapper {
+    display: none;
+  }
+
+  @media (min-width: 900px) {
+    .nav-pill-wrapper {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      padding: 6px 12px;
+    }
+  }
+
+  .nav-pill {
+    position: relative;
+    width: 140px;
+    height: 52px;
+    border-radius: 9999px;
+    overflow: hidden;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    /* Frosted glass translucent body */
+    background: rgba(13, 19, 32, 0.58);
+    backdrop-filter: blur(24px) saturate(190%);
+    -webkit-backdrop-filter: blur(24px) saturate(190%);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow:
+      0 4px 16px rgba(0, 0, 0, 0.4),
+      0 12px 36px rgba(0, 0, 0, 0.48),
+      inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.35),
+      inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.45),
+      inset 1px 1px 4px 0 rgba(255, 255, 255, 0.08);
+    transition:
+      width 0.42s cubic-bezier(0.34, 1.35, 0.64, 1),
+      box-shadow 0.3s ease-out,
+      border-color 0.3s ease;
+  }
+
+  .nav-pill.is-expanded {
+    width: 520px;
+    background: rgba(11, 17, 28, 0.74);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow:
+      0 8px 28px rgba(0, 0, 0, 0.5),
+      0 20px 48px rgba(0, 0, 0, 0.58),
+      inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.45),
+      inset 0 -2px 4px 0 rgba(0, 0, 0, 0.5),
+      inset 1px 1px 6px 0 rgba(255, 255, 255, 0.12);
+  }
+
+  /* ── 3D Specular Light Layers (Glass Refraction) ── */
+  .nav-pill__ridge {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 2px;
+    border-radius: 9999px 9999px 0 0;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.35) 10%,
+      rgba(255, 255, 255, 0.75) 30%,
+      rgba(255, 255, 255, 0.9) 50%,
+      rgba(255, 255, 255, 0.75) 70%,
+      rgba(255, 255, 255, 0.35) 90%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    filter: blur(0.2px);
+  }
+
+  .nav-pill__hemi {
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 52%;
+    border-radius: 9999px;
+    pointer-events: none;
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0.15) 0%,
+      rgba(255, 255, 255, 0.04) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+  }
+
+  .nav-pill__dirlight {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    pointer-events: none;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.15) 0%,
+      rgba(255, 255, 255, 0.03) 30%,
+      rgba(255, 255, 255, 0) 65%
+    );
+  }
+
+  .nav-pill__gloss-main {
+    position: absolute;
+    left: 14%;
+    top: 15%;
+    width: 60px;
+    height: 14px;
+    border-radius: 9999px;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse at center,
+      rgba(255, 255, 255, 0.32) 0%,
+      rgba(255, 255, 255, 0.1) 45%,
+      rgba(255, 255, 255, 0) 75%
+    );
+    filter: blur(4px);
+    transform: rotate(-12deg);
+    transition: all 0.35s ease;
+  }
+
+  .nav-pill.is-expanded .nav-pill__gloss-main {
+    left: 18%;
+    width: 140px;
+  }
+
+  .nav-pill__gloss-sec {
+    position: absolute;
+    right: 22%;
+    top: 18%;
+    width: 80px;
+    height: 10px;
+    border-radius: 9999px;
+    pointer-events: none;
+    background: radial-gradient(
+      ellipse at center,
+      rgba(255, 255, 255, 0.22) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0) 80%
+    );
+    filter: blur(3px);
+    transform: rotate(8deg);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .nav-pill.is-expanded .nav-pill__gloss-sec {
+    opacity: 1;
+  }
+
+  .nav-pill__edge-left {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 35%;
+    border-radius: 9999px 0 0 9999px;
+    pointer-events: none;
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.12) 0%,
+      rgba(255, 255, 255, 0.03) 40%,
+      transparent 100%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .nav-pill.is-expanded .nav-pill__edge-left {
+    opacity: 1;
+  }
+
+  .nav-pill__edge-right {
+    position: absolute;
+    inset: 0 0 0 auto;
+    width: 35%;
+    border-radius: 0 9999px 9999px 0;
+    pointer-events: none;
+    background: linear-gradient(
+      270deg,
+      rgba(0, 0, 0, 0.25) 0%,
+      rgba(0, 0, 0, 0.06) 40%,
+      transparent 100%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .nav-pill.is-expanded .nav-pill__edge-right {
+    opacity: 1;
+  }
+
+  .nav-pill__bottom-curve {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 50%;
+    border-radius: 0 0 9999px 9999px;
+    pointer-events: none;
+    background: linear-gradient(
+      0deg,
+      rgba(0, 0, 0, 0.28) 0%,
+      rgba(0, 0, 0, 0.08) 35%,
+      transparent 100%
+    );
+  }
+
+  .nav-pill__bottom-shadow {
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 20%;
+    border-radius: 0 0 9999px 9999px;
+    pointer-events: none;
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.35) 0%, transparent 100%);
+    filter: blur(2px);
+  }
+
+  .nav-pill__glow {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    pointer-events: none;
+    box-shadow: inset 0 0 25px rgba(255, 255, 255, 0.05);
+    opacity: 0.8;
+  }
+
+  .nav-pill__rim {
+    position: absolute;
+    inset: 0;
+    border-radius: 9999px;
+    pointer-events: none;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  }
+
+  /* ── Mutually Exclusive Content Views ── */
+  .nav-pill__collapsed {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 16px;
+    z-index: 5;
+    width: 100%;
+    height: 100%;
+  }
+
+  .nav-pill.is-expanded .nav-pill__collapsed {
+    display: none !important;
+  }
+
+  .nav-pill__active-label {
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+    font-size: 15.5px;
+    font-weight: 650;
+    color: #ffffff;
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-shadow:
+      0 0 12px rgba(255, 255, 255, 0.35),
+      0 1px 3px rgba(0, 0, 0, 0.85);
+    transition:
+      opacity 0.14s ease,
+      transform 0.14s ease;
+  }
+
+  .nav-pill__active-label.is-changing {
+    opacity: 0;
+    transform: translateY(5px);
+    filter: blur(2px);
+  }
+
+  .nav-pill__expanded {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    margin: 0;
+    padding: 0 10px;
+    list-style: none;
+    z-index: 5;
+    width: 100%;
+    height: 100%;
+  }
+
+  .nav-pill:not(.is-expanded) .nav-pill__expanded {
+    display: none !important;
+  }
+
+  .nav-pill.is-expanded .nav-pill__item {
+    display: flex;
+    align-items: center;
+    animation: pillItemFadeIn 0.22s ease-out forwards;
+    animation-delay: var(--item-delay, 0s);
+  }
+
+  @keyframes pillItemFadeIn {
+    from {
+      opacity: 0;
+      transform: translateX(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .nav-pill__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 12px;
+    border-radius: 9999px;
+    border: 1px solid transparent;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif;
+    font-size: 14.5px;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    letter-spacing: 0.35px;
+    white-space: nowrap;
+    outline: none;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.7);
+    transition:
+      color 0.18s ease,
+      background-color 0.18s ease,
+      border-color 0.18s ease,
+      text-shadow 0.18s ease;
+  }
+
+  .nav-pill__link:hover {
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
+    text-shadow:
+      0 0 10px rgba(255, 255, 255, 0.35),
+      0 1px 2px rgba(0, 0, 0, 0.8);
+  }
+
+  .nav-pill__link.is-active {
+    font-weight: 650;
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.22);
+    box-shadow:
+      0 2px 8px rgba(0, 0, 0, 0.3),
+      inset 0 1px 1px rgba(255, 255, 255, 0.3);
+    text-shadow:
+      0 0 12px rgba(255, 255, 255, 0.4),
+      0 1px 2px rgba(0, 0, 0, 0.85);
+  }
+</style>

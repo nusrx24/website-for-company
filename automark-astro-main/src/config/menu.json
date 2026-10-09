@@ -1,15 +1,17 @@
 {
   "_comment": "The site is a single page, so navigation points at section anchors on the homepage. When a real second page is added, give it a path here.",
   "main": [
-    { "name": "Solutions", "url": "/#solutions" },
-    { "name": "Work", "url": "/#work" },
     { "name": "About", "url": "/#about" },
+    { "name": "Solutions", "url": "/#solutions" },
+    { "name": "Websites", "url": "/#websites" },
+    { "name": "Work", "url": "/#work" },
     { "name": "Contact", "url": "/#contact" }
   ],
   "footer": [
-    { "name": "Solutions", "url": "/#solutions" },
-    { "name": "Work", "url": "/#work" },
     { "name": "About", "url": "/#about" },
+    { "name": "Solutions", "url": "/#solutions" },
+    { "name": "Websites", "url": "/#websites" },
+    { "name": "Work", "url": "/#work" },
     { "name": "Contact", "url": "/#contact" }
   ]
 }

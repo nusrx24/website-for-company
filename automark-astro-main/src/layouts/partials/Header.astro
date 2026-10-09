@@ -1,5 +1,6 @@
 ---
 import Logo from "@/components/Logo.astro";
+import NavPill from "@/components/NavPill.astro";
 import config from "@/config/config.json";
 import menu from "@/config/menu.json";
 import { contact, telUrl, whatsappUrl } from "@/lib/utils/contact";
@@ -12,6 +13,9 @@ const { navigation_button } = config;
 <header class="site-header">
   <div class="wrap site-header__bar">
     <Logo />
+
+    {/* 3D Adaptive Navigation Pill (Desktop) */}
+    <NavPill />
 
     {/* A real (visually hidden) checkbox, so the menu stays keyboard reachable
         and opens without JavaScript. */}
