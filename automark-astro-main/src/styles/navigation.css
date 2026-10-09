@@ -125,6 +125,7 @@
     background-color: var(--color-body);
     visibility: hidden;
     opacity: 0;
+    pointer-events: none;
     transition:
       opacity 0.2s ease,
       visibility 0s linear 0.2s;
@@ -133,6 +134,7 @@
   #nav-toggle:checked ~ .site-nav {
     visibility: visible;
     opacity: 1;
+    pointer-events: auto;
     transition:
       opacity 0.2s ease,
       visibility 0s;

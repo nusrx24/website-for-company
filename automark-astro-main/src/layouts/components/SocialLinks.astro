@@ -128,9 +128,15 @@ const external = (href: string) =>
     background-color: var(--social-ground);
     color: var(--social-icon);
     text-decoration: none;
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+    -webkit-user-select: none;
+    transform: translateZ(0);
     transition:
-      color 0.3s ease-in-out,
-      box-shadow 0.3s ease-in-out;
+      color 0.25s ease-in-out,
+      box-shadow 0.25s ease-in-out,
+      transform 0.15s ease-in-out;
     -webkit-tap-highlight-color: transparent;
   }
 
@@ -142,7 +148,8 @@ const external = (href: string) =>
     width: 100%;
     height: 0;
     background-color: var(--social-fill);
-    transition: height 0.3s ease-in-out;
+    pointer-events: none;
+    transition: height 0.25s ease-in-out;
   }
 
   .social__icon {
@@ -151,6 +158,7 @@ const external = (href: string) =>
     display: block;
     width: 1.75rem;
     height: 1.75rem;
+    pointer-events: none;
   }
 
   /* The name, on a label under the circle. It starts 8px below the circle
@@ -223,47 +231,19 @@ const external = (href: string) =>
       visibility 0s;
   }
 
-  /* Pressed with a mouse. */
+  /* Pressed state (mouse click and mobile touch) */
   .social__link:active {
     color: #fff;
+    transform: scale(0.92);
   }
 
   .social__link:active .social__fill {
     height: 100%;
-  }
-
-  /* Touched. A finger has nothing to point with, and a tap is over in a
-     tenth of a second, so the script below marks the button as pressed and
-     the circle fills quickly: the answer to the tap is seen before the link
-     opens. (Phones do not all apply :active to a touched link.) */
-  .social__link.is-pressed {
-    color: #fff;
-  }
-
-  .social__link.is-pressed .social__fill {
-    height: 100%;
-    transition-duration: 0.12s;
+    transition-duration: 0.1s;
   }
 </style>
 
 <script>
-  // On a touch screen, fill the circle the moment it is touched and keep it
-  // filled for a quarter of a second after the finger lifts.
-  document.querySelectorAll<HTMLAnchorElement>(".social__link").forEach((link) => {
-    let release = 0;
-
-    const lift = () => {
-      window.clearTimeout(release);
-      release = window.setTimeout(() => link.classList.remove("is-pressed"), 250);
-    };
-
-    link.addEventListener("pointerdown", (event) => {
-      if (event.pointerType === "mouse") return;
-      window.clearTimeout(release);
-      link.classList.add("is-pressed");
-    });
-    link.addEventListener("pointerup", lift);
-    link.addEventListener("pointercancel", lift);
-    link.addEventListener("pointerleave", lift);
-  });
+  // Ensure instant :active response and clean touch tap navigation on mobile Safari / WebKit
+  document.addEventListener("touchstart", () => {}, { passive: true });
 </script>
