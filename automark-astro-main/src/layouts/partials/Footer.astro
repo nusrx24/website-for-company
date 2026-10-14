@@ -7,7 +7,7 @@ import { CAP, glyphOf, layout } from "@/lib/footer/glyphs";
 import { SHUTTER, blades, f, restPivot } from "@/lib/footer/shutter";
 
 // The closing section: a dark slate block set in monospace capitals. It opens
-// with the places to find us, and
+// with the places to find us and the team's four roles, and
 // ends with the company name across the full width in a drawn, geometric
 // alphabet. One
 // letter is swapped for a "shutter" - three blue blades that meet at a pivot,
@@ -30,11 +30,36 @@ const { card, places, languages } = data.locations;
 
 const year = new Date().getFullYear();
 
+// Our Team: four roles, two by two, on the right of the top row. Change a
+// name or its line here; `icon` is one of TEAM_ICONS below.
+const team = {
+  title: "Our Team",
+  roles: [
+    { name: "Leadership", text: "Company direction and strategy.", icon: "compass" },
+    { name: "Technology", text: "Software development and innovation.", icon: "code" },
+    { name: "Operations", text: "Project delivery and coordination.", icon: "workflow" },
+    { name: "Business Development", text: "Customer relationships and growth.", icon: "growth" },
+  ],
+};
+
+// Line icons on a 24x24 grid, drawn like the site's other icons (round
+// strokes, coloured by the text): compass, code brackets, two linked steps,
+// a rising line.
+const TEAM_ICONS: Record<string, string> = {
+  compass:
+    '<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>',
+  code: '<polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/>',
+  workflow:
+    '<rect x="3" y="3" width="8" height="8" rx="2"/><path d="M7 11v4a2 2 0 0 0 2 2h4"/><rect x="13" y="13" width="8" height="8" rx="2"/>',
+  growth: '<polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/>',
+};
+
 // Elements fade in piece by piece in reading order.
 let step = 0;
 const next = () => `--sgf-d:${(step += 60)}ms`;
 const smallDelay = next();
 const socialDelay = next();
+const teamDelay = next();
 ---
 
 <footer id="contact" class="sgf" data-sgf data-in="true">
@@ -54,14 +79,41 @@ const socialDelay = next();
           </div>
         )
       }
+      {/* The space before each dot does not break, so a line never starts
+          with one. */}
       <div class="sgf-lines">
-        {places.length > 0 && <p>{places.join(" · ")}</p>}
-        {languages.length > 0 && <p>{languages.join(" · ")}</p>}
+        {places.length > 0 && <p>{places.join(" · ")}</p>}
+        {languages.length > 0 && <p>{languages.join(" · ")}</p>}
       </div>
     </div>
 
     <div class="sgf-social sgf-fade" style={socialDelay}>
       <SocialLinks />
+    </div>
+
+    <div class="sgf-team sgf-fade" style={teamDelay}>
+      <h2 class="sgf-team__title">{team.title}</h2>
+      <ul class="sgf-team__list">
+        {
+          team.roles.map((role) => (
+            <li class="sgf-team__role">
+              <svg
+                class="sgf-team__icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.75"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                aria-hidden="true"
+                set:html={TEAM_ICONS[role.icon] ?? ""}
+              />
+              <p class="sgf-team__name">{role.name}</p>
+              <p class="sgf-team__text">{role.text}</p>
+            </li>
+          ))
+        }
+      </ul>
     </div>
   </div>
 
@@ -160,8 +212,9 @@ const socialDelay = next();
   /* Colours. These four lines are the whole footer's palette.
      The block is the site's dark slate - the colour of its panels and cards -
      a touch lighter along its top edge, and everything on it is printed in
-     the site's off-white. Blue is kept for one thing only: the one letter
-     that moves (the shutter). All four are colours from theme.json. */
+     the site's off-white. Blue is kept for the one letter that moves (the
+     shutter) and the team's four small icons. All four are colours from
+     theme.json. */
   .sgf {
     --sgf-bg: var(--color-light);
     --sgf-top: color-mix(in srgb, var(--color-light) 97%, #fff);
@@ -217,7 +270,8 @@ const socialDelay = next();
   }
 
   /* ── Top row ───────────────────────────────────────────────────────────
-     Location info on the left, social media icon buttons on the right. */
+     Location info on the left, social media icon buttons beside it, and the
+     team at the right edge. */
   .sgf-top {
     box-sizing: border-box;
     display: flex;
@@ -274,6 +328,80 @@ const socialDelay = next();
   .sgf-place {
     max-width: 100%;
     margin-bottom: 20px;
+  }
+
+  /* ── Our Team ───────────────────────────────────────────────────────────
+     Four roles, two by two: a small blue line icon beside each name, its
+     line underneath. No boxes. On a wide footer the block sits at the right
+     edge of the top row; narrower, it takes a row of its own under the rest. */
+  .sgf-team {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 600px;
+  }
+
+  @container (min-width: 1340px) {
+    .sgf-team {
+      flex: 1 1 0;
+      width: auto;
+      min-width: 0;
+      margin-left: auto;
+    }
+  }
+
+  .sgf-team__title {
+    margin-bottom: 1.6em;
+    color: var(--sgf-ink);
+    font-family: inherit;
+    font-size: 1.2em;
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: normal;
+  }
+
+  .sgf-team__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.9em clamp(20px, 3cqw, 48px);
+  }
+
+  /* Rows start at the top, so a role with a one-line description beside a
+     two-line one keeps its line tucked under its name. */
+  .sgf-team__role {
+    display: grid;
+    grid-template-columns: 18px minmax(0, 1fr);
+    align-content: start;
+    align-items: start;
+    column-gap: 12px;
+    row-gap: 0.3em;
+  }
+
+  /* Centred on the name's first line, even when the name wraps. */
+  .sgf-team__icon {
+    width: 18px;
+    height: 18px;
+    margin-top: calc((1.4em - 18px) / 2);
+    color: var(--sgf-accent);
+  }
+
+  .sgf-team__name {
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .sgf-team__text {
+    grid-column: 2;
+    color: var(--color-text);
+    line-height: 1.5;
+  }
+
+  /* The smallest phones: two columns leave each line about 100px, so the
+     roles stack one under another instead. */
+  @container (max-width: 359.98px) {
+    .sgf-team__list {
+      grid-template-columns: minmax(0, 1fr);
+      row-gap: 1.4em;
+    }
   }
 
   /* ── The wordmark ────────────────────────────────────────────────────── */
