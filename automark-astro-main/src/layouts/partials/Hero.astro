@@ -1,5 +1,4 @@
 ---
-import BackgroundPaths from "@/components/BackgroundPaths.astro";
 import Orbit from "@/components/Orbit.astro";
 import { whatsappUrl } from "@/lib/utils/contact";
 import type { Homepage } from "@/types";
@@ -33,11 +32,9 @@ const eyebrow = (banner.eyebrow ?? "")
 {/* What LapCircuit is, in one headline and one paragraph, and the two
     things to do next: see the work, or start a conversation. Along the foot
     of the first screen are the closing line and where we are. Behind it,
-    blue lines flow from corner to corner, and at its right the orbits of
-    what we build turn round the LapCircuit mark. */}
+    at its right, logos of software-development tools turn on three
+    orbits. */}
 <section class="hero">
-  <BackgroundPaths />
-
   <div class="wrap hero__inner">
     <div class="hero__main">
       <div class="hero__orbit">
@@ -104,8 +101,8 @@ const eyebrow = (banner.eyebrow ?? "")
      tall screen it stops growing at 60rem, so the next section is not
      pushed far away; where the content needs more room than the screen
      has (a phone held sideways), it simply grows. The top padding is the
-     fixed header's height (navigation.css). The background lines are
-     clipped to the hero, and the content sits above them. */
+     fixed header's height (navigation.css). The orbits are clipped to the
+     hero, and the content sits above them. */
   .hero {
     position: relative;
     display: flex;

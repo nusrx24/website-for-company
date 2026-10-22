@@ -22,14 +22,13 @@ the question, it does not belong in that section.
 
 Design rules that keep it that way:
 
-- **Static by default.** Seven things move by themselves: the band of light
+- **Static by default.** Six things move by themselves: the band of light
   on the button (`.btn-shiny`) and the 2px chrome edge round every picture
   (`.metal-frame`), both in `src/styles/components.css`; the section
   headlines, whose letters breathe from light to heavy (see below); the hero
-  headline, which is scanned (see below); the blue lines that
-  flow behind the hero (`BackgroundPaths.astro`, which pauses itself whenever
-  the hero is scrolled out of view); the orbits at the hero's right
-  (`Orbit.astro`, which also stops off screen); and the clients' logos, which change
+  headline, which is scanned (see below); the orbits at the hero's right
+  (`Orbit.astro`, which stops whenever the hero is scrolled out of view);
+  and the clients' logos, which change
   every two seconds (`LogoCarousel.astro`, which also stops off screen). Everything
   else only responds: hover and focus feedback, the phone menu opening, the
   header turning solid. The header's copy of the button uses `.btn-shiny--rest`
@@ -47,23 +46,27 @@ Design rules that keep it that way:
   sideways, one at a time, with the edge of the next showing and a row of
   dots underneath; stacked, they ran to more than four screens. The row is
   used up to 672px wide, which is where two receipts first fit side by side.
-- **The hero is type over moving lines.** LapCircuit as a software
+- **The hero is type beside turning orbits.** LapCircuit as a software
   solutions and development company: a small eyebrow (its middle dots in
   blue), one scanned headline, one paragraph, the shiny button to the work
   (`#work`) and a text link that opens WhatsApp, and along the foot of the
   first screen a closing line and where we are. All of it is under `banner`
   in `-index.md`; the eyebrow, closing line and location can each be left
   out. No picture, figures or list of services. The hero is one screen tall
-  (at most 60rem), with the headline block centred in it and the blue lines
-  of `BackgroundPaths.astro` behind it.
+  (at most 60rem), with the headline block centred in it. The blue lines
+  that used to flow behind it were removed at the owner's request;
+  `BackgroundPaths.astro` is kept but no longer used.
 - **Orbits behind the hero** (`Orbit.astro`, a port of a 21st.dev "stack
   feature section"). Three dotted rings, 20, 28 and 36em across, turn round
-  a disc with the LapCircuit mark once every 12, 18 and 24 seconds, carrying
-  17 round chips. The chips show what the software handles (billing, stock,
-  barcodes, reports, payments, desktop, mobile, cloud, websites, printing,
-  suppliers and so on, all named elsewhere on the page), not other
-  companies' logos, which would claim a technology or a partnership; each
-  icon stays upright as it travels. Where it sits and how large and strong
+  a disc with the React mark once every 12, 18 and 24 seconds, carrying the
+  component's own 17 logos in its own order and colours, at the owner's
+  request: React, AWS, Docker, Node.js, Next.js, Vercel, Redux, TypeScript,
+  GitHub, Twitter, LinkedIn, Instagram, Google, Apple, Facebook, a second
+  React logo and the Among Us crewmate. The drawings are in the site
+  (`src/lib/orbitIcons.ts`, copied from react-icons, with their licences
+  noted there; the two pictures in `public/images/orbit/`), so nothing is
+  fetched from another site. The black logos are drawn white on the dark
+  discs. Each logo stays upright as it travels. Where it sits and how large and strong
   it is are set by `.hero__orbit` in `Hero.astro`: full strength in the
   empty right half on a computer, smaller and faint at the screen's right
   edge on a tablet and a phone. It is decoration only (hidden from screen
