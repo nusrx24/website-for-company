@@ -26,7 +26,19 @@
 // Sizes are in em: the parent sets font-size to scale the whole system
 // (16px is the source's size). The root has no size of its own - it is the
 // centre point - so the parent places it with top/left/right.
+//
+// `links` makes a logo a link, e.g. { FaLinkedin: "https://..." }: it opens
+// in a new tab, and the rings stop while it is pointed at so it can be
+// clicked. It is a shortcut for the mouse and finger only (out of the tab
+// order, like the rest of this decoration), so the same address must also
+// be a real link elsewhere on the page.
 import { BRAND_ICONS } from "@/lib/orbitIcons";
+
+export interface Props {
+  links?: Partial<Record<keyof typeof BRAND_ICONS, string>>;
+}
+
+const { links = {} } = Astro.props as Props;
 
 type Chip =
   | { icon: keyof typeof BRAND_ICONS; color: string }
@@ -80,20 +92,28 @@ const centre = BRAND_ICONS.FaReact;
   {
     rings.map((ring) => (
       <div class="orbit__ring" style={`--size:${ring.size}em;--turn:${ring.turn}s`}>
-        {ring.chips.map(({ chip, x, y }) => (
-          <span class="orbit__chip" style={`left:${x}%;top:${y}%`}>
-            {"icon" in chip ? (
-              <svg
-                viewBox={BRAND_ICONS[chip.icon].viewBox}
-                fill="currentColor"
-                style={`color:${onDark(chip.color)}`}
-                set:html={BRAND_ICONS[chip.icon].svg}
-              />
-            ) : (
-              <img src={chip.img} alt="" width="32" height="32" decoding="async" />
-            )}
-          </span>
-        ))}
+        {ring.chips.map(({ chip, x, y }) => {
+          const href = "icon" in chip ? links[chip.icon] : undefined;
+          const colour = "icon" in chip ? `;color:${onDark(chip.color)}` : "";
+          const Tag = href ? "a" : "span";
+          return (
+            <Tag
+              class:list={["orbit__chip", { "orbit__chip--link": href }]}
+              style={`left:${x}%;top:${y}%${colour}`}
+              {...(href && { href, target: "_blank", rel: "noopener noreferrer", tabindex: "-1" })}
+            >
+              {"icon" in chip ? (
+                <svg
+                  viewBox={BRAND_ICONS[chip.icon].viewBox}
+                  fill="currentColor"
+                  set:html={BRAND_ICONS[chip.icon].svg}
+                />
+              ) : (
+                <img src={chip.img} alt="" width="32" height="32" decoding="async" />
+              )}
+            </Tag>
+          );
+        })}
       </div>
     ))
   }
@@ -144,6 +164,30 @@ const centre = BRAND_ICONS.FaReact;
       0 4px 6px -1px rgb(0 0 0 / 0.1),
       0 2px 4px -2px rgb(0 0 0 / 0.1);
     transform: translate(-50%, -50%);
+  }
+
+  /* A logo that is a link takes the pointer (the rest of the system lets
+     it through), and lights a ring in its own colour while pointed at. */
+  .orbit__chip--link {
+    pointer-events: auto;
+    cursor: pointer;
+    transition:
+      box-shadow 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  .orbit__chip--link:hover {
+    background-color: #273449;
+    box-shadow:
+      0 0 0 2px currentColor,
+      0 4px 6px -1px rgb(0 0 0 / 0.1);
+  }
+
+  /* While a linked logo is pointed at, everything holds still under the
+     pointer so it can be clicked. */
+  .orbit:has(.orbit__chip--link:hover) .orbit__ring,
+  .orbit:has(.orbit__chip--link:hover) .orbit__chip > * {
+    animation-play-state: paused;
   }
 
   /* Turning back as fast as the ring turns forward keeps the logo upright. */

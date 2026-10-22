@@ -1,7 +1,8 @@
 ---
 import Orbit from "@/components/Orbit.astro";
+import social from "@/config/social.json";
 import { whatsappUrl } from "@/lib/utils/contact";
-import type { Homepage } from "@/types";
+import type { Homepage, SocialType } from "@/types";
 
 export interface Props {
   banner: Homepage["banner"];
@@ -21,6 +22,12 @@ const linkTo = (action: Action) =>
 const primary = linkTo(banner.button_primary);
 const secondary = linkTo(banner.link_secondary);
 
+// The LinkedIn logo in the orbits opens the company's LinkedIn: the same
+// address as the LinkedIn button in the footer (social.json), so changing
+// it there changes both.
+const linkedin = (social as SocialType).main.find((item) => item.name === "LinkedIn")?.link;
+const orbitLinks = linkedin ? { FaLinkedin: linkedin } : {};
+
 // The eyebrow's words, taken apart at the middle dots so the dots can be
 // set in blue. They are hidden from screen readers, which hear the words.
 const eyebrow = (banner.eyebrow ?? "")
@@ -38,7 +45,7 @@ const eyebrow = (banner.eyebrow ?? "")
   <div class="wrap hero__inner">
     <div class="hero__main">
       <div class="hero__orbit">
-        <Orbit />
+        <Orbit links={orbitLinks} />
       </div>
 
       {
@@ -127,6 +134,23 @@ const eyebrow = (banner.eyebrow ?? "")
     padding-block: clamp(2.5rem, 7vh, 5rem) clamp(2.5rem, 6vh, 4rem);
   }
 
+  /* The orbits lie behind this block, and its boxes reach across the empty
+     right half too, so a click there would land on an empty box instead of
+     the LinkedIn logo. The empty boxes let the pointer through; the words,
+     the button and the link still take it as before. */
+  .hero__main,
+  .hero__title,
+  .hero__actions {
+    pointer-events: none;
+  }
+
+  .hero__eyebrow,
+  .scan,
+  .hero__lead,
+  .hero__actions > * {
+    pointer-events: auto;
+  }
+
   /* ── Orbits (Orbit.astro) ─────────────────────────────────────────────
      This box is the orbits' centre point, behind the text. The hero clips
      whatever runs past its edges, so nothing ever scrolls sideways.
@@ -186,6 +210,7 @@ const eyebrow = (banner.eyebrow ?? "")
   /* Understated: small, grey, tracked capitals. The dots between the words
      are the only blue before the button. */
   .hero__eyebrow {
+    width: fit-content;
     margin-bottom: clamp(1.25rem, 2.4vw, 1.75rem);
     color: var(--color-text-dark);
     font-family: var(--font-primary);
