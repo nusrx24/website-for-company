@@ -1,4 +1,5 @@
 ---
+import BackgroundPaths from "@/components/BackgroundPaths.astro";
 import { whatsappUrl } from "@/lib/utils/contact";
 import type { Homepage } from "@/types";
 
@@ -29,10 +30,12 @@ const eyebrow = (banner.eyebrow ?? "")
 ---
 
 {/* What LapCircuit is, in one headline and one paragraph, and the two
-    things to do next: see the work, or start a conversation. Nothing on it
-    moves by itself; the type carries it. Along the foot of the first screen
-    are the closing line and where we are. */}
+    things to do next: see the work, or start a conversation. Along the foot
+    of the first screen are the closing line and where we are. Behind it,
+    blue lines flow from corner to corner. */}
 <section class="hero">
+  <BackgroundPaths />
+
   <div class="wrap hero__inner">
     <div class="hero__main">
       {
@@ -53,13 +56,21 @@ const eyebrow = (banner.eyebrow ?? "")
         )
       }
 
-      <h1 class="hero__title">{banner.title}</h1>
+      {/* The headline is scanned: dim, but for a band of full strength that
+          sweeps across it and back with a thin blue line. See "Scanner" in
+          the styles below. */}
+      <h1 class="hero__title" data-scan>
+        <span class="scan">
+          <span class="scan__text">{banner.title}</span>
+          <span class="scan__line" aria-hidden="true"></span>
+        </span>
+      </h1>
 
       <p class="hero__lead">{banner.content}</p>
 
       <div class="hero__actions">
-        <a class="btn hero__btn" {...primary}>
-          {banner.button_primary.label}
+        <a class="btn btn-shiny" {...primary}>
+          <span>{banner.button_primary.label}</span>
         </a>
         {/* data-page-cta: while this is on screen the header's "Request a
             Demo" steps aside, so two ways to contact us are never shown
@@ -87,16 +98,21 @@ const eyebrow = (banner.eyebrow ?? "")
      tall screen it stops growing at 60rem, so the next section is not
      pushed far away; where the content needs more room than the screen
      has (a phone held sideways), it simply grows. The top padding is the
-     fixed header's height (navigation.css). */
+     fixed header's height (navigation.css). The background lines are
+     clipped to the hero, and the content sits above them. */
   .hero {
+    position: relative;
     display: flex;
     flex-direction: column;
     min-height: min(100vh, 60rem);
     min-height: min(100svh, 60rem);
     padding-top: 3.75rem;
+    overflow: hidden;
   }
 
   .hero__inner {
+    position: relative;
+    z-index: 1;
     display: flex;
     flex: 1;
     flex-direction: column;
@@ -137,6 +153,113 @@ const eyebrow = (banner.eyebrow ?? "")
     letter-spacing: -0.035em;
   }
 
+  /* ── Scanner ──────────────────────────────────────────────────────────
+     A port of the "text scanner" component. The headline is shown at a
+     quarter of its strength, except for a band at full strength that sweeps
+     across it and back; a thin blue line with a glow travels with the band.
+     The component's own values: 2.6s each way, eased in and out, the band
+     the middle fifth of a gradient 2.4 times as wide as the text.
+
+     The component paints its letters with that moving gradient. Here the
+     same gradient is a mask laid over the headline instead: the picture is
+     the same, and the letters keep their own colour under it.
+
+     .scan is the block the line crosses. It hugs the words - the script at
+     the foot of this file sets its width to the longest line when the
+     headline wraps - so the line turns round where the words end.
+
+     Without JavaScript the sweep still runs. For anyone who has asked for
+     less motion, none of this applies and the headline is simply there. */
+  .scan {
+    position: relative;
+    display: inline-block;
+    max-width: 100%;
+    vertical-align: top;
+  }
+
+  .scan__text {
+    display: block;
+  }
+
+  .scan__line {
+    display: none;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    /* The padding (given back as margin) is room for the tails of letters:
+       a mask cuts off anything outside the box it is laid on. */
+    .scan__text {
+      margin: -0.2em -0.06em;
+      padding: 0.2em 0.06em;
+      -webkit-mask-image: linear-gradient(
+        90deg,
+        rgb(0 0 0 / 0.25) 0 40%,
+        #000 50%,
+        rgb(0 0 0 / 0.25) 60% 100%
+      );
+      mask-image: linear-gradient(
+        90deg,
+        rgb(0 0 0 / 0.25) 0 40%,
+        #000 50%,
+        rgb(0 0 0 / 0.25) 60% 100%
+      );
+      -webkit-mask-size: 240% 100%;
+      mask-size: 240% 100%;
+      animation: hero-scan-text 2.6s ease-in-out infinite alternate;
+    }
+
+    /* As wide as the text, with the visible line at its left edge: sliding
+       the whole strip by its own width carries the line from one end of the
+       text to the other without the browser laying anything out again. */
+    .scan__line {
+      position: absolute;
+      top: -0.375rem;
+      bottom: -0.375rem;
+      left: 0;
+      display: block;
+      width: 100%;
+      pointer-events: none;
+      animation: hero-scan-line 2.6s ease-in-out infinite alternate;
+    }
+
+    .scan__line::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      width: 0.125rem;
+      background: var(--color-primary);
+      box-shadow: 0 0 14px var(--color-primary);
+    }
+
+    /* Scrolled out of view: stop redrawing. The script sets this. */
+    .hero__title.is-paused .scan__text,
+    .hero__title.is-paused .scan__line {
+      animation-play-state: paused;
+    }
+  }
+
+  @keyframes hero-scan-text {
+    from {
+      -webkit-mask-position: 100% 0;
+      mask-position: 100% 0;
+    }
+    to {
+      -webkit-mask-position: 0% 0;
+      mask-position: 0% 0;
+    }
+  }
+
+  @keyframes hero-scan-line {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(calc(100% - 0.125rem));
+    }
+  }
+
   /* About sixty characters to a line, narrower than the headline above. */
   .hero__lead {
     max-width: 36rem;
@@ -155,30 +278,8 @@ const eyebrow = (banner.eyebrow ?? "")
     margin-top: clamp(2rem, 3.4vw, 2.75rem);
   }
 
-  /* The main action: a solid blue pill with near-black lettering (6.5:1).
-     It is the largest patch of blue on the screen, so the eye finds it
-     without a glow or moving light. */
-  .hero__btn {
-    min-height: 3.25rem;
-    padding: 0 1.75rem;
-    border-radius: 360px;
-    background-color: var(--color-primary);
-    color: var(--color-body);
-    font-size: 0.9375rem;
-    font-weight: 600;
-    transition: background-color 0.15s ease;
-  }
-
-  .hero__btn:hover,
-  .hero__btn:focus-visible {
-    background-color: var(--color-primary-light);
-  }
-
-  .hero__btn:active {
-    translate: 0 1px;
-  }
-
-  /* The second action is a link, not a second button: underlined text at
+  /* The main action is the site's shiny button (components.css), with its
+     light travelling round the border. The second action is a link, not a second button: underlined text at
      the button's size, a fingertip tall. */
   .hero__link {
     display: inline-flex;
@@ -263,3 +364,48 @@ const eyebrow = (banner.eyebrow ?? "")
     }
   }
 </style>
+
+<script>
+  // Two small jobs for the scanned headline.
+  //
+  // The scanner's line should turn round where the words end. When the
+  // headline wraps, a wrapped block is as wide as the space it is in rather
+  // than as its longest line, so the longest line is measured and the block
+  // is made that wide. (Every line already fits in that width, so nothing
+  // re-wraps.)
+  //
+  // And the sweep rests while the headline is scrolled out of view.
+  document.querySelectorAll<HTMLElement>("[data-scan]").forEach((title) => {
+    const block = title.querySelector<HTMLElement>(".scan");
+    const text = title.querySelector<HTMLElement>(".scan__text");
+    if (!block || !text) return;
+
+    let fitted = -1;
+    const fit = () => {
+      block.style.width = "";
+      const left = block.getBoundingClientRect().left;
+      const range = document.createRange();
+      range.selectNodeContents(text);
+
+      let right = 0;
+      for (const box of range.getClientRects()) right = Math.max(right, box.right - left);
+      if (right > 0) block.style.width = `${Math.ceil(right)}px`;
+      fitted = title.clientWidth;
+    };
+
+    fit();
+    document.fonts?.ready.then(fit);
+
+    if (typeof ResizeObserver === "function") {
+      new ResizeObserver(() => {
+        if (title.clientWidth !== fitted) requestAnimationFrame(fit);
+      }).observe(title);
+    }
+
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(([entry]) => {
+        title.classList.toggle("is-paused", !entry.isIntersecting);
+      }).observe(title);
+    }
+  });
+</script>

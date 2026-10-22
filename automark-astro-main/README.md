@@ -22,12 +22,14 @@ the question, it does not belong in that section.
 
 Design rules that keep it that way:
 
-- **Static by default.** Four things move by themselves: the band of light
+- **Static by default.** Six things move by themselves: the band of light
   on the button (`.btn-shiny`) and the 2px chrome edge round every picture
   (`.metal-frame`), both in `src/styles/components.css`; the section
-  headlines, whose letters breathe from light to heavy (see below); and the
-  clients' logos, which change every two seconds (`LogoCarousel.astro`,
-  which also stops off screen). The hero does not move at all. Everything
+  headlines, whose letters breathe from light to heavy (see below); the hero
+  headline, which is scanned (see below); the blue lines that
+  flow behind the hero (`BackgroundPaths.astro`, which pauses itself whenever
+  the hero is scrolled out of view); and the clients' logos, which change
+  every two seconds (`LogoCarousel.astro`, which also stops off screen). Everything
   else only responds: hover and focus feedback, the phone menu opening, the
   header turning solid. The header's copy of the button uses `.btn-shiny--rest`
   so it stays still until hovered, a button's light rests while that button
@@ -44,16 +46,15 @@ Design rules that keep it that way:
   sideways, one at a time, with the edge of the next showing and a row of
   dots underneath; stacked, they ran to more than four screens. The row is
   used up to 672px wide, which is where two receipts first fit side by side.
-- **The hero is type and nothing else.** LapCircuit as a software
+- **The hero is type over moving lines.** LapCircuit as a software
   solutions and development company: a small eyebrow (its middle dots in
-  blue), one headline, one paragraph, a solid blue button to the work
+  blue), one scanned headline, one paragraph, the shiny button to the work
   (`#work`) and a text link that opens WhatsApp, and along the foot of the
   first screen a closing line and where we are. All of it is under `banner`
   in `-index.md`; the eyebrow, closing line and location can each be left
-  out. No picture, background effect, figures or list of services. The hero
-  is one screen tall (at most 60rem), with the headline block centred in it.
-  `BackgroundPaths.astro` (the blue lines that used to flow behind it) is no
-  longer used.
+  out. No picture, figures or list of services. The hero is one screen tall
+  (at most 60rem), with the headline block centred in it and the blue lines
+  of `BackgroundPaths.astro` behind it.
 - **The footer is a dark slate block** (the colour of the site's panels) in
   off-white monospace capitals. Its whole palette is four variables at the
   top of the styles in `Footer.astro`: `--sgf-bg` (the ground), `--sgf-top`
@@ -147,15 +148,20 @@ Design rules that keep it that way:
   (`src/lib/breathe.ts` and "Breathing headline" in `components.css`). The
   script pins each headline's line breaks at its heaviest first, so the
   moving letters never re-wrap a line or push the page about. It is on the
-  four section headlines. The hero headline stays still: it is set at
-  weight 650 with the letters drawn in close, all in off-white.
+  four section headlines. The hero headline has an effect of its own.
+- **The hero headline is scanned.** It is shown at a quarter of its strength
+  except for a band at full strength that sweeps across it and back every
+  2.6 seconds, with a thin glowing blue line travelling with the band
+  ("Scanner" in `Hero.astro`, a port of a "text scanner" component). A
+  small script makes the line turn round where the words end when the
+  headline wraps, and rests the sweep off screen. With reduced motion the
+  headline is simply there, at full strength.
 - **Framing a picture.** Wrap the image in `<div class="metal-frame">`, or put
   the class on a `<figure>` that holds only the image. It is plain CSS: no
   shader library and no canvas.
-- **One button style, and the hero's.** Markup is
+- **One button style.** Markup is
   `<a class="btn btn-shiny"><span>Label</span></a>`; the inner `<span>` is
-  required. Add `btn-sm` for the small size. The hero's "Explore Our Work"
-  is the exception: a still, solid blue pill (`.hero__btn` in `Hero.astro`).
+  required. Add `btn-sm` for the small size.
 - **Calls to action.** The hero offers "Explore Our Work" and "Discuss a
   Project" (WhatsApp). The header carries a small "Request a Demo" that
   hides itself while the hero's "Discuss a Project" is on screen
