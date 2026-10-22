@@ -1,5 +1,6 @@
 ---
 import BackgroundPaths from "@/components/BackgroundPaths.astro";
+import Orbit from "@/components/Orbit.astro";
 import { whatsappUrl } from "@/lib/utils/contact";
 import type { Homepage } from "@/types";
 
@@ -32,12 +33,17 @@ const eyebrow = (banner.eyebrow ?? "")
 {/* What LapCircuit is, in one headline and one paragraph, and the two
     things to do next: see the work, or start a conversation. Along the foot
     of the first screen are the closing line and where we are. Behind it,
-    blue lines flow from corner to corner. */}
+    blue lines flow from corner to corner, and at its right the orbits of
+    what we build turn round the LapCircuit mark. */}
 <section class="hero">
   <BackgroundPaths />
 
   <div class="wrap hero__inner">
     <div class="hero__main">
+      <div class="hero__orbit">
+        <Orbit />
+      </div>
+
       {
         eyebrow.length > 0 && (
           <p class="hero__eyebrow">
@@ -119,8 +125,65 @@ const eyebrow = (banner.eyebrow ?? "")
   }
 
   .hero__main {
+    position: relative;
     margin-block: auto;
     padding-block: clamp(2.5rem, 7vh, 5rem) clamp(2.5rem, 6vh, 4rem);
+  }
+
+  /* ── Orbits (Orbit.astro) ─────────────────────────────────────────────
+     This box is the orbits' centre point, behind the text. The hero clips
+     whatever runs past its edges, so nothing ever scrolls sideways.
+
+     On a phone and a tablet the centre sits on the right edge of the
+     screen, so only the left half of the rings shows, like the source cut
+     off at its edge: on a phone level with the headline, whose large
+     letters bear a faint background better than the paragraph does; on a
+     tablet higher, in the empty space beside the eyebrow. There the rings
+     pass behind words, so they are drawn faintly and smaller. On a computer they
+     have the empty right side to themselves, at full strength: the centre
+     on the right edge of the screen up to 1200px wide, and from there on
+     the right edge of the content, where the outer ring just clears the
+     end of the headline. */
+  .hero__orbit {
+    position: absolute;
+    top: 20%;
+    right: -1.25rem;
+    z-index: -1;
+    width: 0;
+    height: 0;
+    font-size: 9px;
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  @media (min-width: 640px) {
+    .hero__orbit {
+      top: 10%;
+      right: -2rem;
+      font-size: 13px;
+      opacity: 0.5;
+    }
+  }
+
+  @media (min-width: 900px) {
+    .hero__orbit {
+      top: 50%;
+      font-size: 14px;
+      opacity: 1;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .hero__orbit {
+      right: -2.5rem;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .hero__orbit {
+      right: 0;
+      font-size: 16px;
+    }
   }
 
   /* Understated: small, grey, tracked capitals. The dots between the words

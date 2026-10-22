@@ -1,0 +1,205 @@
+---
+// Orbits for behind a section: a centre disc with the LapCircuit mark, and
+// three dotted rings turning round it, each carrying small round chips.
+//
+// A port of the 21st.dev "stack feature section" orbit to plain Astro and
+// CSS. Kept from it: three rings 20, 28 and 36em across (12em, plus 8em a
+// ring), turning once every 12, 18 and 24 seconds; a 6em centre disc; 2.5em
+// chips spaced evenly, six to a ring, so the last ring, with five, has one
+// gap as in the source.
+//
+// Changed, on purpose:
+// - The chips carry what LapCircuit's software handles - billing, stock,
+//   reports and the rest, all named elsewhere on the page - instead of other
+//   companies' logos (React, AWS, Google, Apple...), which would say we use
+//   or partner with them.
+// - The icons are drawn in the page, so nothing is fetched from another site.
+// - Each icon turns back against its ring, so it stays upright as it travels.
+//
+// Sizes are in em: the parent sets font-size to scale the whole system
+// (16px is the source's size). The root has no size of its own - it is the
+// centre point - so the parent places it with top/left/right.
+
+// Line icons on a 24x24 grid, drawn like the site's other icons.
+const ICONS = {
+  receipt:
+    '<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M8 7h8M8 11h8M8 15h5"/>',
+  stock:
+    '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
+  barcode:
+    '<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M8 7v10M12 7v10M16 7v10"/>',
+  reports: '<path d="M3 3v18h18"/><path d="M8 16v-4M13 16V8M18 16v-6"/>',
+  customers:
+    '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+  payments: '<rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/>',
+  desktop: '<rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/>',
+  mobile: '<rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/>',
+  cloud: '<path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/>',
+  website:
+    '<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>',
+  branches: '<path d="M3 9 4.5 4h15L21 9"/><path d="M3 9h18"/><path d="M5 9v11h14V9"/><path d="M10 20v-5h4v5"/>',
+  printer:
+    '<path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/>',
+  code: '<path d="m16 18 6-6-6-6M8 6l-6 6 6 6"/>',
+  integrate: '<path d="M12 22v-5M9 8V2M15 8V2"/><path d="M18 8v5a4 4 0 0 1-4 4h-4a4 4 0 0 1-4-4V8Z"/>',
+  suppliers:
+    '<path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2M15 18H9M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.62l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/>',
+  orders:
+    '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M12 11h4M12 16h4M8 11h.01M8 16h.01"/>',
+  cash: '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/>',
+};
+
+// Inside out: the counter, the platforms it runs on, and what joins it all
+// together - build, integrate, evolve.
+const ORDER: (keyof typeof ICONS)[] = [
+  "receipt", "stock", "barcode", "reports", "customers", "payments",
+  "desktop", "mobile", "cloud", "website", "branches", "printer",
+  "code", "integrate", "suppliers", "orders", "cash",
+];
+
+const RINGS = 3;
+const perRing = Math.ceil(ORDER.length / RINGS);
+const step = (2 * Math.PI) / perRing;
+const pct = (n: number) => +(50 + 50 * n).toFixed(3);
+
+const rings = Array.from({ length: RINGS }, (_, r) => ({
+  size: 12 + 8 * (r + 1),
+  turn: 12 + r * 6,
+  chips: ORDER.slice(r * perRing, r * perRing + perRing).map((name, i) => ({
+    icon: ICONS[name],
+    x: pct(Math.cos(i * step)),
+    y: pct(Math.sin(i * step)),
+  })),
+}));
+---
+
+{/* Decoration only: hidden from assistive tech, never in the way of a
+    click, and still for anyone who has asked for less motion. */}
+<div class="orbit" data-orbit aria-hidden="true">
+  {
+    rings.map((ring) => (
+      <div class="orbit__ring" style={`--size:${ring.size}em;--turn:${ring.turn}s`}>
+        {ring.chips.map((chip) => (
+          <span class="orbit__chip" style={`left:${chip.x}%;top:${chip.y}%`}>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.75"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              set:html={chip.icon}
+            />
+          </span>
+        ))}
+      </div>
+    ))
+  }
+  <span class="orbit__centre">
+    <img src="/images/logo-mark.svg" alt="" width="640" height="440" decoding="async" />
+  </span>
+</div>
+
+<style>
+  /* Colours: the rings are dotted lines of the site's grey, the chips and
+     the centre the dark slate of its panels, the icons its lighter blue. */
+  .orbit {
+    --orbit-ring: color-mix(in srgb, var(--color-text-dark) 45%, transparent);
+    --orbit-chip: color-mix(in srgb, var(--color-light) 94%, #fff);
+    --orbit-icon: var(--color-primary-light);
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+    pointer-events: none;
+  }
+
+  .orbit__ring {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: var(--size);
+    height: var(--size);
+    margin: calc(var(--size) / -2);
+    border: 2px dotted var(--orbit-ring);
+    border-radius: 50%;
+    animation: orbit-turn var(--turn) linear infinite;
+  }
+
+  .orbit__chip {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5em;
+    height: 2.5em;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    background-color: var(--orbit-chip);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5);
+    color: var(--orbit-icon);
+    transform: translate(-50%, -50%);
+  }
+
+  /* Turning back as fast as the ring turns forward keeps the icon upright. */
+  .orbit__chip svg {
+    width: 1.375em;
+    height: 1.375em;
+    animation: orbit-turn var(--turn) linear infinite reverse;
+  }
+
+  .orbit__centre {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 6em;
+    height: 6em;
+    margin: -3em;
+    border: 1px solid var(--color-border);
+    border-radius: 50%;
+    background-color: var(--orbit-chip);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.6);
+  }
+
+  .orbit__centre img {
+    width: 3.75em;
+    height: auto;
+  }
+
+  @keyframes orbit-turn {
+    to {
+      rotate: 360deg;
+    }
+  }
+
+  /* Scrolled out of view: stop turning. The script below sets this. */
+  .orbit.is-paused .orbit__ring,
+  .orbit.is-paused .orbit__chip svg {
+    animation-play-state: paused;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .orbit__ring,
+    .orbit__chip svg {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  // Twenty turning pieces have a cost, so they only turn while they can be
+  // seen.
+  if ("IntersectionObserver" in window) {
+    document.querySelectorAll<HTMLElement>("[data-orbit]").forEach((el) => {
+      const ring = el.querySelector<HTMLElement>(".orbit__ring:last-of-type");
+      new IntersectionObserver(([entry]) => {
+        el.classList.toggle("is-paused", !entry.isIntersecting);
+      }).observe(ring ?? el);
+    });
+  }
+</script>

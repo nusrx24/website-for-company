@@ -22,13 +22,14 @@ the question, it does not belong in that section.
 
 Design rules that keep it that way:
 
-- **Static by default.** Six things move by themselves: the band of light
+- **Static by default.** Seven things move by themselves: the band of light
   on the button (`.btn-shiny`) and the 2px chrome edge round every picture
   (`.metal-frame`), both in `src/styles/components.css`; the section
   headlines, whose letters breathe from light to heavy (see below); the hero
   headline, which is scanned (see below); the blue lines that
   flow behind the hero (`BackgroundPaths.astro`, which pauses itself whenever
-  the hero is scrolled out of view); and the clients' logos, which change
+  the hero is scrolled out of view); the orbits at the hero's right
+  (`Orbit.astro`, which also stops off screen); and the clients' logos, which change
   every two seconds (`LogoCarousel.astro`, which also stops off screen). Everything
   else only responds: hover and focus feedback, the phone menu opening, the
   header turning solid. The header's copy of the button uses `.btn-shiny--rest`
@@ -55,6 +56,18 @@ Design rules that keep it that way:
   out. No picture, figures or list of services. The hero is one screen tall
   (at most 60rem), with the headline block centred in it and the blue lines
   of `BackgroundPaths.astro` behind it.
+- **Orbits behind the hero** (`Orbit.astro`, a port of a 21st.dev "stack
+  feature section"). Three dotted rings, 20, 28 and 36em across, turn round
+  a disc with the LapCircuit mark once every 12, 18 and 24 seconds, carrying
+  17 round chips. The chips show what the software handles (billing, stock,
+  barcodes, reports, payments, desktop, mobile, cloud, websites, printing,
+  suppliers and so on, all named elsewhere on the page), not other
+  companies' logos, which would claim a technology or a partnership; each
+  icon stays upright as it travels. Where it sits and how large and strong
+  it is are set by `.hero__orbit` in `Hero.astro`: full strength in the
+  empty right half on a computer, smaller and faint at the screen's right
+  edge on a tablet and a phone. It is decoration only (hidden from screen
+  readers), stops off screen, and is still for reduced motion.
 - **The footer is a dark slate block** (the colour of the site's panels) in
   off-white monospace capitals. Its whole palette is four variables at the
   top of the styles in `Footer.astro`: `--sgf-bg` (the ground), `--sgf-top`
