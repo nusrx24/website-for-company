@@ -2,6 +2,6 @@
   "_comment": "Profile links only. The email address and phone number live in config.json so they are never duplicated.",
   "main": [
     { "name": "Facebook", "link": "https://www.facebook.com/share/1DG333Txap/" },
-    { "name": "LinkedIn", "link": "https://www.linkedin.com/in/lap-circuit-235433442" }
+    { "name": "LinkedIn", "link": "https://www.linkedin.com/company/lapcircuit/" }
   ]
 }
