@@ -1,19 +1,23 @@
 ---
 ## HERO ########################################################################
 # Answers: what does LapCircuit do?
+# A software solutions and development company; POS is part of the work,
+# not the whole of it. No figures, client names or service lists here.
 banner:
-  # Words between ** ** are lit in the brand's blue; the rest in white.
-  title: "Run your **business.**<br>Your **way.**"
-  # One short sentence picked out with a blue highlighter under the headline:
-  # how the software is paid for. Leave it out and nothing is shown.
-  promise: "One-time payment. Yours for life."
-  content: "Affordable POS and business management software built around the way your business actually works — from offline desktop systems to dedicated desktop applications and cloud-based desktop + mobile solutions."
+  eyebrow: "BUILD · INTEGRATE · EVOLVE"
+  title: "Software for the problems worth solving."
+  content: "LapCircuit designs, develops, and integrates software that turns real-world challenges into practical digital solutions. From business systems to custom applications, we build around the problem, the people, and the way things need to work."
+  # The button goes to the clients; the link opens WhatsApp. To send the
+  # link to the footer's contact block instead, set its link to "#contact".
   button_primary:
-    label: "Request a Demo"
-    link: "whatsapp"
+    label: "Explore Our Work"
+    link: "#work"
   link_secondary:
-    label: "See Our Solutions"
-    link: "#solutions"
+    label: "Discuss a Project"
+    link: "whatsapp"
+    enquiry: "Hello LapCircuit, I would like to discuss a project."
+  closing: "Practical engineering. Purposeful solutions. Built to evolve."
+  location: "Based in Sri Lanka"
 
 ## ABOUT ########################################################################
 # Communicates the value of customized POS & business systems immediately.

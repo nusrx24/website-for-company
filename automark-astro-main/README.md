@@ -22,14 +22,12 @@ the question, it does not belong in that section.
 
 Design rules that keep it that way:
 
-- **Static by default.** Six things move by themselves: the band of light
+- **Static by default.** Four things move by themselves: the band of light
   on the button (`.btn-shiny`) and the 2px chrome edge round every picture
   (`.metal-frame`), both in `src/styles/components.css`; the section
-  headlines, whose letters breathe from light to heavy (see below); the hero
-  headline, which is scanned (see below); the blue lines that
-  flow behind the hero (`BackgroundPaths.astro`, which pauses itself whenever
-  the hero is scrolled out of view); and the clients' logos, which change
-  every two seconds (`LogoCarousel.astro`, which also stops off screen). Everything
+  headlines, whose letters breathe from light to heavy (see below); and the
+  clients' logos, which change every two seconds (`LogoCarousel.astro`,
+  which also stops off screen). The hero does not move at all. Everything
   else only responds: hover and focus feedback, the phone menu opening, the
   header turning solid. The header's copy of the button uses `.btn-shiny--rest`
   so it stays still until hovered, a button's light rests while that button
@@ -46,11 +44,16 @@ Design rules that keep it that way:
   sideways, one at a time, with the edge of the next showing and a row of
   dots underneath; stacked, they ran to more than four screens. The row is
   used up to 672px wide, which is where two receipts first fit side by side.
-- **One highlighted sentence under the hero headline.** `banner.promise`
-  (how the software is paid for) is picked out in blue like a highlighter,
-  between the headline and the opening sentence. Leave it out of
-  `-index.md` and nothing is shown. It replaced the panel of pricing notes
-  that used to sit under the receipts.
+- **The hero is type and nothing else.** LapCircuit as a software
+  solutions and development company: a small eyebrow (its middle dots in
+  blue), one headline, one paragraph, a solid blue button to the work
+  (`#work`) and a text link that opens WhatsApp, and along the foot of the
+  first screen a closing line and where we are. All of it is under `banner`
+  in `-index.md`; the eyebrow, closing line and location can each be left
+  out. No picture, background effect, figures or list of services. The hero
+  is one screen tall (at most 60rem), with the headline block centred in it.
+  `BackgroundPaths.astro` (the blue lines that used to flow behind it) is no
+  longer used.
 - **The footer is a dark slate block** (the colour of the site's panels) in
   off-white monospace capitals. Its whole palette is four variables at the
   top of the styles in `Footer.astro`: `--sgf-bg` (the ground), `--sgf-top`
@@ -144,26 +147,20 @@ Design rules that keep it that way:
   (`src/lib/breathe.ts` and "Breathing headline" in `components.css`). The
   script pins each headline's line breaks at its heaviest first, so the
   moving letters never re-wrap a line or push the page about. It is on the
-  four section headlines. The hero headline has an effect of its own.
-- **The hero headline is scanned.** It is shown at a quarter of its strength
-  except for a band at full strength that sweeps across it and back every
-  2.6 seconds, with a thin glowing blue line travelling with the band
-  ("Scanner" in `Hero.astro`, a port of a "text scanner" component). It is
-  a moving mask over the headline, so the blue words keep their colour. A
-  small script makes the line turn round where the words end when the
-  headline wraps on a phone, and rests the sweep off screen. With reduced
-  motion the headline is simply there, at full strength.
-- **Blue words in the hero headline.** In `banner.title`, words wrapped in
-  `**two asterisks**` are set in the brand's blue; the rest are white.
+  four section headlines. The hero headline stays still: it is set at
+  weight 650 with the letters drawn in close, all in off-white.
 - **Framing a picture.** Wrap the image in `<div class="metal-frame">`, or put
   the class on a `<figure>` that holds only the image. It is plain CSS: no
   shader library and no canvas.
-- **One button style.** Markup is
+- **One button style, and the hero's.** Markup is
   `<a class="btn btn-shiny"><span>Label</span></a>`; the inner `<span>` is
-  required. Add `btn-sm` for the small size.
-- **One call to action, plus a quote button on each receipt.** "Request a
-  Demo" appears in the hero. The header carries a small copy that hides
-  itself while the hero's is on screen. The closing section has no button
+  required. Add `btn-sm` for the small size. The hero's "Explore Our Work"
+  is the exception: a still, solid blue pill (`.hero__btn` in `Hero.astro`).
+- **Calls to action.** The hero offers "Explore Our Work" and "Discuss a
+  Project" (WhatsApp). The header carries a small "Request a Demo" that
+  hides itself while the hero's "Discuss a Project" is on screen
+  (`data-page-cta`), so two ways to contact us are never side by side.
+  Each receipt has its own quote button. The closing section has no button
   (removed at the owner's request; `final_cta.button` in `-index.md` is
   optional and brings one back). Do not add buttons inside sections.
 - **The About section is a statement, a picture and one sentence.** The
@@ -196,9 +193,9 @@ sideways) are where a layout meant for one or the other goes wrong unseen.
   the menu button, the footer's social names and links.
 - **The header is 60px tall** below 900px wide (72px above), and in-page
   links stop with a section's top line directly beneath it.
-- **The hero headline is sized from the screen's width** (three lines on a
-  phone), and "Request a Demo" runs the full width in the hero, on the
-  first screen.
+- **The hero's button is on the first screen** at every size from 320 x 568
+  up, a phone held sideways included. On a phone the headline takes three
+  lines and the button runs the full width, with the link centred under it.
 - **The footer's page links sit two to a row.**
 - **Text is never below 11px**, and receipts are a size larger than on a
   computer.

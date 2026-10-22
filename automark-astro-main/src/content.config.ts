@@ -26,16 +26,29 @@ const homepageCollection = defineCollection({
   loader: glob({ pattern: "**/-*.md", base: "src/content/homepage" }),
   schema: z.object({
     banner: z.object({
+      // Small line above the headline. Middle dots (·) in it are set in blue.
+      eyebrow: z.string().optional(),
       title: z.string(),
-      // One short sentence shown highlighted under the headline: how the
-      // software is paid for.
-      promise: z.string().optional(),
       content: z.string(),
       // `link: "whatsapp"` resolves to the number in config.json at render time,
-      // so the phone number is never duplicated into content files.
-      button_primary: z.object({ label: z.string(), link: z.string() }),
+      // so the phone number is never duplicated into content files; `enquiry`
+      // is then the message it starts. Anything else is a plain href, such as
+      // a section's anchor.
+      button_primary: z.object({
+        label: z.string(),
+        link: z.string(),
+        enquiry: z.string().optional(),
+      }),
       // A plain text link, not a second button.
-      link_secondary: z.object({ label: z.string(), link: z.string() }),
+      link_secondary: z.object({
+        label: z.string(),
+        link: z.string(),
+        enquiry: z.string().optional(),
+      }),
+      // The quiet line along the foot of the hero, and where we are, at its
+      // right. Either can be left out.
+      closing: z.string().optional(),
+      location: z.string().optional(),
     }),
 
     about: z.object({
